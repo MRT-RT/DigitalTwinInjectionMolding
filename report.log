@@ -1,0 +1,6 @@
+2021-04-14 14:20:33,651 - optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
+2021-04-14 14:20:56,176 - optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
+2021-04-15 10:10:32,113 - optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
+2021-04-15 10:13:00,167 - optim.DiscreteBoundedPSO - INFO - Optimization finished | best cost: 0.002519292654361298, best pos: [0 1 1]
+2021-04-20 16:29:51,301 - optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
+2021-04-20 16:41:00,733 - optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
