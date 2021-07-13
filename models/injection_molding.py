@@ -19,18 +19,7 @@ class ProcessModel():
 
     def __init__(self):
         
-        self.NumStates = None
-        
-        # self.switching_points = None
-        # self.RefTrajectoryParams = None
-        
-        # self.RefTrajectoryInject = None
-        # self.RefTrajectoryPress = None
-        # self.RefTrajectoryCool = None 
-
-        # self.ModelInject = None
-        # self.ModelPress = None
-        # self.ModelCool = None
+        # self.NumStates = None
         
         self.reference = []
         self.ref_params = {}       
@@ -38,35 +27,23 @@ class ProcessModel():
         self.switching_instances = []
         
         
-    # def ControlInput(self,opti_vars,k):
-    #     """
-    #     Übersetzt durch Maschinenparameter parametrierte
-    #     Führungsgrößenverläufe in optimierbare control inputs
-    #     """
-        
-    #     control = []
-                
-    #     for key in self.Führungsgrößen.keys():
-    #         control.append(self.Führungsgrößen[key](opti_vars,k))
-        
-    #     control = cs.vcat(control)
-
-    #     return control
-    
-
-
-class Part():
-    """
-    Modell des Bauteils, welches die einwirkenden Prozessgrößen auf die 
-    resultierenden Bauteilqualität abbildet.    
-    """
-
+class QualityModel():
+    '''
+    Container for the model which estimates the quality of the part given 
+    trajectories of the process variables
+    '''
     def __init__(self):
+        '''
+        Initialization routine for the QualityModel 
+        model: model_structures, needs to be a recurrent model which can map
+               trajectories to a single final value
+        u0: int, length of the cycle in discrete time steps 
+        '''
         
-        self.NumStates = None
+        # self.NumStates = None
        
-        self.ModelQuality = None
-        self.ModelParamsQuality = {}
+        self.model = None
+        self.N = None
 
 class LinearSSM():
     """
