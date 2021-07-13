@@ -499,7 +499,7 @@ class GRU():
         c = cs.hcat(c).T    
         x = cs.hcat(x).T
         
-        return x[-1]
+        return x
     
     
 class FirstOrderSystem():

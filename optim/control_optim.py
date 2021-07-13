@@ -172,7 +172,7 @@ def MultiStageOptimization(process_model,target):
     
     
     ''' Final constraint might make solution infeasible, search for methods
-    of relaxation''' 
+    for relaxation''' 
     # opti.subject_to(X[-1]==target[-1])
     
     
@@ -200,14 +200,17 @@ def MultiStageOptimization(process_model,target):
     
     return values
 
-def SingleStageOptimization(model,ref,N):
+def SingleStageOptimization(QualityModel,ref):
     """ 
     single shooting procedure for optimal control of a scalar final value
     
-    model: Quality Model
+    QualityModel: Quality Model
     ref: skalarer Referenzwert für Optimierungsproblem
     N: Anzahl an Zeitschritten
     """
+    
+    N = QualityModel.N
+    model = QualityModel.model
     
     # Create Instance of the Optimization Problem
     opti = cs.Opti()
@@ -216,22 +219,22 @@ def SingleStageOptimization(model,ref,N):
     U = opti.variable(N,1)
         
     # Initial quality 
-    x = 0
-    y = 0
+    x = np.zeros((model.dim_c,1))
+    y = np.zeros((model.dim_out,1))
     X = [x]
     Y = [y]
     
     # Simulate Model
     for k in range(N):
-        out = SimulateModel(model.ModelQuality,X[k],U[k],model.ModelParamsQuality)
+        out = model.OneStepPrediction(X[k],U[k]) #SimulateModel(model,X[k],U[k],model.ModelParamsQuality)
         X.append(out[0])
         Y.append(out[1])
             
-    X = hcat(X)
-    Y = hcat(Y)
+    X = cs.hcat(X)
+    Y = cs.hcat(Y)
     
     # Define Loss Function  
-    opti.minimize(sumsqr(Y[-1]-ref))
+    opti.minimize(cs.sumsqr(Y[-1]-ref))
                   
     #Choose solver
     opti.solver('ipopt')
