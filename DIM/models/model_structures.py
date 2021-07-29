@@ -478,10 +478,10 @@ class GRU():
         """
         
         # Is that necessary?
-        print('GRU Simulation ignores given initial state, initial state is set to zero!')
+        # print('GRU Simulation ignores given initial state, initial state is set to zero!')
         
         
-        c0 = np.zeros((self.dim_c,1))
+        # c0 = np.zeros((self.dim_c,1))
         
         c = []
         x = []
@@ -499,7 +499,7 @@ class GRU():
         c = cs.hcat(c).T    
         x = cs.hcat(x).T
         
-        return x
+        return c,x
     
     
 class FirstOrderSystem():
