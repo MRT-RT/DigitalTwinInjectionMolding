@@ -19,12 +19,13 @@ class ProcessModel():
 
     def __init__(self):
         
-        # self.NumStates = None
-        
         self.reference = []
         self.ref_params = {}       
         self.subsystems = []
         self.switching_instances = []
+        
+            
+                
         
         
 class QualityModel():
@@ -39,11 +40,68 @@ class QualityModel():
                trajectories to a single final value
         u0: int, length of the cycle in discrete time steps 
         '''
-        
-        # self.NumStates = None
        
-        self.model = None
-        self.N = None
+        self.subsystems = []
+        self.switching_instances = []
+ 
+    def Simulation(self,c0,u):
+        """
+        Simulates the quality model for a given input trajectory u and an initial
+        hidden state (cell state of RNN) 
+    
+        Parameters
+        ----------
+        c0 : array-like,
+             Initial hidden state (cell state), i.e. the internal state of the 
+             GRU or LSTM, e.g. if dim_c = 2 then c0 is a 2x1 vector
+        u : array-like with dimension [N,self.dim_u]
+            trajectory of input signal, i.e. a vector with dimension N x dim_u
+    
+        Returns
+        -------
+        c : array-like,
+            Vector containing trajectory of simulated hidden cell state, e.g.
+            for a simulation over N time steps and dim_c = 2 c is a Nx2 vector
+        y : array-like,
+            Vector containing trajectory of simulated output, e.g. for
+            a simulation over N time steps and dim_out = 3 y is a Nx3 vector
+    
+        """
+           
+        
+        # Create empty arrays for output Y and hidden state X
+        y = []
+        c = []    
+        
+        # Initial hidden state
+        # X.append(np.zeros((c_dims[0],1)))
+        
+        # Intervalls to divide input according to switching instances
+        ind = np.hstack((0,np.cumsum(self.switching_instances)))
+        intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
+        
+        
+        
+        # System Dynamics as Path Constraints
+        for system,interval in zip(self.subsystems,intervals):
+          
+            # Do a one step prediction based on the model
+            sim = system.Simulation(c0,u[interval[0]:interval[1],:])
+            
+            # Last hidden state is inital state for next model
+            c0 = sim[0][-1,:].T
+            
+            # OneStepPrediction can return a tuple, i.e. state and output. The 
+            # output is per convention the second entry
+            if isinstance(sim,tuple):
+                c.append(sim[0])
+                y.append(sim[1])        
+            
+        c = np.array(cs.vcat(c))
+        y = np.array(cs.vcat(y))
+            
+            
+        return c,y  
 
 class LinearSSM():
     """

@@ -109,7 +109,7 @@ def CreateOptimVariables(opti, RefTrajectoryParams):
   
     return opti_vars
 
-def MultiStageOptimization(process_model,target):
+def ProcessMultiStageOptimization(process_model,target):
     
     subsystems = process_model.subsystems
     switching_instances = process_model.switching_instances
@@ -123,7 +123,7 @@ def MultiStageOptimization(process_model,target):
         print('Number of Subsystems does not equal number of reference signals to be optmized!')
     elif len(switching_instances) != len(subsystems)-1:
         print('Number of switching instances does not fit number of Subsystems!')
-    elif output_dims.count(output_dims[0]) != len(subsystems)*output_dims[0]:
+    elif output_dims.count(output_dims[0]) != len(subsystems):
         print('All Subsystems need to have the same output dimension')        
     
         
@@ -149,7 +149,7 @@ def MultiStageOptimization(process_model,target):
         active_subsystem[switch::] = active_subsystem[switch::]+1
     
     # System Dynamics as Path Constraints
-    for k in range(N-1):
+    for k in range(N):
         
         # Control input at every time step is a function of the parameters of
         # the reference trajectories 
@@ -197,6 +197,125 @@ def MultiStageOptimization(process_model,target):
     values = OptimValues_to_dict(ref_params_opti,sol)
     values['X'] = sol.value(X)
 
+    
+    return values
+
+def QualityMultiStageOptimization(quality_model,target):
+    """
+    Single-shooting procedure for optimization of process variables given a 
+    desired target quality
+
+    Parameters
+    ----------
+    quality_model : QualityModel
+        Container for models mapping process variable trajectories to quality
+        measurements.
+    target : array-like
+        A vector containing the desired values of the quality variables.
+
+    Returns
+    -------
+    values : TYPE
+        DESCRIPTION.
+
+    """
+    subsystems = quality_model.subsystems
+    switching_instances = quality_model.switching_instances
+    
+    
+    output_dims = [sys.dim_out for sys in subsystems]
+    input_dims = [sys.dim_u for sys in subsystems]
+    c_dims = [sys.dim_c for sys in subsystems]
+    
+    # Plausibility and Dimension Checks
+    if len(switching_instances) != len(subsystems):
+        print('Number of switching instances does not fit number of Subsystems!')
+    elif output_dims.count(output_dims[0]) != len(subsystems):
+        print('All Subsystems need to have the same output dimension')        
+    elif input_dims.count(input_dims[0]) != len(subsystems):
+        print('All Subsystems need to have the same input dimension')         
+    elif c_dims.count(c_dims[0]) != len(subsystems):
+        print('All Subsystems need to have the same dimension of the hidden state')
+    elif output_dims[0] != target.shape[0]:
+        print('Dimension of model output and target must match')
+        
+    # Create Instance of the Optimization Problem
+    opti = cs.Opti()
+    
+    # Translate Maschinenparameter into opti.variables
+    # ref_params_opti = CreateOptimVariables(opti, ref_params)
+    
+    # Number of time steps
+    N = np.sum(switching_instances)
+    
+    # Create decision variables for states
+    U = opti.variable(N,input_dims[0])
+    
+    # Create empty arrays for output Y and hidden state X
+    Y = []
+    X = []    
+    
+    # Initial hidden state
+    X.append(np.zeros((c_dims[0],1)))
+    
+    # Initial Constraints
+    # opti.subject_to(X[0]==target[0])
+    
+    # Generate an index vector pointing to the active subsystem in each time step
+    active_subsystem = np.zeros(N,np.int8)
+
+    for switch in np.cumsum(switching_instances)[:-1]:
+        active_subsystem[switch::] = active_subsystem[switch::]+1
+    
+      
+    # System Dynamics as Path Constraints
+    for k in range(N-1):
+        
+        # Control input at every time step is a function of the parameters of
+        # the reference trajectories 
+        # U = ControlInput(reference[active_subsystem[k]],ref_params_opti,k)
+        
+        # Do a one step prediction based on the model
+        pred = subsystems[active_subsystem[k]].OneStepPrediction(X[k],U[k,:])
+        
+        # OneStepPrediction can return a tuple, i.e. state and output. The 
+        # output is per convention the second entry
+        if isinstance(pred,tuple):
+            X.append(pred[0])
+            Y.append(pred[1])
+        
+        
+            
+    ''' Further Path Constraints (to avoid values that might damage the 
+    machine or are in other ways harmful or unrealistic) '''
+    
+    # TO DO #
+    
+    
+    ''' Final constraint might make solution infeasible, search for methods
+    for relaxation''' 
+    # opti.subject_to(X[-1]==target[-1])
+    
+    
+    # Set initial values for process variables U THIS IS MAJOR WORK
+    # for key in ref_params_opti:
+        # opti.set_initial(ref_params_opti[key],ref_params[key])
+
+   
+    # Define Loss Function    
+    opti.minimize(cs.sumsqr(Y[-1]-target))
+    
+    #Choose solver
+    opti.solver('ipopt')
+    
+    # Get solution
+    sol = opti.solve()
+    
+    # Extract real values from solution
+    values = {}
+    values['U'] = sol.value(U)
+    # values['X'] = sol.value(X)
+    # values['Y'] = sol.value(Y)
     
     return values
 
