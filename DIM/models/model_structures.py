@@ -11,62 +11,44 @@ from ..optim.common import RK4
 
 # from miscellaneous import *
 
+class RNN():
+    '''
+    Parent class for all Models
+    '''
 
-class LinearSSM():
-    """
-    
-    """
+    def ParameterInitialization(self):
+        '''
+        Routine for parameter initialization. Takes input_names from the Casadi-
+        Function defining the model equations self.Function and defines a 
+        dictionary with input_names as keys. According to the initialization
+        procedure defined in self.InitializationProcedure each key contains 
+        a numpy array of appropriate shape
 
-    def __init__(self,dim_u,dim_x,dim_y,name):
-        
-        self.dim_u = dim_u
-        self.dim_x = dim_x
-        self.dim_y = dim_y
-        self.name = name
-        
-        self.Initialize()
+        Returns
+        -------
+        None.
 
-    def Initialize(self):
-                    
-        # For convenience of notation
-        dim_u = self.dim_u
-        dim_x = self.dim_x 
-        dim_y = self.dim_y             
-        name = self.name
+        '''
+                
+        # Initialization procedure
+        if self.InitializationProcedure == 'random':
+            initialization = RandomInitialization
+        elif self.InitializationProcedure == 'xavier':
+            initialization = XavierInitialization
+        elif self.InitializationProcedure == 'he':
+            initialization = HeInitialization      
         
-        # Define input, state and output vector
-        u = cs.MX.sym('u',dim_u,1)
-        x = cs.MX.sym('x',dim_x,1)
-        y = cs.MX.sym('y',dim_y,1)
-        
-        # Define Model Parameters
-        A = cs.MX.sym('A',dim_x,dim_x)
-        B = cs.MX.sym('B',dim_x,dim_u)
-        C = cs.MX.sym('C',dim_y,dim_x)
+        # Define all parameters in a dictionary and initialize them 
+        self.Parameters = {}
+        for p_name in self.Function.name_in()[2::]:
+            self.Parameters[p_name] = initialization(self.Function.size_in(p_name))
 
-        
-        # Put all Parameters in Dictionary with random initialization
-        self.Parameters = {'A':np.random.rand(dim_x,dim_x),
-                           'B':np.random.rand(dim_x,dim_u),
-                           'C':np.random.rand(dim_y,dim_x)}
-    
-        # self.Input = {'u':np.random.rand(u.shape)}
-        
-        # Define Model Equations
-        x_new = cs.mtimes(A,x) + cs.mtimes(B,u)
-        y_new = cs.mtimes(C,x_new) 
-        
-        
-        input = [x,u,A,B,C]
-        input_names = ['x','u','A','B','C']
-        
-        output = [x_new,y_new]
-        output_names = ['x_new','y_new']  
-        
-        self.Function = cs.Function(name, input, output, input_names,output_names)
-        
-        return None
-   
+        # Initialize with specific inital parameters if given
+        if self.InitialParameters is not None:
+            for param in self.InitialParameters.keys():
+                if param in self.Parameters.keys():
+                    self.Parameters[param] = self.InitialParameters[param]
+
     def OneStepPrediction(self,x0,u0,params=None):
         '''
         Estimates the next state and output from current state and input
@@ -82,12 +64,13 @@ class LinearSSM():
         
         params_new = []
             
-        for name in  self.Function.name_in():
+        for name in self.Function.name_in()[2::]:
+ 
             try:
                 params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
             except:
-                continue
-        
+                params_new.append(self.Parameters[name])  
+            
         x1,y1 = self.Function(x0,u0,*params_new)     
                               
         return x1,y1
@@ -115,20 +98,72 @@ class LinearSSM():
             x.append(x_new)
             y.append(y_new)
         
-
         # Concatenate list to casadiMX
         y = cs.hcat(y).T    
         x = cs.hcat(x).T
        
-        return y
+        return x,y    
 
+class LinearSSM(RNN):
+    """
+    
+    """
 
+    def __init__(self,dim_u,dim_x,dim_y,initial_params=None, 
+                 frozen_params = [], init_proc='random', name='LinSSM'):
+        
+        self.dim_u = dim_u
+        self.dim_x = dim_x
+        self.dim_y = dim_y
+
+        self.name = name
+        
+        self.InitialParameters = initial_params
+        self.FrozenParameters = frozen_params
+        self.InitializationProcedure = init_proc
+        
+        self.Initialize()
+
+    def Initialize(self):
+                    
+        # For convenience of notation
+        dim_u = self.dim_u
+        dim_x = self.dim_x 
+        dim_y = self.dim_y             
+        name = self.name
+        
+        # Define input, state and output vector
+        u = cs.MX.sym('u',dim_u,1)
+        x = cs.MX.sym('x',dim_x,1)
+        y = cs.MX.sym('y',dim_y,1)
+        
+        # Define Model Parameters
+        A = cs.MX.sym('A',dim_x,dim_x)
+        B = cs.MX.sym('B',dim_x,dim_u)
+        C = cs.MX.sym('C',dim_y,dim_x)
+
+        # Define Model Equations
+        x_new = cs.mtimes(A,x) + cs.mtimes(B,u)
+        y_new = cs.mtimes(C,x_new) 
+        
+        
+        input = [x,u,A,B,C]
+        input_names = ['x','u','A','B','C']
+        
+        output = [x_new,y_new]
+        output_names = ['x_new','y_new']  
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        return None
+   
 class MLP():
     """
     Implementation of a single-layered Feedforward Neural Network.
     """
 
-    def __init__(self,dim_u,dim_out,dim_hidden,name):
+    def __init__(self,dim_u,dim_out,dim_hidden,initial_params=None, 
+                 frozen_params = [], init_proc='random', name='MLP'):
         """
         Initialization procedure of the Feedforward Neural Network Architecture
         
@@ -154,6 +189,11 @@ class MLP():
         self.dim_hidden = dim_hidden
         self.dim_out = dim_out
         self.name = name
+        
+        self.InitialParameters = initial_params
+        self.FrozenParameters = frozen_params
+        self.InitializationProcedure = init_proc
+        
         
         self.Initialize()
 
@@ -182,13 +222,8 @@ class MLP():
         
         W_o = cs.MX.sym('W_out',dim_out,dim_hidden)
         b_o = cs.MX.sym('b_out',dim_out,1)
-        
-        # Put all Parameters in Dictionary with random initialization
-        self.Parameters = {'W_h':np.random.rand(W_h.shape[0],W_h.shape[1]),
-                           'b_h':np.random.rand(b_h.shape[0],b_h.shape[1]),
-                           'W_o':np.random.rand(W_o.shape[0],W_o.shape[1]),
-                           'b_o':np.random.rand(b_o.shape[0],b_o.shape[1])}
-    
+  
+  
        
         # Model Equations
         h =  cs.tanh(cs.mtimes(W_h,cs.vertcat(u,x))+b_h)
@@ -202,6 +237,8 @@ class MLP():
         output_names = ['x_new']  
         
         self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
         
         return None
    
@@ -250,40 +287,6 @@ class MLP():
                               
         return x1
    
-    def Simulation(self,x0,u,params=None):
-        """
-        Repeated call of self.OneStepPrediction() for a given input trajectory
-        
-
-        Parameters
-        ----------
-        x0 : array-like with dimension [self.dim_out, 1]
-            initial output
-        u : array-like with dimension [N,self.dim_u]
-            trajectory of input signal with length N
-        params : dictionary, optional
-            see self.OneStepPrediction()
-
-        Returns
-        -------
-        x : array-like with dimension [N+1,self.dim_out]
-            trajectory of output signal with length N+1 
-            
-        """
-        
-        x = []
-
-        # initial states
-        x.append(x0)
-                      
-        # Simulate Model
-        for k in range(u.shape[0]):
-            x.append(self.OneStepPrediction(x[k],u[[k],:],params))
-        
-        # Concatenate list to casadiMX
-        x = cs.hcat(x).T 
-       
-        return x
 
 
     

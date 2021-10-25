@@ -49,3 +49,13 @@ def RK4(f_cont,input,dt):
     x_new = input[0] + 1/6 * dt * (k1+2*k2+2*k3+k4)
     
     return x_new
+
+def BestFitRate(y_target,y_est):
+    BFR = 1-sum((y_target-y_est)**2) / sum((y_target-np.mean(y_target))**2) 
+    
+    BFR = BFR*100
+    
+    if BFR<0:
+        BFR = np.array([0])
+        
+    return BFR
