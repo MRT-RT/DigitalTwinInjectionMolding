@@ -68,87 +68,84 @@ def ControlInput(ref_trajectories,opti_vars,k):
 
     return control   
     
-def CreateOptimVariables(opti, RefTrajectoryParams):
+def CreateOptimVariables(opti, Parameters):
     """
-    Defines all parameters, which parameterize reference trajectories, as
-    opti variables and puts them in a large dictionary
+    Defines all parameters, which are part of the optimization problem, as 
+    opti variables with appropriate dimensions
     """
     
     # Create empty dictionary
     opti_vars = {}
     
-    for param in RefTrajectoryParams.keys():
-        
-        dim0 = RefTrajectoryParams[param].shape[0]
-        dim1 = RefTrajectoryParams[param].shape[1]
+    for param in Parameters.keys():
+        dim0 = Parameters[param].shape[0]
+        dim1 = Parameters[param].shape[1]
         
         opti_vars[param] = opti.variable(dim0,dim1)
     
-    # Create one parameter dictionary for each phase
-    # opti_vars['RefParamsInject'] = {}
-    # opti_vars['RefParamsPress'] = {}
-    # opti_vars['RefParamsCool'] = {}
-
-    # for key in opti_vars.keys():
-        
-    #     param_dict = getattr(process_model,key)
-        
-    #     if param_dict is not None:
-        
-    #         for param in param_dict.keys():
-                
-    #             dim0 = param_dict[param].shape[0]
-    #             dim1 = param_dict[param].shape[1]
-                
-    #             opti_vars[key][param] = opti.variable(dim0,dim1)
-    #     else:
-    #         opti_vars[key] = None
-  
     return opti_vars
 
-def ModelTraining(model,data,initializations = 10, BFR=False, p_opts=None, s_opts=None):
+
+def ModelTraining(model,data,initializations=10, BFR=False, 
+                  p_opts=None, s_opts=None):
     
    
     results = [] 
     
     for i in range(0,initializations):
         
-        # in first run use initial model parameters (useful for online 
-        # training when only time for one initialization) 
-        if i > 0:
-            model.Initialize()
+        # initialize model to make sure given initial parameters are assigned
+        model.ParameterInitialization()
         
         # Estimate Parameters on training data
         new_params = ModelParameterEstimation(model,data,p_opts,s_opts)
         
-        # Assign new parameters to model
-        model.Parameters = new_params
+        # Assign estimated parameters to model
+        for p in new_params.keys():
+            model.Parameters[p] = new_params[p]
         
         # Evaluate on Validation data
         u_val = data['u_val']
         y_ref_val = data['y_val']
         init_state_val = data['init_state_val']
 
-        # Loop over all experiments
-        
-        e = 0
+        # Evaluate estimated model on validation data        
+        e_val = 0
         
         for j in range(0,u_val.shape[0]):   
-               
             # Simulate Model
-            y = model.Simulation(init_state_val[j],u_val[j])
-            y = np.array(y)
-                     
-            e = e + cs.sumsqr(y_ref_val[j] - y) 
+            pred = model.Simulation(init_state_val[j],u_val[j])
+            
+            if isinstance(pred, tuple):
+                pred = pred[1]
+            
+            e_val = e_val + cs.sqrt(cs.sumsqr(y_ref_val[j,:,:] - pred))
         
         # Calculate mean error over all validation batches
-        e = e / u_val.shape[0]
-        e = np.array(e).reshape((1,))
+        e_val = e_val / u_val.shape[0]
+        e_val = np.array(e_val).reshape((1,))
+        
+        
+        # Evaluate estimated model on test data
+        
+        u_test = data['u_test']
+        y_ref_test = data['y_test']
+        init_state_test = data['init_state_test']
+            
+        pred = model.Simulation(init_state_test[0],u_test[0])
+        
+        if isinstance(pred, tuple):
+            pred = pred[1]
+        
+        y_est = np.array(pred)
+        
+        BFR = BestFitRate(y_ref_test[0],y_est)
         
         # save parameters and performance in list
-        results.append([e,new_params])
-    
-    results = pd.DataFrame(data = results, columns = ['loss','params'])
+        results.append([e_val,BFR,model.name,model.dim,i,model.Parameters])
+   
+    results = pd.DataFrame(data = results, columns = ['loss_val','BFR_test',
+                        'model','dim_theta','initialization','params'])
     
     return results 
 
@@ -340,33 +337,70 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
     y_ref = data['y_train']
     init_state = data['init_state_train']
     
+    try:
+        x_ref = data['x_train']
+    except:
+        x_ref = None
+        
     # Create Instance of the Optimization Problem
     opti = cs.Opti()
     
-    params_opti = CreateOptimVariables(opti, model.Parameters)
+    # Create dictionary of all non-frozen parameters to create Opti Variables of 
+    OptiParameters = model.Parameters.copy()
+    
+    for frozen_param in model.FrozenParameters:
+        OptiParameters.pop(frozen_param)
+        
+    
+    params_opti = CreateOptimVariables(opti, OptiParameters)
     
     e = 0
     
-    # Loop over all experiments/batches
-    for i in range(0,u.shape[0]):   
-           
-        # Simulate Model
-        y = model.Simulation(init_state[i],u[i],params_opti)
+    ''' Depending on whether a reference trajectory for the hidden state is
+    provided or not, the model is either trained in parallel (recurrent) or 
+    series-parallel configuration'''
+    
+    # Training in parallel configuration 
+    if x_ref is None:
         
-        e = e + cs.sumsqr(y_ref[i,:,:] - y)
+        # Loop over all batches 
+        for i in range(0,u.shape[0]):   
+               
+            # Simulate Model
+            pred = model.Simulation(init_state[i],u[i],params_opti)
+            
+            if isinstance(pred, tuple):
+                pred = pred[1]
+            
+            # Calculate simulation error
+            e = e + cs.sumsqr(y_ref[i,:,:] - pred)
+            
+            
+    # Training in series parallel configuration        
+    else:
+        # Loop over all batches 
+        for i in range(0,u.shape[0]):  
+            
+            # One-Step prediction
+            for k in range(u[i,:,:].shape[0]-1):  
+                # print(k)
+                x_new,y_new = model.OneStepPrediction(x_ref[i,k,:],u[i,k,:],
+                                                      params_opti)
+                
+                # Calculate one step prediction error
+                e = e + cs.sumsqr(y_ref[i,k,:]-y_new) + \
+                    cs.sumsqr(x_ref[i,k+1,:]-x_new) 
     
     opti.minimize(e)
-    
-    # Create Solver
-    
+        
     # Solver options
     if p_opts is None:
         p_opts = {"expand":False}
     if s_opts is None:
-        s_opts = {"max_iter": 1000, "print_level":0}
-    
+        s_opts = {"max_iter": 1000, "print_level":1}
+
+    # Create Solver
     opti.solver("ipopt",p_opts, s_opts)
-    
     
     # Set initial values of Opti Variables as current Model Parameters
     for key in params_opti:
