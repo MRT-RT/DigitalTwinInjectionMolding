@@ -38,8 +38,6 @@ cycle_files = os.listdir(target_path)
 for cycle in cycle_files:
     
     df = add_csv_to_pd_dataframe('data/Versuchsplan/cycle1.pkl',path+csv_filename)
-    
-
 
 
 
