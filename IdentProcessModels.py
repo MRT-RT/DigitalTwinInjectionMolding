@@ -19,7 +19,5 @@ u_press_names = ['v_inj_soll']
 u_cool_names = []
 
 
-# inject,press,cool = arrange_data_for_ident(cycle1)
-
-
-(df,x,u_inj,u_press,u_cool):
+inject,press,cool = arrange_data_for_ident(cycle1,x_names,u_inj_names,
+                                           u_press_names,u_cool_names)
