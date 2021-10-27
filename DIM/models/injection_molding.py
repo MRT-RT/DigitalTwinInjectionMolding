@@ -114,7 +114,7 @@ class QualityModel():
         for system in self.subsystems:
             system.ParameterInitialization()
             self.Parameters.update(system.Parameters)                                  # append subsystems parameters
-            self.FrozenParameters.append(system.FrozenParameters)
+            self.FrozenParameters.extend(system.FrozenParameters)
         
 
 class LinearSSM():
@@ -228,175 +228,175 @@ class LinearSSM():
         return y
 
 
-class MLP():
-    """
-    Implementation of a single-layered Feedforward Neural Network.
-    """
+# class MLP():
+#     """
+#     Implementation of a single-layered Feedforward Neural Network.
+#     """
 
-    def __init__(self,dim_u,dim_x,dim_hidden,name):
-        """
-        Initialization procedure of the Feedforward Neural Network Architecture
+#     def __init__(self,dim_u,dim_x,dim_hidden,name):
+#         """
+#         Initialization procedure of the Feedforward Neural Network Architecture
         
         
-        Parameters
-        ----------
-        dim_u : int
-            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
-        dim_x : int
-            Dimension of the state, e.g. dim_x = 3 if state is a 3x1 vector.
-        dim_hidden : int
-            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
-            if NN is supposed to have 10 neurons in hidden layer.
-        name : str
-            Name of the model, e.g. name = 'InjectionPhaseModel'.
+#         Parameters
+#         ----------
+#         dim_u : int
+#             Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+#         dim_x : int
+#             Dimension of the state, e.g. dim_x = 3 if state is a 3x1 vector.
+#         dim_hidden : int
+#             Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+#             if NN is supposed to have 10 neurons in hidden layer.
+#         name : str
+#             Name of the model, e.g. name = 'InjectionPhaseModel'.
 
-        Returns
-        -------
-        None.
+#         Returns
+#         -------
+#         None.
 
-        """
-        self.dim_u = dim_u
-        self.dim_hidden = dim_hidden
-        self.dim_x = dim_x
-        self.name = name
+#         """
+#         self.dim_u = dim_u
+#         self.dim_hidden = dim_hidden
+#         self.dim_x = dim_x
+#         self.name = name
         
-        self.Initialize()
+#         self.Initialize()
 
-    def Initialize(self):
-        """
-        Defines the parameters of the model as symbolic casadi variables and 
-        the model equation as casadi function. Model parameters are initialized
-        randomly.
+#     def Initialize(self):
+#         """
+#         Defines the parameters of the model as symbolic casadi variables and 
+#         the model equation as casadi function. Model parameters are initialized
+#         randomly.
 
-        Returns
-        -------
-        None.
+#         Returns
+#         -------
+#         None.
 
-        """   
-        dim_u = self.dim_u
-        dim_hidden = self.dim_hidden
-        dim_x = self.dim_x 
-        name = self.name
+#         """   
+#         dim_u = self.dim_u
+#         dim_hidden = self.dim_hidden
+#         dim_x = self.dim_x 
+#         name = self.name
     
-        u = cs.MX.sym('u',dim_u,1)
-        x = cs.MX.sym('x',dim_x,1)
+#         u = cs.MX.sym('u',dim_u,1)
+#         x = cs.MX.sym('x',dim_x,1)
         
-        # Model Parameters
-        W_h = cs.MX.sym('W_h',dim_hidden,dim_u+dim_x)
-        b_h = cs.MX.sym('b_h',dim_hidden,1)
+#         # Model Parameters
+#         W_h = cs.MX.sym('W_h',dim_hidden,dim_u+dim_x)
+#         b_h = cs.MX.sym('b_h',dim_hidden,1)
         
-        W_o = cs.MX.sym('W_out',dim_x,dim_hidden)
-        b_o = cs.MX.sym('b_out',dim_x,1)
+#         W_o = cs.MX.sym('W_out',dim_x,dim_hidden)
+#         b_o = cs.MX.sym('b_out',dim_x,1)
         
-        # Put all Parameters in Dictionary with random initialization
-        self.Parameters = {'W_h':np.random.rand(W_h.shape[0],W_h.shape[1]),
-                           'b_h':np.random.rand(b_h.shape[0],b_h.shape[1]),
-                           'W_o':np.random.rand(W_o.shape[0],W_o.shape[1]),
-                           'b_o':np.random.rand(b_o.shape[0],b_o.shape[1])}
+#         # Put all Parameters in Dictionary with random initialization
+#         self.Parameters = {'W_h':np.random.rand(W_h.shape[0],W_h.shape[1]),
+#                            'b_h':np.random.rand(b_h.shape[0],b_h.shape[1]),
+#                            'W_o':np.random.rand(W_o.shape[0],W_o.shape[1]),
+#                            'b_o':np.random.rand(b_o.shape[0],b_o.shape[1])}
     
        
-        # Model Equations
-        h =  cs.tanh(cs.mtimes(W_h,cs.vertcat(u,x))+b_h)
-        x_new = cs.mtimes(W_o,h)+b_o
+#         # Model Equations
+#         h =  cs.tanh(cs.mtimes(W_h,cs.vertcat(u,x))+b_h)
+#         x_new = cs.mtimes(W_o,h)+b_o
         
         
-        input = [x,u,W_h,b_h,W_o,b_o]
-        input_names = ['x','u','W_h','b_h','W_o','b_o']
+#         input = [x,u,W_h,b_h,W_o,b_o]
+#         input_names = ['x','u','W_h','b_h','W_o','b_o']
         
-        output = [x_new]
-        output_names = ['x_new']  
+#         output = [x_new]
+#         output_names = ['x_new']  
         
-        self.Function = cs.Function(name, input, output, input_names,output_names)
+#         self.Function = cs.Function(name, input, output, input_names,output_names)
         
-        return None
+#         return None
    
-    def OneStepPrediction(self,x0,u0,params=None):
-        """
-        OneStepPrediction() evaluates the model equation defined in 
-        self.Function()
+#     def OneStepPrediction(self,x0,u0,params=None):
+#         """
+#         OneStepPrediction() evaluates the model equation defined in 
+#         self.Function()
         
-        self.Function() takes initial state x0, input u0 and all model 
-        parameters as input. The model parameters can either be optimization
-        variables themselves (as in system identification) or the take specific 
-        values (when the estimated model is used for control)
+#         self.Function() takes initial state x0, input u0 and all model 
+#         parameters as input. The model parameters can either be optimization
+#         variables themselves (as in system identification) or the take specific 
+#         values (when the estimated model is used for control)
 
-        Parameters
-        ----------
-        x0 : array-like with dimension [self.dim_x, 1]
-            initial state resp. state from last time-step
-        u0 : array-like with dimension [self.dim_u, 1]
-            input
-        params : dictionary, optional
-            params is None: This is the case during model based control,
-            self.Function() is evaluated with the numerical
-            values of the model parameters saved in self.Parameters
-            params is dictionary of opti.variables: During system identification
-            the model parameters are optimization variables themselves, so a 
-            dictionary of opti.variables is passed to self.Function()
+#         Parameters
+#         ----------
+#         x0 : array-like with dimension [self.dim_x, 1]
+#             initial state resp. state from last time-step
+#         u0 : array-like with dimension [self.dim_u, 1]
+#             input
+#         params : dictionary, optional
+#             params is None: This is the case during model based control,
+#             self.Function() is evaluated with the numerical
+#             values of the model parameters saved in self.Parameters
+#             params is dictionary of opti.variables: During system identification
+#             the model parameters are optimization variables themselves, so a 
+#             dictionary of opti.variables is passed to self.Function()
 
-        Returns
-        -------
-        x1 : array-like with dimension [self.dim_x, 1]
-            output of the Feedforward Neural Network
+#         Returns
+#         -------
+#         x1 : array-like with dimension [self.dim_x, 1]
+#             output of the Feedforward Neural Network
 
-        """
-        if params==None:
-            params = self.Parameters
+#         """
+#         if params==None:
+#             params = self.Parameters
         
-        params_new = []
+#         params_new = []
             
-        for name in  self.Function.name_in():
-            try:
-                params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
-            except:
-                continue
+#         for name in  self.Function.name_in():
+#             try:
+#                 params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
+#             except:
+#                 continue
         
-        x1 = self.Function(x0,u0,*params_new)     
+#         x1 = self.Function(x0,u0,*params_new)     
                               
-        return x1
+#         return x1
    
-    def Simulation(self,x0,u,params=None):
-        """
-        Repeated call of self.OneStepPrediction() for a given input trajectory
+#     def Simulation(self,x0,u,params=None):
+#         """
+#         Repeated call of self.OneStepPrediction() for a given input trajectory
         
 
-        Parameters
-        ----------
-        x0 : array-like with dimension [self.dim_x, 1]
-            initial state resp
-        u : array-like with dimension [N,self.dim_u]
-            trajectory of input signal with length N
-        params : dictionary, optional
-            see self.OneStepPrediction()
+#         Parameters
+#         ----------
+#         x0 : array-like with dimension [self.dim_x, 1]
+#             initial state resp
+#         u : array-like with dimension [N,self.dim_u]
+#             trajectory of input signal with length N
+#         params : dictionary, optional
+#             see self.OneStepPrediction()
 
-        Returns
-        -------
-        x : array-like with dimension [N+1,self.dim_x]
-            trajectory of output signal with length N+1 
+#         Returns
+#         -------
+#         x : array-like with dimension [N+1,self.dim_x]
+#             trajectory of output signal with length N+1 
             
-        """
+#         """
         
-        x = []
+#         x = []
 
-        # initial states
-        x.append(x0)
+#         # initial states
+#         x.append(x0)
                       
-        # Simulate Model
-        for k in range(u.shape[0]):
-            x.append(self.OneStepPrediction(x[k],u[[k],:],params))
+#         # Simulate Model
+#         for k in range(u.shape[0]):
+#             x.append(self.OneStepPrediction(x[k],u[[k],:],params))
         
-        # Concatenate list to casadiMX
-        x = cs.hcat(x).T 
+#         # Concatenate list to casadiMX
+#         x = cs.hcat(x).T 
        
-        return x
+#         return x
 
 
     
-def logistic(x):
+# def logistic(x):
     
-    y = 0.5 + 0.5 * cs.tanh(0.5*x)
+#     y = 0.5 + 0.5 * cs.tanh(0.5*x)
 
-    return y
+#     return y
 
 
     
