@@ -71,15 +71,15 @@ quality_model = QualityModel([injection_model,press_model,cool_model])
 
 quality_model.switching_instances =[14,339]
 
-# u = cycle1['p_inj_ist'].values.reshape(-1,1)
-# c,y = quality_model.Simulation(np.zeros((10,1)),u)
+u = cycle1['p_inj_ist'].values.reshape(-1,1)
+c,y = quality_model.Simulation(np.zeros((10,1)),u)
 
-# data = {'u_train': cycle1['p_inj_ist'].values.reshape(-1,1,1),
-#         'y_train': cycle1['Durchmesser_innen'].values.reshape(-1,1,1),
-#         'init_state_train': np.zeros((10,1,1))}
+data = {'u_train': cycle1['p_inj_ist'].values.reshape(-1,1,1),
+        'y_train': cycle1['Durchmesser_innen'].values.reshape(-1,1,1),
+        'init_state_train': np.zeros((10,1,1))}
 
 
-# values = ModelParameterEstimation(quality_model,data,p_opts=None,s_opts=None)
+values = ModelParameterEstimation(quality_model,data,p_opts=None,s_opts=None)
 
 
 
