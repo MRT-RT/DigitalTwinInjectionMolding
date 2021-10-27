@@ -43,8 +43,12 @@ class QualityModel():
        
         self.subsystems = []
         self.switching_instances = []
- 
-    def Simulation(self,c0,u):
+        # self.FrozenParameters = frozen_params
+        
+        self.ParameterInitialization()
+        
+        
+    def Simulation(self,c0,u,params=None):
         """
         Simulates the quality model for a given input trajectory u and an initial
         hidden state (cell state of RNN) 
@@ -69,7 +73,7 @@ class QualityModel():
         """
            
         
-        # Create empty arrays for output Y and hidden state X
+        # Create empty arrays for output y and hidden state c
         y = []
         c = []    
         
@@ -79,7 +83,6 @@ class QualityModel():
         # Intervalls to divide input according to switching instances
         ind = np.hstack((0,np.cumsum(self.switching_instances)))
         intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
-        
         
         
         # System Dynamics as Path Constraints
@@ -102,6 +105,17 @@ class QualityModel():
             
             
         return c,y  
+    
+    def ParameterInitialization(self):
+        
+        self.Parameters = {}
+        self.FrozenParameters = []
+        
+        for system in self.subsystems:
+            system.ParameterInitialization()
+            self.Parameters.update(system.Parameters)                                  # append subsystems parameters
+            self.FrozenParameters.append(system.FrozenParameters)
+        
 
 class LinearSSM():
     """
@@ -445,33 +459,22 @@ class GRU():
         
         # Parameters
         # RNN part
-        W_r = cs.MX.sym('W_r',dim_c,dim_u+dim_c)
-        b_r = cs.MX.sym('b_r',dim_c,1)
+        W_r = cs.MX.sym('W_r_'+name,dim_c,dim_u+dim_c)
+        b_r = cs.MX.sym('b_r_'+name,dim_c,1)
     
-        W_z = cs.MX.sym('W_z',dim_c,dim_u+dim_c)
-        b_z = cs.MX.sym('b_z',dim_c,1)    
+        W_z = cs.MX.sym('W_z_'+name,dim_c,dim_u+dim_c)
+        b_z = cs.MX.sym('b_z_'+name,dim_c,1)    
         
-        W_c = cs.MX.sym('W_c',dim_c,dim_u+dim_c)
-        b_c = cs.MX.sym('b_c',dim_c,1)    
+        W_c = cs.MX.sym('W_c_'+name,dim_c,dim_u+dim_c)
+        b_c = cs.MX.sym('b_c_'+name,dim_c,1)    
     
         # MLP part
-        W_h = cs.MX.sym('W_z',dim_hidden,dim_c)
-        b_h = cs.MX.sym('b_z',dim_hidden,1)    
+        W_h = cs.MX.sym('W_z_'+name,dim_hidden,dim_c)
+        b_h = cs.MX.sym('b_z_'+name,dim_hidden,1)    
         
-        W_o = cs.MX.sym('W_c',dim_out,dim_hidden)
-        b_o = cs.MX.sym('b_c',dim_out,1)  
+        W_o = cs.MX.sym('W_c_'+name,dim_out,dim_hidden)
+        b_o = cs.MX.sym('b_c_'+name,dim_out,1)  
         
-        # Put all Parameters in Dictionary with random initialization
-        self.Parameters = {'W_r':np.random.rand(W_r.shape[0],W_r.shape[1]),
-                           'b_r':np.random.rand(b_r.shape[0],b_r.shape[1]),
-                           'W_z':np.random.rand(W_z.shape[0],W_z.shape[1]),
-                           'b_z':np.random.rand(b_z.shape[0],b_z.shape[1]),
-                           'W_c':np.random.rand(W_c.shape[0],W_c.shape[1]),
-                           'b_c':np.random.rand(b_c.shape[0],b_c.shape[1]),                          
-                           'W_h':np.random.rand(W_h.shape[0],W_h.shape[1]),
-                           'b_h':np.random.rand(b_h.shape[0],b_h.shape[1]),                           
-                           'W_o':np.random.rand(W_o.shape[0],W_o.shape[1]),
-                           'b_o':np.random.rand(b_o.shape[0],b_o.shape[1])}
         
         # Equations
         f_r = logistic(cs.mtimes(W_r,cs.vertcat(u,c))+b_r)
@@ -490,103 +493,106 @@ class GRU():
         
         # Casadi Function
         input = [c,u,W_r,b_r,W_z,b_z,W_c,b_c,W_h,b_h,W_o,b_o]
-        input_names = ['c','u','W_r','b_r','W_z','b_z','W_c','b_c','W_h','b_h',
-                        'W_o','b_o']
+        input_names = ['c','u','W_r_'+name,'b_r_'+name,'W_z_'+name,'b_z_'+name
+                       ,'W_c_'+name,'b_c_'+name,'W_h_'+name,'b_h_'+name,
+                        'W_o_'+name,'b_o_'+name]
         
         output = [c_new,x_new]
         output_names = ['c_new','x_new']
     
         self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
 
         return None
     
-    def OneStepPrediction(self,c0,u0,params=None):
-        """
-        OneStepPrediction() evaluates the model equation defined in 
-        self.Function()
+    # def OneStepPrediction(self,c0,u0,params=None):
+    #     """
+    #     OneStepPrediction() evaluates the model equation defined in 
+    #     self.Function()
         
-        self.Function() takes initial cell-state c0, input u0 and all model 
-        parameters as input. The model parameters can either be optimization
-        variables themselves (as in system identification) or the take specific 
-        values (when the estimated model is used for control)
+    #     self.Function() takes initial cell-state c0, input u0 and all model 
+    #     parameters as input. The model parameters can either be optimization
+    #     variables themselves (as in system identification) or the take specific 
+    #     values (when the estimated model is used for control)
 
-        Parameters
-        ----------
-        c0 : array-like with dimension [self.dim_c, 1]
-            initial cell-state resp. state from last time-step
-        u0 : array-like with dimension [self.dim_u, 1]
-            input
-        params : dictionary, optional
-            params is None: This is the case during model based control,
-            self.Function() is evaluated with the numerical
-            values of the model parameters saved in self.Parameters
-            params is dictionary of opti.variables: During system identification
-            the model parameters are optimization variables themselves, so a 
-            dictionary of opti.variables is passed to self.Function()
+    #     Parameters
+    #     ----------
+    #     c0 : array-like with dimension [self.dim_c, 1]
+    #         initial cell-state resp. state from last time-step
+    #     u0 : array-like with dimension [self.dim_u, 1]
+    #         input
+    #     params : dictionary, optional
+    #         params is None: This is the case during model based control,
+    #         self.Function() is evaluated with the numerical
+    #         values of the model parameters saved in self.Parameters
+    #         params is dictionary of opti.variables: During system identification
+    #         the model parameters are optimization variables themselves, so a 
+    #         dictionary of opti.variables is passed to self.Function()
 
-        Returns
-        -------
-        c1 : array-like with dimension [self.dim_c, 1]
-            new cell-state
-        x1 : array-like with dimension [self.dim_x, 1]
-            output of the Feedforward Neural Network
-        """
-        if params==None:
-            params = self.Parameters
+    #     Returns
+    #     -------
+    #     c1 : array-like with dimension [self.dim_c, 1]
+    #         new cell-state
+    #     x1 : array-like with dimension [self.dim_x, 1]
+    #         output of the Feedforward Neural Network
+    #     """
+    #     if params==None:
+    #         params = self.Parameters
         
-        params_new = []
+    #     params_new = []
             
-        for name in  self.Function.name_in():
-            try:
-                params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
-            except:
-                continue
+    #     for name in  self.Function.name_in():
+    #         try:
+    #             params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
+    #         except:
+    #             continue
         
-        c1,x1 = self.Function(c0,u0,*params_new)     
+    #     c1,x1 = self.Function(c0,u0,*params_new)     
                               
-        return c1,x1
+    #     return c1,x1
    
-    def Simulation(self,c0,u,params=None):
-        """
-        Repeated call of self.OneStepPrediction() for a given input trajectory
+    # def Simulation(self,c0,u,params=None):
+    #     """
+    #     Repeated call of self.OneStepPrediction() for a given input trajectory
         
 
-        Parameters
-        ----------
-        c0 : array-like with dimension [self.dim_c, 1]
-            initial cell-state
-        u : array-like with dimension [N,self.dim_u]
-            trajectory of input signal with length N
-        params : dictionary, optional
-            see self.OneStepPrediction()
+    #     Parameters
+    #     ----------
+    #     c0 : array-like with dimension [self.dim_c, 1]
+    #         initial cell-state
+    #     u : array-like with dimension [N,self.dim_u]
+    #         trajectory of input signal with length N
+    #     params : dictionary, optional
+    #         see self.OneStepPrediction()
 
-        Returns
-        -------
-        x : array-like with dimension [N+1,self.dim_x]
-            trajectory of output signal with length N+1 
+    #     Returns
+    #     -------
+    #     x : array-like with dimension [N+1,self.dim_x]
+    #         trajectory of output signal with length N+1 
             
-        """
+    #     """
         
-        # Is that necessary?
-        print('GRU Simulation ignores given initial state, initial state is set to zero!')
+    #     # Is that necessary?
+    #     print('GRU Simulation ignores given initial state, initial state is set to zero!')
         
         
-        c0 = np.zeros((self.dim_c,1))
+    #     c0 = np.zeros((self.dim_c,1))
         
-        c = []
-        x = []
+    #     c = []
+    #     x = []
         
-        # initial cell state
-        c.append(c0)
+    #     # initial cell state
+    #     c.append(c0)
                       
-        # Simulate Model
-        for k in range(u.shape[0]):
-            c_new,x_new = self.OneStepPrediction(c[k],u[k,:],params)
-            c.append(c_new)
-            x.append(x_new)
+    #     # Simulate Model
+    #     for k in range(u.shape[0]):
+    #         c_new,x_new = self.OneStepPrediction(c[k],u[k,:],params)
+    #         c.append(c_new)
+    #         x.append(x_new)
         
-        # Concatenate list to casadiMX
-        c = cs.hcat(c).T    
-        x = cs.hcat(x).T
+    #     # Concatenate list to casadiMX
+    #     c = cs.hcat(c).T    
+    #     x = cs.hcat(x).T
         
-        return x[-1]
+    #     return x[-1]

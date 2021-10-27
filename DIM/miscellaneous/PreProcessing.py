@@ -162,6 +162,7 @@ def arrange_data_for_ident(df,x,u_inj,u_press,u_cool):
     
     # Assumption: First switch is were pressure is maximal
     t_um1 = df['p_inj_ist'].idxmax()
+    idx_t_um1 = np.argmin(abs(df.index.values-t_um1))
     
     # Second switch results from 
     t_um2 = t_um1 + df.loc[0]['t_press1_soll'] + df.loc[0]['t_press2_soll']
@@ -182,9 +183,23 @@ def arrange_data_for_ident(df,x,u_inj,u_press,u_cool):
     press['x'] = df.loc[t_um1:t_um2][x].values[1::,:]
     press['x_init'] = df.loc[t_um1][x].values
 
-    inject['u'] = df.loc[t_um2::][u_cool].values[0:-1,:]
-    inject['x'] = df.loc[t_um2::][x].values[1::,:]
-    inject['x_init'] = df.loc[t_um2][x].values    
+    cool['u'] = df.loc[t_um2::][u_cool].values[0:-1,:]
+    cool['x'] = df.loc[t_um2::][x].values[1::,:]
+    cool['x_init'] = df.loc[t_um2][x].values    
     
     return inject,press,cool
 
+
+def eliminate_outliers(doe_plan):
+    
+    # eliminate all nan
+    data = data[data.loc[:,'Gewicht']>=5]
+    data = data[data.loc[:,'Stegbreite_Gelenk']>=4]
+    data = data[data.loc[:,'Breite_Lasche']>=4]
+    
+    
+    
+    
+    
+    
+    

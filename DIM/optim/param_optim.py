@@ -348,6 +348,8 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
     # Create dictionary of all non-frozen parameters to create Opti Variables of 
     OptiParameters = model.Parameters.copy()
     
+    print(OptiParameters)
+    
     for frozen_param in model.FrozenParameters:
         OptiParameters.pop(frozen_param)
         
@@ -365,9 +367,11 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
         
         # Loop over all batches 
         for i in range(0,u.shape[0]):   
-               
+            
             # Simulate Model
             pred = model.Simulation(init_state[i],u[i],params_opti)
+            
+            
             
             if isinstance(pred, tuple):
                 pred = pred[1]
