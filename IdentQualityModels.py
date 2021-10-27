@@ -66,8 +66,8 @@ injection_model = GRU(dim_u=1,dim_c=10,dim_hidden=10,dim_out=1,name='inject')
 press_model = GRU(dim_u=1,dim_c=10,dim_hidden=10,dim_out=1,name='press')
 cool_model = GRU(dim_u=1,dim_c=10,dim_hidden=10,dim_out=1,name='cool')
 
-quality_model = QualityModel()
-quality_model.subsystems = [injection_model,press_model,cool_model]
+quality_model = QualityModel([injection_model,press_model,cool_model])
+
 
 quality_model.switching_instances =[14,339]
 
