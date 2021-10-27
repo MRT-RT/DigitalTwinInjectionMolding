@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 data = pkl.load(open('data/Versuchsplan/Versuchsplan.pkl','rb'))
 
 # quality_meas = 'Gewicht'
-# quality_meas = 'Durchmesser_innen'
+quality_meas = 'Durchmesser_innen'
 # quality_meas = 'Durchmesser_außen'
 # quality_meas = 'Stegbreite_Gelenk'
 # quality_meas = 'Breite_Lasche'
@@ -23,7 +23,7 @@ num_bins = 30
 binwidth = 0.01
 
 
-# Einfluss Einspritzgeschwindigkeit ##########################################
+# Einfluss Einspritzgeschwindigkeit ###########################################
 plt.close('all')
 palette = sns.color_palette()
 
@@ -56,7 +56,7 @@ axs.set_xlabel(quality_meas)
 axs.set_ylabel(None)
 fig.tight_layout(pad=0.0, h_pad=None, w_pad=None, rect=None)
 
-# Einfluss Düsentemperatur ###################################################
+# Einfluss Düsentemperatur ####################################################
 palette = sns.color_palette()
 
 fig, axs = plt.subplots() #plt.subplots(2,gridspec_kw={'height_ratios': [1, 1.5]})
@@ -90,7 +90,7 @@ axs.set_ylabel(None)
 fig.tight_layout(pad=0.0, h_pad=None, w_pad=None, rect=None)
 
 
-# Einfluss Umschaltpunkt######################################################
+# Einfluss Umschaltpunkt#######################################################
 # plt.close('all')
 palette = sns.color_palette()
 
@@ -124,6 +124,29 @@ sns.histplot(data=U14, x=quality_meas,
 axs.set_xlabel(quality_meas)
 axs.set_ylabel(None)
 fig.tight_layout(pad=0.0, h_pad=None, w_pad=None, rect=None)
+
+
+########## Scatterplot Qualitätsgrößen & Faktoren #############################
+
+sns.set_theme(style="ticks")
+
+quality = ['Gewicht','Durchmesser_innen','Durchmesser_außen',
+                'Stegbreite_Gelenk','Breite_Lasche','Rundheit_außen']
+
+factors = ['Düsentemperatur', 'Werkzeugtemperatur',
+       'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
+       'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
+
+# eliminate outliers
+data_clean = data[data.loc[:,'Gewicht']>=5]
+data_clean = data[data.loc[:,'Stegbreite_Gelenk']>=4]
+data_clean = data[data.loc[:,'Breite_Lasche']>=4]
+
+
+
+sns.pairplot(data.loc[:, quality])
+sns.pairplot(data.loc[:, factors])
+
 
 
 
