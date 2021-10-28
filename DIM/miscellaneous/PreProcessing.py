@@ -156,38 +156,50 @@ def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
     return df
     
 
-def arrange_data_for_ident(df,x,u_inj,u_press,u_cool):
+def arrange_data_for_qual_ident(cycles,x_lab,q_lab):
     
-    # Find switching instances
+    x = []
+    q = []
+    switch = []
     
-    # Assumption: First switch is were pressure is maximal
-    t_um1 = df['p_inj_ist'].idxmax()
-    idx_t_um1 = np.argmin(abs(df.index.values-t_um1))
-    
-    # Second switch results from 
-    t_um2 = t_um1 + df.loc[0]['t_press1_soll'] + df.loc[0]['t_press2_soll']
-    
-    # find index closest to calculated switching instances
-    idx_t_um2 = np.argmin(abs(df.index.values-t_um2))
-    t_um2 = df.index.values[idx_t_um2]
+    for cycle in cycles:
+        # Find switching instances
+        # Assumption: First switch is were pressure is maximal
+        t1 = cycle['p_inj_ist'].idxmax()
+        idx_t1 = np.argmin(abs(cycle.index.values-t1))
+        
+        # Second switch results from 
+        t2 = t1 + cycle.loc[0]['t_press1_soll'] + cycle.loc[0]['t_press2_soll']
+        
+        # find index closest to calculated switching instances
+        idx_t2 = np.argmin(abs(cycle.index.values-t2))
+        t2 = cycle.index.values[idx_t2]
+        
+        # Read desired data from dataframe
+        temp = cycle[x_lab].values                                              # can contain NaN at the end
+        nana = np.isnan(temp).any(axis=1)                                       # find NaN
+        
+        x.append(temp[~nana,:])
+        q.append(cycle.loc[0,q_lab].values)
+        switch.append([idx_t1,idx_t2])
    
-    inject = {}
-    press = {}
-    cool = {}
+    # inject = {}
+    # press = {}
+    # cool = {}
     
-    inject['u'] = df.loc[0:t_um1][u_inj].values[0:-1,:]
-    inject['x'] = df.loc[0:t_um1][x].values[1::,:]
-    inject['x_init'] = df.loc[0][x].values
+    # inject['u'] = df.loc[0:t_um1][u_inj].values[0:-1,:]
+    # inject['x'] = df.loc[0:t_um1][x].values[1::,:]
+    # inject['x_init'] = df.loc[0][x].values
     
-    press['u'] = df.loc[t_um1:t_um2][u_press].values[0:-1,:]
-    press['x'] = df.loc[t_um1:t_um2][x].values[1::,:]
-    press['x_init'] = df.loc[t_um1][x].values
+    # press['u'] = df.loc[t_um1:t_um2][u_press].values[0:-1,:]
+    # press['x'] = df.loc[t_um1:t_um2][x].values[1::,:]
+    # press['x_init'] = df.loc[t_um1][x].values
 
-    cool['u'] = df.loc[t_um2::][u_cool].values[0:-1,:]
-    cool['x'] = df.loc[t_um2::][x].values[1::,:]
-    cool['x_init'] = df.loc[t_um2][x].values    
+    # cool['u'] = df.loc[t_um2::][u_cool].values[0:-1,:]
+    # cool['x'] = df.loc[t_um2::][x].values[1::,:]
+    # cool['x_init'] = df.loc[t_um2][x].values    
     
-    return inject,press,cool
+    return x,q,switch
 
 
 def eliminate_outliers(doe_plan):

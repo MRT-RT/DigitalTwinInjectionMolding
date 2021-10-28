@@ -41,14 +41,24 @@ class RNN():
         
         # Define all parameters in a dictionary and initialize them 
         self.Parameters = {}
+        
+        new_param_values = {}
         for p_name in self.Function.name_in()[2::]:
-            self.Parameters[p_name] = initialization(self.Function.size_in(p_name))
+            new_param_values[p_name] = initialization(self.Function.size_in(p_name))
+        
+        self.AssignParameters(new_param_values)
 
         # Initialize with specific inital parameters if given
         if self.InitialParameters is not None:
             for param in self.InitialParameters.keys():
                 if param in self.Parameters.keys():
                     self.Parameters[param] = self.InitialParameters[param]
+                    
+    def AssignParameters(self,params):
+        
+        for p_name in self.Function.name_in()[2::]:
+            self.Parameters[p_name] = params[p_name]
+                        
 
     def OneStepPrediction(self,x0,u0,params=None):
         '''
@@ -307,6 +317,119 @@ class GRU(RNN):
                  frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the GRU Architecture
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_c : int
+            Dimension of the cell-state, i.e. the internal state of the GRU,
+            e.g. dim_c = 2 if cell-state is a 2x1 vector
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if output network is supposed to have 10 neurons in hidden layer.           
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        name : str
+            Name of the model, e.g. name = 'QualityModel'.
+
+        Returns
+        -------
+        None.
+
+        """        
+        self.dim_u = dim_u
+        self.dim_c = dim_c
+        self.dim_hidden = dim_hidden
+        self.dim_out = dim_out
+        self.name = name
+        
+        self.InitialParameters = initial_params
+        self.FrozenParameters = frozen_params
+        self.InitializationProcedure = init_proc
+        
+        self.Initialize()  
+ 
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """          
+        dim_u = self.dim_u
+        dim_c = self.dim_c
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out
+        name = self.name      
+        
+        u = cs.MX.sym('u',dim_u,1)
+        c = cs.MX.sym('c',dim_c,1)
+        
+        # Parameters
+        # RNN part
+        W_r = cs.MX.sym('W_r_'+name,dim_c,dim_u+dim_c)
+        b_r = cs.MX.sym('b_r_'+name,dim_c,1)
+    
+        W_z = cs.MX.sym('W_z_'+name,dim_c,dim_u+dim_c)
+        b_z = cs.MX.sym('b_z_'+name,dim_c,1)    
+        
+        W_c = cs.MX.sym('W_c_'+name,dim_c,dim_u+dim_c)
+        b_c = cs.MX.sym('b_c_'+name,dim_c,1)    
+    
+        # MLP part
+        W_h = cs.MX.sym('W_z_'+name,dim_hidden,dim_c)
+        b_h = cs.MX.sym('b_z_'+name,dim_hidden,1)    
+        
+        W_o = cs.MX.sym('W_c_'+name,dim_out,dim_hidden)
+        b_o = cs.MX.sym('b_c_'+name,dim_out,1)  
+        
+        
+        # Equations
+        f_r = logistic(cs.mtimes(W_r,cs.vertcat(u,c))+b_r)
+        f_z = logistic(cs.mtimes(W_z,cs.vertcat(u,c))+b_z)
+        
+        c_r = f_r*c
+        
+        f_c = cs.tanh(cs.mtimes(W_c,cs.vertcat(u,c_r))+b_c)
+        
+        
+        c_new = f_z*c+(1-f_z)*f_c
+        
+        h =  cs.tanh(cs.mtimes(W_h,c_new)+b_h)
+        x_new = cs.mtimes(W_o,h)+b_o    
+    
+        
+        # Casadi Function
+        input = [c,u,W_r,b_r,W_z,b_z,W_c,b_c,W_h,b_h,W_o,b_o]
+        input_names = ['c','u','W_r_'+name,'b_r_'+name,'W_z_'+name,'b_z_'+name
+                       ,'W_c_'+name,'b_c_'+name,'W_h_'+name,'b_h_'+name,
+                        'W_o_'+name,'b_o_'+name]
+        
+        output = [c_new,x_new]
+        output_names = ['c_new','x_new']
+    
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+
+        return None
+    
+class LSTM(RNN):
+    """
+    Implementation of a LSTM Unit with a Feedforward Neural Network
+    as output
+    """
+
+    def __init__(self,dim_u,dim_c,dim_hidden,dim_out,name,initial_params=None, 
+                 frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the LSTM Architecture
         
         Parameters
         ----------

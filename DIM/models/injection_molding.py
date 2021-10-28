@@ -33,7 +33,7 @@ class QualityModel():
     Container for the model which estimates the quality of the part given 
     trajectories of the process variables
     '''
-    def __init__(self,subsystems):
+    def __init__(self,subsystems,name):
         '''
         Initialization routine for the QualityModel 
         model: model_structures, needs to be a recurrent model which can map
@@ -43,9 +43,11 @@ class QualityModel():
        
         self.subsystems = subsystems
         self.switching_instances = []
+        self.name = name
         # self.FrozenParameters = frozen_params
         
         self.ParameterInitialization()
+        
         
         
     def Simulation(self,c0,u,params=None):
@@ -81,15 +83,19 @@ class QualityModel():
         # X.append(np.zeros((c_dims[0],1)))
         
         # Intervalls to divide input according to switching instances
-        ind = np.hstack((0,np.cumsum(self.switching_instances)))
+
+        # add zero and len(u) as indices
+        ind = [0] + self.switching_instances + [u.shape[0]]  
+          
+                  
         intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
         
         
         # System Dynamics as Path Constraints
         for system,interval in zip(self.subsystems,intervals):
-          
+            
             # Do a one step prediction based on the model
-            sim = system.Simulation(c0,u[interval[0]:interval[1],:])
+            sim = system.Simulation(c0,u[interval[0]:interval[1],:],params)
             
             # Last hidden state is inital state for next model
             c0 = sim[0][-1,:].T
@@ -100,9 +106,9 @@ class QualityModel():
                 c.append(sim[0])
                 y.append(sim[1])        
             
-        c = np.array(cs.vcat(c))
-        y = np.array(cs.vcat(y))
-            
+        # Concatenate list to casadiMX
+        y = cs.vcat(y)  
+        c = cs.vcat(c)          
             
         return c,y  
     
@@ -115,7 +121,13 @@ class QualityModel():
             system.ParameterInitialization()
             self.Parameters.update(system.Parameters)                                  # append subsystems parameters
             self.FrozenParameters.extend(system.FrozenParameters)
+
+    def AssignParameters(self,params):
+        self.Parameters = params
         
+        for system in self.subsystems:
+            system.AssignParameters(params)
+                
 
 class LinearSSM():
     """
