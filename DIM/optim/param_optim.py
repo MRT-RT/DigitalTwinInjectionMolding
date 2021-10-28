@@ -19,7 +19,7 @@ import pandas as pd
 import pickle as pkl
 
 from .DiscreteBoundedPSO import DiscreteBoundedPSO
-from .common import OptimValues_to_dict
+from .common import OptimValues_to_dict,BestFitRate
 
 # Import sphere function as objective function
 #from pyswarms.utils.functions.single_obj import sphere as f
@@ -101,8 +101,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         new_params = ModelParameterEstimation(model,data,p_opts,s_opts)
         
         # Assign estimated parameters to model
-        for p in new_params.keys():
-            model.Parameters[p] = new_params[p]
+        model.AssignParameters(new_params)
         
         # Evaluate on Validation data
         u_val = data['u_val']
@@ -112,41 +111,50 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         # Evaluate estimated model on validation data        
         e_val = 0
         
-        for j in range(0,u_val.shape[0]):   
+        for j in range(0,len(u_val)):   
             # Simulate Model
             pred = model.Simulation(init_state_val[j],u_val[j])
             
             if isinstance(pred, tuple):
                 pred = pred[1]
-            
-            e_val = e_val + cs.sqrt(cs.sumsqr(y_ref_val[j,:,:] - pred))
+
+            # Calculate simulation error            
+            # Check for the case, where only last value is available
+            if y_ref_val[j].shape[0]==1:
+                e_val = e_val + cs.sumsqr(y_ref_val[j] - pred[-1,:])
+            else:
+                e = e + cs.sumsqr(y_ref_val[i] - pred)
+
         
         # Calculate mean error over all validation batches
-        e_val = e_val / u_val.shape[0]
+        e_val = e_val / len(u_val)
         e_val = np.array(e_val).reshape((1,))
         
         
-        # Evaluate estimated model on test data
+        # # Evaluate estimated model on test data
         
-        u_test = data['u_test']
-        y_ref_test = data['y_test']
-        init_state_test = data['init_state_test']
+        # u_test = data['u_test']
+        # y_ref_test = data['y_test']
+        # init_state_test = data['init_state_test']
             
-        pred = model.Simulation(init_state_test[0],u_test[0])
+        # pred = model.Simulation(init_state_test[0],u_test[0])
         
-        if isinstance(pred, tuple):
-            pred = pred[1]
+        # if isinstance(pred, tuple):
+        #     pred = pred[1]
         
-        y_est = np.array(pred)
+        # y_est = np.array(pred)
         
-        BFR = BestFitRate(y_ref_test[0],y_est)
+        # BFR = BestFitRate(y_ref_test[0],y_est)
         
-        # save parameters and performance in list
-        results.append([e_val,BFR,model.name,model.dim,i,model.Parameters])
-   
-    results = pd.DataFrame(data = results, columns = ['loss_val','BFR_test',
-                        'model','dim_theta','initialization','params'])
+        # # save parameters and performance in list
+        # results.append([e_val,BFR,model.name,i,model.Parameters])
+        results.append([e_val,model.name,i,model.Parameters])
+         
+    # results = pd.DataFrame(data = results, columns = ['loss_val','BFR_test',
+    #                     'model','initialization','params'])
     
+    results = pd.DataFrame(data = results, columns = ['loss_val',
+                        'model','initialization','params'])
     return results 
 
 def HyperParameterPSO(model,data,param_bounds,n_particles,options,
@@ -347,9 +355,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
     
     # Create dictionary of all non-frozen parameters to create Opti Variables of 
     OptiParameters = model.Parameters.copy()
-    
-    print(OptiParameters)
-    
+   
     for frozen_param in model.FrozenParameters:
         OptiParameters.pop(frozen_param)
         
@@ -366,7 +372,12 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
     if x_ref is None:
         
         # Loop over all batches 
-        for i in range(0,u.shape[0]):   
+        for i in range(0,len(u)):   
+            
+            try:
+                model.switching_instances = data['switch_train'][i]
+            except NameError:
+                pass
             
             # Simulate Model
             pred = model.Simulation(init_state[i],u[i],params_opti)
@@ -376,24 +387,28 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
             if isinstance(pred, tuple):
                 pred = pred[1]
             
-            # Calculate simulation error
-            e = e + cs.sumsqr(y_ref[i,:,:] - pred)
+            # Calculate simulation error            
+            # Check for the case, where only last value is available
+            if y_ref[i].shape[0]==1:
+                e = e + cs.sumsqr(y_ref[i] - pred[-1,:])
+            else:
+                e = e + cs.sumsqr(y_ref[i] - pred)
             
             
     # Training in series parallel configuration        
     else:
         # Loop over all batches 
-        for i in range(0,u.shape[0]):  
+        for i in range(0,len(u)):  
             
             # One-Step prediction
-            for k in range(u[i,:,:].shape[0]-1):  
+            for k in range(u[i].shape[0]-1):  
                 # print(k)
-                x_new,y_new = model.OneStepPrediction(x_ref[i,k,:],u[i,k,:],
+                x_new,y_new = model.OneStepPrediction(x_ref[i][k,:],u[i][k,:],
                                                       params_opti)
                 
                 # Calculate one step prediction error
-                e = e + cs.sumsqr(y_ref[i,k,:]-y_new) + \
-                    cs.sumsqr(x_ref[i,k+1,:]-x_new) 
+                e = e + cs.sumsqr(y_ref[i][k,:]-y_new) + \
+                    cs.sumsqr(x_ref[i][k+1,:]-x_new) 
     
     opti.minimize(e)
         
