@@ -7,6 +7,7 @@ Created on Mon Oct 25 14:44:37 2021
 
 import pickle as pkl
 import numpy as np
+import matplotlib.pyplot as plt
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_qual_ident
 
@@ -56,7 +57,7 @@ cycles_val = cycles[8:10]
 q_lab = ['Durchmesser_innen']
 x_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
 
-
+# 
 
 #
 x_train,q_train,switch_train = arrange_data_for_qual_ident(cycles_train,x_lab,q_lab)
@@ -66,7 +67,6 @@ x_val,q_val,switch_val = arrange_data_for_qual_ident(cycles_val,x_lab,q_lab)
 
 c0_train = [np.zeros((dim_c,1)) for i in range(0,len(x_train))]
 c0_val = [np.zeros((dim_c,1)) for i in range(0,len(x_val))]
-#
 
 data = {'u_train': x_train,
         'y_train': q_train,
@@ -88,21 +88,21 @@ quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model]
                               name='q_model')
 
 
+# results = ModelTraining(quality_model,data,initializations=10, BFR=False, 
+#                   p_opts=None, s_opts=None)
+
+results = pkl.load(open('QualityModel_GRU_1c_5in_1out.pkl','rb'))
+
+quality_model.AssignParameters(results.loc[3,'params'])
+
+quality_model.switching_instances = data['switch_val'][0]
+
+c,y = quality_model.Simulation(data['init_state_val'][0], data['u_val'][0])
 
 
-
-
-
-
-
-
-
-
-
-
-results = ModelTraining(quality_model,data,initializations=10, BFR=False, 
-                  p_opts=None, s_opts=None)
-
+plt.plot(data['u_val'][0])
+plt.plot(np.array(y))
+plt.plot(np.array(c))
 
 # u_press_names = u_inj_names
 # u_cool_names = u_inj_names
