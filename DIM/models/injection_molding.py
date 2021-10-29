@@ -50,7 +50,7 @@ class QualityModel():
         
         
         
-    def Simulation(self,c0,u,params=None):
+    def Simulation(self,c0,u,params=None,switching_instances=None):
         """
         Simulates the quality model for a given input trajectory u and an initial
         hidden state (cell state of RNN) 
@@ -73,7 +73,7 @@ class QualityModel():
             a simulation over N time steps and dim_out = 3 y is a Nx3 vector
     
         """
-           
+        self.switching_instances = switching_instances
         
         # Create empty arrays for output y and hidden state c
         y = []
@@ -90,7 +90,7 @@ class QualityModel():
                   
         intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
         
-        
+
         # System Dynamics as Path Constraints
         for system,interval in zip(self.subsystems,intervals):
             
