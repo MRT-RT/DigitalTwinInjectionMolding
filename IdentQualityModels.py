@@ -66,7 +66,11 @@ quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model]
                               name='q_model')
 
 
-# PSO gangbar machen!
+param_bounds = {'dim_c':[1,4]} 
+
+
+hist =  HyperParameterPSO(quality_model,data,param_bounds,2,options,
+                      initializations=2,p_opts=None,s_opts=None)
 
 results_LSTM = ModelTraining(quality_model,data,initializations=2, BFR=False, 
                   p_opts=None, s_opts=None)
