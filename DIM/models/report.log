@@ -1,0 +1,1 @@
+2021-11-04 13:46:24,420 - DIM.optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}

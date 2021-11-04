@@ -7,7 +7,7 @@
 import casadi as cs
 import matplotlib.pyplot as plt
 import numpy as np
-from ..optim.common import RK4
+from DIM.optim.common import RK4
 from .initializations import XavierInitialization, RandomInitialization, HeInitialization
 
 # from miscellaneous import *
