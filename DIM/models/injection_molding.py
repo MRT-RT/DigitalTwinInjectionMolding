@@ -24,9 +24,6 @@ class ProcessModel():
         self.subsystems = []
         self.switching_instances = []
         
-            
-                
-        
         
 class QualityModel():
     '''
@@ -46,16 +43,57 @@ class QualityModel():
         self.name = name
         # self.FrozenParameters = frozen_params
         
-        self.ParameterInitialization()
-    
+        dim_c = []
+        dim_out = []
+        
+        for subsystem in self.subsystems:
+            dim_c.append(subsystem.dim_c)
+            dim_out.append(subsystem.dim_out)
+            
+            object.__setattr__(self, 'dim_u'+'_'+subsystem.name, 
+                               subsystem.dim_u)
+            object.__setattr__(self, 'dim_hidden'+'_'+subsystem.name, 
+                               subsystem.dim_hidden)
+        
+        # Check consistency
+        if sum(dim_c)/len(dim_c)==dim_c[0]:
+            self.dim_c = dim_c[0]
+        else:
+            raise ValueError('Cell state of all subsystems needs to be equal')
+        
+        if sum(dim_out)/len(dim_out)==dim_out[0]:
+            self.dim_out = dim_out[0]
+        else:
+            raise ValueError('Cell state of all subsystems needs to be equal')
+            
+        self.Initialize()
+        
+        
+        
     def Initialize(self):
         
         '''
         Write a routine that initializes subsystem models automatically, needed
         for PSO algorithm
         '''
-        
+       
+        # Update attributes of each subsystem
+        for subsystem in self.subsystems:
+            
+            setattr(subsystem, 'dim_u', 
+                    object.__getattribute__(self,'dim_u'+'_'+subsystem.name))
+            setattr(subsystem, 'dim_c', 
+                    object.__getattribute__(self,'dim_c'))
+            setattr(subsystem, 'dim_hidden', 
+                    object.__getattribute__(self,'dim_hidden'+'_'+subsystem.name))
+            setattr(subsystem, 'dim_out',
+                    object.__getattribute__(self,'dim_out'))
+            
+            # Call Initialize function of each subsystem
+            subsystem.Initialize()
+                
         return None
+    
     def Simulation(self,c0,u,params=None,switching_instances=None):
         """
         Simulates the quality model for a given input trajectory u and an initial
@@ -95,6 +133,9 @@ class QualityModel():
           
                   
         # intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
+        
+        c0 = np.zeros((self.dim_c,1))
+        
         
 
         # System Dynamics as Path Constraints

@@ -18,7 +18,7 @@ import math
 import pandas as pd
 import pickle as pkl
 
-from .DiscreteBoundedPSO import DiscreteBoundedPSO
+from DIM.optim.DiscreteBoundedPSO import DiscreteBoundedPSO
 from .common import OptimValues_to_dict,BestFitRate
 
 # Import sphere function as objective function
@@ -278,13 +278,13 @@ def HyperParameterPSO(model,data,param_bounds,n_particles,options,
                                        'wb'))
                 
                 # calculate best performance over all initializations
-                cost[particle] = results.loss.min()
+                cost[particle] = results.loss_val.min()[0]
                 
                 # Save new data to dictionary for future iterations
                 hist.loc[idx,'cost'] = cost[particle]
                 
                 # Save model parameters corresponding to best performance
-                idx_min = pd.to_numeric(results['loss'].str[0]).argmin()
+                idx_min = pd.to_numeric(results['loss_val'].str[0]).argmin()
                 hist.loc[idx,'model_params'] = \
                 [results.loc[idx_min,'params']]
                 
@@ -303,7 +303,7 @@ def HyperParameterPSO(model,data,param_bounds,n_particles,options,
     
     
     # Solve PSO Optimization Problem
-    PSO_problem.optimize(PSO_cost_function, iters=100, **cost_func_kwargs)
+    PSO_problem.optimize(PSO_cost_function, iters=100, n_processes=None,**cost_func_kwargs)
     
     # Load intermediate results
     hist = pkl.load(open(path + model.name +'/' + 'HyperParamPSO_hist.pkl','rb'))
@@ -416,7 +416,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
     if p_opts is None:
         p_opts = {"expand":False}
     if s_opts is None:
-        s_opts = {"max_iter": 1000, "print_level":1}
+        s_opts = {"max_iter": 3000, "print_level":2}
 
     # Create Solver
     opti.solver("ipopt",p_opts, s_opts)
