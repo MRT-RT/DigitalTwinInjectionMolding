@@ -483,146 +483,161 @@ class LSTM(RNN):
         
         u = cs.MX.sym('u',dim_u,1)
         c = cs.MX.sym('c',dim_c,1)
+        h = cs.MX.sym('c',dim_c,1)
         
         # Parameters
         # RNN part
-        W_r = cs.MX.sym('W_r_'+name,dim_c,dim_u+dim_c)
-        b_r = cs.MX.sym('b_r_'+name,dim_c,1)
+        W_f = cs.MX.sym('W_f_'+name,dim_c,dim_u+dim_c)
+        b_f = cs.MX.sym('b_f_'+name,dim_c,1)
     
-        W_z = cs.MX.sym('W_z_'+name,dim_c,dim_u+dim_c)
-        b_z = cs.MX.sym('b_z_'+name,dim_c,1)    
+        W_i = cs.MX.sym('W_i_'+name,dim_c,dim_u+dim_c)
+        b_i = cs.MX.sym('b_i_'+name,dim_c,1)    
         
+        W_o = cs.MX.sym('W_c_'+name,dim_c,dim_u+dim_c)
+        b_o = cs.MX.sym('b_c_'+name,dim_c,1)    
+
         W_c = cs.MX.sym('W_c_'+name,dim_c,dim_u+dim_c)
-        b_c = cs.MX.sym('b_c_'+name,dim_c,1)    
+        b_c = cs.MX.sym('b_c_'+name,dim_c,1)     
     
         # MLP part
         W_h = cs.MX.sym('W_z_'+name,dim_hidden,dim_c)
         b_h = cs.MX.sym('b_z_'+name,dim_hidden,1)    
         
-        W_o = cs.MX.sym('W_c_'+name,dim_out,dim_hidden)
-        b_o = cs.MX.sym('b_c_'+name,dim_out,1)  
+        W_y = cs.MX.sym('W_c_'+name,dim_out,dim_hidden)
+        b_y = cs.MX.sym('b_c_'+name,dim_out,1)  
         
         
         # Equations
-        f_r = logistic(cs.mtimes(W_r,cs.vertcat(u,c))+b_r)
-        f_z = logistic(cs.mtimes(W_z,cs.vertcat(u,c))+b_z)
+        # RNN part
+        f_f = logistic(cs.mtimes(W_f,cs.vertcat(u,h))+b_f)
+        f_i = logistic(cs.mtimes(W_i,cs.vertcat(u,h))+b_i)
+        f_o = logistic(cs.mtimes(W_o,cs.vertcat(u,h))+b_o)
+        f_c = cs.tanh(cs.mtimes(W_c,cs.vertcat(u,h))+b_c)
         
-        c_r = f_r*c
+        c_new = f_f*c + f_i*f_c
+        h_new = f_o * cs.tanh(c_new)
         
-        f_c = cs.tanh(cs.mtimes(W_c,cs.vertcat(u,c_r))+b_c)
         
-        
-        c_new = f_z*c+(1-f_z)*f_c
-        
-        h =  cs.tanh(cs.mtimes(W_h,c_new)+b_h)
-        x_new = cs.mtimes(W_o,h)+b_o    
+        # MLP part
+                
+        MLP_h =  cs.tanh(cs.mtimes(W_h,h_new)+b_h)
+        y_new = cs.mtimes(W_y,MLP_h)+b_y    
     
         
         # Casadi Function
-        input = [c,u,W_r,b_r,W_z,b_z,W_c,b_c,W_h,b_h,W_o,b_o]
-        input_names = ['c','u','W_r_'+name,'b_r_'+name,'W_z_'+name,'b_z_'+name
-                       ,'W_c_'+name,'b_c_'+name,'W_h_'+name,'b_h_'+name,
-                        'W_o_'+name,'b_o_'+name]
+        input = [c,h,u,W_f,b_f,W_i,b_i,W_o,b_o,W_c,b_c,W_h,b_h,W_y,b_y]
+        input_names = ['c','h','u','W_f_'+name,'b_f_'+name,'W_i_'+name,
+                       'b_i_'+name,'W_o_'+name,'b_o_'+name,'W_c_'+name,
+                       'b_c_'+name,'W_h_'+name,'b_h_'+name,'W_y_'+name,
+                       'b_y_'+name]
         
-        output = [c_new,x_new]
-        output_names = ['c_new','x_new']
+        output = [c_new, h_new, y_new]
+        output_names = ['c_new','h_new','y_new']
     
         self.Function = cs.Function(name, input, output, input_names,output_names)
         
         self.ParameterInitialization()
 
         return None
-    
-    # def OneStepPrediction(self,c0,u0,params=None):
-    #     """
-    #     OneStepPrediction() evaluates the model equation defined in 
-    #     self.Function()
-        
-    #     self.Function() takes initial cell-state c0, input u0 and all model 
-    #     parameters as input. The model parameters can either be optimization
-    #     variables themselves (as in system identification) or the take specific 
-    #     values (when the estimated model is used for control)
 
-    #     Parameters
-    #     ----------
-    #     c0 : array-like with dimension [self.dim_c, 1]
-    #         initial cell-state resp. state from last time-step
-    #     u0 : array-like with dimension [self.dim_u, 1]
-    #         input
-    #     params : dictionary, optional
-    #         params is None: This is the case during model based control,
-    #         self.Function() is evaluated with the numerical
-    #         values of the model parameters saved in self.Parameters
-    #         params is dictionary of opti.variables: During system identification
-    #         the model parameters are optimization variables themselves, so a 
-    #         dictionary of opti.variables is passed to self.Function()
-
-    #     Returns
-    #     -------
-    #     c1 : array-like with dimension [self.dim_c, 1]
-    #         new cell-state
-    #     x1 : array-like with dimension [self.dim_x, 1]
-    #         output of the Feedforward Neural Network
-    #     """
-    #     if params==None:
-    #         params = self.Parameters
+    def OneStepPrediction(self,c0,h0,u0,params=None):
+        '''
+        Estimates the next state and output from current state and input
+        x0: Casadi MX, current state
+        u0: Casadi MX, current input
+        params: A dictionary of opti variables, if the parameters of the model
+                should be optimized, if None, then the current parameters of
+                the model are used
+        '''
         
-    #     params_new = []
+        if params==None:
+            params = self.Parameters
+        
+        params_new = []
             
-    #     for name in  self.Function.name_in():
-    #         try:
-    #             params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
-    #         except:
-    #             continue
-        
-    #     c1,x1 = self.Function(c0,u0,*params_new)     
+        for name in self.Function.name_in()[3::]:
+ 
+            try:
+                params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
+            except:
+                params_new.append(self.Parameters[name])  
+            
+        c1,h1,y1 = self.Function(c0,h0,u0,*params_new)     
                               
-    #     return c1,x1
+        return c1,h1,y1
    
-    # def Simulation(self,c0,u,params=None):
-    #     """
-    #     Repeated call of self.OneStepPrediction() for a given input trajectory
-        
+    def Simulation(self,x0,u,params=None):
+        '''
+        A iterative application of the OneStepPrediction in order to perform a
+        simulation for a whole input trajectory
+        x0: Casadi MX, inital state a begin of simulation
+        u: Casadi MX,  input trajectory
+        params: A dictionary of opti variables, if the parameters of the model
+                should be optimized, if None, then the current parameters of
+                the model are used
+        '''
 
-    #     Parameters
-    #     ----------
-    #     c0 : array-like with dimension [self.dim_c, 1]
-    #         initial cell-state
-    #     u : array-like with dimension [N,self.dim_u]
-    #         trajectory of input signal with length N
-    #     params : dictionary, optional
-    #         see self.OneStepPrediction()
+        x = []
+        y = []
 
-    #     Returns
-    #     -------
-    #     x : array-like with dimension [N+1,self.dim_x]
-    #         trajectory of output signal with length N+1 
-            
-    #     """
+        # initial states
+        x.append(x0)
+        h_old = x0
+               
+        # Simulate Model
+        for k in range(u.shape[0]):
+            c_new,h_new,y_new = self.OneStepPrediction(x[k],h_old,u[[k],:],params)
+            x.append(c_new)
+            h_old=h_new
+            y.append(y_new)
         
-    #     # Is that necessary?
-    #     # print('GRU Simulation ignores given initial state, initial state is set to zero!')
+        # Concatenate list to casadiMX
+        y = cs.hcat(y).T    
+        x = cs.hcat(x).T
+       
+        return x,y    
+    
+    def ParameterInitialization(self):
+        '''
+        Routine for parameter initialization. Takes input_names from the Casadi-
+        Function defining the model equations self.Function and defines a 
+        dictionary with input_names as keys. According to the initialization
+        procedure defined in self.InitializationProcedure each key contains 
+        a numpy array of appropriate shape
+
+        Returns
+        -------
+        None.
+
+        '''
+                
+        # Initialization procedure
+        if self.InitializationProcedure == 'random':
+            initialization = RandomInitialization
+        elif self.InitializationProcedure == 'xavier':
+            initialization = XavierInitialization
+        elif self.InitializationProcedure == 'he':
+            initialization = HeInitialization      
         
+        # Define all parameters in a dictionary and initialize them 
+        self.Parameters = {}
         
-    #     # c0 = np.zeros((self.dim_c,1))
+        new_param_values = {}
+        for p_name in self.Function.name_in()[3::]:
+            new_param_values[p_name] = initialization(self.Function.size_in(p_name))
         
-    #     c = []
-    #     x = []
+        self.AssignParameters(new_param_values)
+
+        # Initialize with specific inital parameters if given
+        if self.InitialParameters is not None:
+            for param in self.InitialParameters.keys():
+                if param in self.Parameters.keys():
+                    self.Parameters[param] = self.InitialParameters[param]
+                    
+    def AssignParameters(self,params):
         
-    #     # initial cell state
-    #     c.append(c0)
-                      
-    #     # Simulate Model
-    #     for k in range(u.shape[0]):
-    #         c_new,x_new = self.OneStepPrediction(c[k],u[k,:],params)
-    #         c.append(c_new)
-    #         x.append(x_new)
-        
-    #     # Concatenate list to casadiMX
-    #     c = cs.hcat(c).T    
-    #     x = cs.hcat(x).T
-        
-    #     return c,x
+        for p_name in self.Function.name_in()[3::]:
+            self.Parameters[p_name] = params[p_name]
     
     
 class FirstOrderSystem():

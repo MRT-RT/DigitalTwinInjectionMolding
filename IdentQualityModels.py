@@ -9,37 +9,13 @@ import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
 
-from DIM.miscellaneous.PreProcessing import arrange_data_for_qual_ident
+from DIM.miscellaneous.PreProcessing import arrange_data_for_ident
 
-from DIM.models.model_structures import GRU
+from DIM.models.model_structures import GRU,LSTM
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining
 
 
-
-# # Load Versuchsplan to find cycles that should be considered for modelling
-# data = pkl.load(open('data/Versuchsplan/Versuchsplan.pkl','rb'))
-
-# cycles = data.loc[data['Düsentemperatur'].isin([250]) & 
-#                data['Werkzeugtemperatur'].isin([40]) &
-#                ~data['Einspritzgeschwindigkeit'].isin([32]) &
-#                ~data['Umschaltpunkt'].isin([13.5]) &
-#                ~data['Nachdruckhöhe'].isin([550]) &
-#                ~data['Nachdruckzeit'].isin([4]) &
-#                ~data['Staudruck'].isin([50]) &
-#                ~data['Kühlzeit'].isin([17.5])].index.values
-
-# # Remove first two cycles of each charge. Use remaining 6 for training and 2 
-# # for validation
-# cycles_train = np.hstack([np.arange(2,cycles[-1],10),
-#                        np.arange(3,cycles[-1],10),
-#                        np.arange(4,cycles[-1],10),
-#                        np.arange(5,cycles[-1],10),
-#                        np.arange(6,cycles[-1],10),
-#                        np.arange(7,cycles[-1],10)])
-
-# cycles_val = np.hstack([np.arange(8,cycles[-1],10),
-#                         np.arange(9,cycles[-1],10)])
 
 
 dim_c = 2
@@ -50,20 +26,22 @@ cycles = []
 for i in range(1,11):
     cycles.append(pkl.load(open('data/Versuchsplan/cycle'+str(i)+'.pkl','rb')))
 
-cycles_train = cycles[2:7]
+cycles_train = cycles[3:8]
 cycles_val = cycles[8:10]
 
 # Select input and output for dynamic model
-q_lab = ['Durchmesser_innen']
-x_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-
+y_lab = ['Durchmesser_innen']
+u_inj_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
+u_press_lab = u_inj_lab
+u_cool_lab = ['p_wkz_ist','T_wkz_ist']
 # 
-
+x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
+                                    u_inj_lab,u_press_lab,u_cool_lab,'quality')
 #
-x_train,q_train,switch_train = arrange_data_for_qual_ident(cycles_train,x_lab,q_lab)
+# x_train,q_train,switch_train = arrange_data_for_qual_ident(cycles_train,x_lab,q_lab)
 
-x_val,q_val,switch_val = arrange_data_for_qual_ident(cycles_val,x_lab,q_lab)
-
+x_val,q_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
+                                    u_inj_lab,u_press_lab,u_cool_lab,'quality')
 
 c0_train = [np.zeros((dim_c,1)) for i in range(0,len(x_train))]
 c0_val = [np.zeros((dim_c,1)) for i in range(0,len(x_val))]
@@ -80,29 +58,33 @@ data = {'u_train': x_train,
 
 # 
 
-injection_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
-press_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
-cool_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
+injection_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=5,dim_out=1,name='inject')
+press_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=5,dim_out=1,name='press')
+cool_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='cool')
 
 quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
                               name='q_model')
 
 
-# results = ModelTraining(quality_model,data,initializations=10, BFR=False, 
-#                   p_opts=None, s_opts=None)
+# PSO gangbar machen!
 
-results = pkl.load(open('QualityModel_GRU_1c_5in_1out.pkl','rb'))
-
-quality_model.AssignParameters(results.loc[3,'params'])
-
-quality_model.switching_instances = data['switch_val'][0]
-
-c,y = quality_model.Simulation(data['init_state_val'][0], data['u_val'][0])
+results_LSTM = ModelTraining(quality_model,data,initializations=2, BFR=False, 
+                  p_opts=None, s_opts=None)
 
 
-plt.plot(data['u_val'][0])
-plt.plot(np.array(y))
-plt.plot(np.array(c))
+
+# results = pkl.load(open('QualityModel_GRU_1c_5in_1out.pkl','rb'))
+
+# quality_model.AssignParameters(results.loc[3,'params'])
+
+# quality_model.switching_instances = data['switch_val'][0]
+
+# c,y = quality_model.Simulation(data['init_state_val'][0], data['u_val'][0])
+
+
+# plt.plot(data['u_val'][0])
+# plt.plot(np.array(y))
+# plt.plot(np.array(c))
 
 # u_press_names = u_inj_names
 # u_cool_names = u_inj_names

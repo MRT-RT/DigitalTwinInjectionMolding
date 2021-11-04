@@ -19,9 +19,9 @@ data_clean = data_clean[data_clean.loc[:,'Breite_Lasche']>=4]
 data = data_clean
 
 # quality_meas = 'Gewicht'
-quality_meas = 'Durchmesser_innen'
+# quality_meas = 'Durchmesser_innen'
 # quality_meas = 'Durchmesser_außen'
-# quality_meas = 'Stegbreite_Gelenk'
+quality_meas = 'Stegbreite_Gelenk'
 # quality_meas = 'Breite_Lasche'
 # quality_meas = 'Rundheit_außen'
 
@@ -31,7 +31,7 @@ num_bins = 30
 binwidth = 0.01 # Durchmesser_innen
 
 # Einfluss Einspritzgeschwindigkeit ###########################################
-plt.close('all')
+# plt.close('all')
 palette = sns.color_palette()
 
 fig, axs = plt.subplots() #plt.subplots(2,gridspec_kw={'height_ratios': [1, 1.5]})
