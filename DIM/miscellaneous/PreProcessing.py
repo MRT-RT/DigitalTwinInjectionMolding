@@ -201,6 +201,67 @@ def arrange_data_for_qual_ident(cycles,x_lab,q_lab):
     
     return x,q,switch
 
+def arrange_data_for_ident(cycles,y_lab,u_inj_lab,u_press_lab,u_cool_lab,mode):
+    
+    u = []
+    y = []
+    switch = []
+    
+    for cycle in cycles:
+        # Find switching instances
+        # Assumption: First switch is were pressure is maximal
+        t1 = cycle['p_inj_ist'].idxmax()
+        idx_t1 = np.argmin(abs(cycle.index.values-t1))
+        
+        # Second switch 
+        t2 = t1 + cycle.loc[0]['t_press1_soll'] + cycle.loc[0]['t_press2_soll']
+        idx_t2 = np.argmin(abs(cycle.index.values-t2))
+        
+        # Third switch, machine opens
+        t3 = t2 + cycle.loc[0,'Kühlzeit']
+        idx_t3 = np.argmin(abs(cycle.index.values-t3))
+        
+        # Reduce dataframe to desired variables and treat NaN
+        u_lab = u_inj_lab + list(set(u_press_lab) - set(u_inj_lab))
+        u_lab = u_lab + list(set(u_cool_lab) - set(u_lab)) 
+        
+        cycle = cycle[u_lab+y_lab]
+        
+        if mode == 'quality':
+            nan_cycle = np.isnan(cycle[u_lab]).any(axis=1)
+            cycle = cycle.loc[~nan_cycle]
+            
+            y.append(cycle.loc[0,y_lab].values)
+            
+        elif mode == 'process':
+            nan_cycle = np.isnan(cycle).any(axis=1)
+            cycle = cycle.loc[~nan_cycle]
+            
+            y.append(cycle.loc[1:idx_t3+1,y_lab].values)            
+        
+        # At this point one should test, whether there were NaN not only deleted
+        # at the end of the dataframe cycle due to different long charts, 
+        # but also if NaN were deleted somewhere "in between"
+        # However, I have no time for this right now
+        
+        # Read desired data from dataframe
+        u_inj = cycle[u_inj_lab].values                                         # can contain NaN at the end
+        u_press = cycle[u_press_lab].values  
+        u_cool = cycle[u_cool_lab].values  
+
+
+        u_inj = u_inj[0:idx_t1,::]
+        u_press = u_press[idx_t1:idx_t2,::]
+        u_cool = u_cool[idx_t2:idx_t3,::]
+        
+
+        u.append([u_inj,u_press,u_cool])
+        switch.append([idx_t1,idx_t2])
+   
+    return u,y,switch
+
+
+
 
 def eliminate_outliers(doe_plan):
     

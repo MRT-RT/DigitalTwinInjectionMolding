@@ -47,9 +47,15 @@ class QualityModel():
         # self.FrozenParameters = frozen_params
         
         self.ParameterInitialization()
+    
+    def Initialize(self):
         
+        '''
+        Write a routine that initializes subsystem models automatically, needed
+        for PSO algorithm
+        '''
         
-        
+        return None
     def Simulation(self,c0,u,params=None,switching_instances=None):
         """
         Simulates the quality model for a given input trajectory u and an initial
@@ -85,17 +91,17 @@ class QualityModel():
         # Intervalls to divide input according to switching instances
 
         # add zero and len(u) as indices
-        ind = [0] + self.switching_instances + [u.shape[0]]  
+        # ind = [0] + self.switching_instances + [u.shape[0]]  
           
                   
-        intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
+        # intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
         
 
         # System Dynamics as Path Constraints
-        for system,interval in zip(self.subsystems,intervals):
+        for system,u_sys in zip(self.subsystems,u):
             
             # Do a one step prediction based on the model
-            sim = system.Simulation(c0,u[interval[0]:interval[1],:],params)
+            sim = system.Simulation(c0,u_sys,params)
             
             # Last hidden state is inital state for next model
             c0 = sim[0][-1,:].T

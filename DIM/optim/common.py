@@ -16,7 +16,7 @@ def OptimValues_to_dict(optim_variables_dict,sol):
     for key in optim_variables_dict.keys():
        dim0 = optim_variables_dict[key].shape[0]
        dim1 = optim_variables_dict[key].shape[1]
-       
+
        values[key] = sol.value(optim_variables_dict[key]) 
        
        # Convert tu numpy array
