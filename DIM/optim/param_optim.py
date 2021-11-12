@@ -215,20 +215,24 @@ def HyperParameterPSO(model,data,param_bounds,n_particles,options,
                                      options, bounds)
 
     # Make a directory and file for intermediate results 
-    os.makedirs(path+model.name)
-
-    for key in param_bounds.keys():
-        param_bounds[key] = np.arange(param_bounds[key][0],
-                                      param_bounds[key][1]+1,
-                                      dtype = int)
+    try:
+        os.makedirs(path+model.name)
     
-    index = pd.MultiIndex.from_product(param_bounds.values(),
-                                       names=param_bounds.keys())
+        for key in param_bounds.keys():
+            param_bounds[key] = np.arange(param_bounds[key][0],
+                                          param_bounds[key][1]+1,
+                                          dtype = int)
+        
+        index = pd.MultiIndex.from_product(param_bounds.values(),
+                                           names=param_bounds.keys())
+        
+        hist = pd.DataFrame(index = index, columns=['cost','model_params'])    
+        
+        pkl.dump(hist, open(path + model.name +'/' + 'HyperParamPSO_hist.pkl','wb'))
     
-    hist = pd.DataFrame(index = index, columns=['cost','model_params'])    
-    
-    pkl.dump(hist, open(path + model.name +'/' + 'HyperParamPSO_hist.pkl','wb'))
-    
+    except:
+        print('Found data, PSO continues...')
+        
     # Define arguments to be passed to vost function
     cost_func_kwargs = {'model': model,
                         'param_bounds': param_bounds,
