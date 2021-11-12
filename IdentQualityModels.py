@@ -9,15 +9,23 @@ import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
 
-from DIM.miscellaneous.PreProcessing import arrange_data_for_ident
+from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 
 from DIM.models.model_structures import GRU,LSTM
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 
 
+
+dim_c = 2
+
+
 # Load Versuchsplan to find cycles that should be considered for modelling
 data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
+
+data = eliminate_outliers(data)
+
+# Delete outliers rudimentary
 
 # Cycles for parameter estimation
 cycles_train_label = []
@@ -30,7 +38,11 @@ for charge in range(1,274):
 cycles_train_label = np.hstack(cycles_train_label)
 cycles_val_label = np.hstack(cycles_val_label)
 
-dim_c = 2
+
+# Delete cycles that for some reason don't exist
+cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
+
+
 
 # # Load cycle data, check if usable, convert to numpy array
 cycles_train = []
@@ -45,7 +57,7 @@ for c in cycles_val_label:
                                       'rb')))
 
 # Select input and output for dynamic model
-y_lab = ['Durchmesser_innen']
+y_lab = ['Stegbreite_Gelenk']
 u_inj_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
 u_press_lab = u_inj_lab
 u_cool_lab = ['p_wkz_ist','T_wkz_ist']
@@ -76,7 +88,7 @@ press_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=5,dim_out=1,name='press')
 cool_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='cool')
 
 quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
-                              name='q_model_D_innen')
+                              name='q_model_Stegbreite_Gelenk')
 
 
 param_bounds = {'dim_c':[1,10],'dim_hidden':[1,10]} 
@@ -84,12 +96,13 @@ param_bounds = {'dim_c':[1,10],'dim_hidden':[1,10]}
 options = {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k':5, 'p':1}
 
 
-# s_opts = {"hessian_approximation": 'limited-memory'}
+s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 3000,
+          "print_level":2}
 
 
 hist =  HyperParameterPSO(quality_model,data,param_bounds,n_particles=20,
                           options = options, initializations=15,p_opts=None,
-                          s_opts=None)
+                          s_opts=s_opts)
 
 # results_LSTM = ModelTraining(quality_model,data,initializations=2, BFR=False, 
 #                   p_opts=None, s_opts=None)

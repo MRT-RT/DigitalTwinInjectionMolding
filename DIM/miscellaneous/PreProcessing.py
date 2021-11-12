@@ -266,12 +266,12 @@ def arrange_data_for_ident(cycles,y_lab,u_inj_lab,u_press_lab,u_cool_lab,mode):
 def eliminate_outliers(doe_plan):
     
     # eliminate all nan
-    data = data[data.loc[:,'Gewicht']>=5]
-    data = data[data.loc[:,'Stegbreite_Gelenk']>=4]
-    data = data[data.loc[:,'Breite_Lasche']>=4]
+    doe_plan = doe_plan[doe_plan.loc[:,'Gewicht']>=5]
+    doe_plan = doe_plan[doe_plan.loc[:,'Stegbreite_Gelenk']>=4]
+    doe_plan = doe_plan[doe_plan.loc[:,'Breite_Lasche']>=4]
     
     
-    
+    return doe_plan
     
     
     
