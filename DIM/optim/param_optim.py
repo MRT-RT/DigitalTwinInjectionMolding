@@ -128,7 +128,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         
         # Calculate mean error over all validation batches
         e_val = e_val / len(u_val)
-        e_val = np.array(e_val).reshape((1,))
+        e_val = float(np.array(e_val))
         
         
         # # Evaluate estimated model on test data
@@ -278,13 +278,13 @@ def HyperParameterPSO(model,data,param_bounds,n_particles,options,
                                        'wb'))
                 
                 # calculate best performance over all initializations
-                cost[particle] = results.loss_val.min()[0]
+                cost[particle] = results.loss_val.min()
                 
                 # Save new data to dictionary for future iterations
                 hist.loc[idx,'cost'] = cost[particle]
                 
                 # Save model parameters corresponding to best performance
-                idx_min = pd.to_numeric(results['loss_val'].str[0]).argmin()
+                idx_min = results['loss_val'].idxmin()
                 hist.loc[idx,'model_params'] = \
                 [results.loc[idx_min,'params']]
                 
