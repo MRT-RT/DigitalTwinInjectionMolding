@@ -38,3 +38,6 @@
 2021-11-05 14:22:10,048 - DIM.optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
 2021-11-05 14:23:34,077 - DIM.optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
 2021-11-12 08:52:56,554 - DIM.optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
+2021-11-12 08:58:45,762 - DIM.optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
+2021-11-12 08:59:08,864 - DIM.optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
+2021-11-12 09:00:20,468 - DIM.optim.DiscreteBoundedPSO - INFO - Optimize for 100 iters with {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k': 5, 'p': 1}
