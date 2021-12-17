@@ -80,22 +80,20 @@ def LoadData(dim_c):
     
     return data,cycles_train_label,cycles_val_label
 
-dim_c = 2
+data,cycles_train_label,cycles_val_label = LoadData(dim_c=7)
 
-data,cycles_train_label,cycles_val_label = LoadData(dim_c=dim_c)
-
-path = './temp/PSO_param/q_model_Durchmesser_innen/'
+path = './temp/PSO_param/q_model_Stegbreite_Gelenk/'
 
 
 # Load PSO results
 hist = pkl.load(open(path+'HyperParamPSO_hist.pkl','rb'))
-particle = pkl.load(open(path+'particle[2 1].pkl','rb'))
-param_7_3 = particle.loc[7].params #hist.loc[7,3].model_params[0]                                       
+particle = pkl.load(open(path+'particle[7 3].pkl','rb'))
+param_7_3 = particle.loc[10].params #hist.loc[7,3].model_params[0]                                       
 
 # Initialize model structure
-injection_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=5,dim_out=1,name='inject')
-press_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=5,dim_out=1,name='press')
-cool_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='cool')
+injection_model = LSTM(dim_u=5,dim_c=7,dim_hidden=5,dim_out=1,name='inject')
+press_model = LSTM(dim_u=5,dim_c=7,dim_hidden=5,dim_out=1,name='press')
+cool_model = LSTM(dim_u=2,dim_c=7,dim_hidden=5,dim_out=1,name='cool')
 
 quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
                               name='q_model_Durchmesser_innen')
@@ -107,8 +105,6 @@ quality_model.AssignParameters(param_7_3)
 y_val = []
 e_val = []
 y_val_hist = []
-c_val_hist = []
-
 #Estimation on training data cycles
 # for i in range(0,1362): 
 #     _,y = quality_model.Simulation(data['init_state_train'][i], data['u_train'][i],None,data['switch_train'][i])
@@ -116,78 +112,21 @@ c_val_hist = []
 #     y_train.append(y)
 
 #Estimation on validation data cycles    
-
-
 for i in range(0,273): 
-    # data['u_val'][i][0] = np.ones(data['u_val'][i][0].shape)
-    # data['u_val'][i][1] = np.ones(data['u_val'][i][1].shape)
-    # data['u_val'][i][2] = np.ones(data['u_val'][i][2].shape)
-    
-    c,y = quality_model.Simulation(data['init_state_val'][i], data['u_val'][i],None,data['switch_val'][i])
-    
-    c = np.array(c)
+    _,y = quality_model.Simulation(data['init_state_val'][i], data['u_val'][i],None,data['switch_val'][i])
     y = np.array(y)
-    
     y_val_hist.append(y)
-    c_val_hist.append(c)
-    
-    y_val.append(y[-1][0])
-    e_val.append(data['y_val'][i]-y_val[-1])
+    y_val.append(y)
+    e_val.append(data['y_val'][i]-y)
 
-plt.plot(np.array(data['y_val']),np.array(y_val).T,'o')
-plt.xlim([27.2,27.9])
-plt.ylim([27.2,27.9])
+
+
+e_val = np.array(e_val).reshape((-1,1))
+plt.hist(e_val)
+
 
 plt.figure()
-plt.hist(np.array(e_val),bins=40)
-
-plt.figure()
-plt.plot(np.array(data['y_val']),np.array(e_val),'o')
-
-'''
-TO DO:
-- Residuen gruppiert nach Faktorstufen plotten
-- Residuen im Histogramm plotten
-- Residuen über wahre Zielgröße plotten    
-- Woher kommen harte Begrenzungen oben und unten?
-'''
-
-
-# e_val = np.array(e_val).reshape((-1,1))
-# plt.hist(e_val)
-
-
-
-# u_lab= ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
-# plt.close('all')
-
-# plt.figure()
-
-# for i in range(0,1):
-    
-#     cycle_num = cycles_val_label[i]
-
-#     cycle_data = pkl.load(open('./data/Versuchsplan/cycle'+str(cycle_num)+'.pkl','rb'))
-    
-#     # plt.figure()
-#     # plt.plot(cycle_data[u_lab])
-#     # plt.legend(u_lab)
-#     # plt.title(str(cycle_num))
-    
-#     plt.figure()
-#     plt.plot(cycle_data.index[0:y_val_hist[i].shape[0]],y_val_hist[i])
-#     plt.legend(['Q'])
-#     plt.title(str(cycle_num))
-
-#     plt.figure()
-#     plt.plot(cycle_data.index[0:c_val_hist[i].shape[0]],c_val_hist[i])
-#     plt.legend(['c1','c2','c3','c4','c5','c6','c7'])
-#     plt.title(str(cycle_num))
-    
-    # y_lab = ['Durchmesser_innen']
-    # u_inj_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    # u_press_lab = u_inj_lab
-    # u_cool_lab = ['p_wkz_ist','T_wkz_ist']
+plt.plot(y_val_hist[0])
 
 
 
