@@ -134,7 +134,7 @@ class QualityModel():
                   
         # intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
         
-        c0 = np.zeros((self.dim_c,1))
+        # c0 = np.zeros((self.dim_c,1))
         
         
 
