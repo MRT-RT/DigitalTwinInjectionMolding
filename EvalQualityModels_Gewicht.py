@@ -14,6 +14,8 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 
 # Load Data
 
+dim_c = 5
+
 def LoadData(dim_c):
     
     # Load Versuchsplan to find cycles that should be considered for modelling
@@ -53,7 +55,7 @@ def LoadData(dim_c):
                                           'rb')))
     
     # Select input and output for dynamic model
-    y_lab = ['Durchmesser_innen']
+    y_lab = ['Stegbreite_Gelenk']
     u_inj_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
     u_press_lab = u_inj_lab
     u_cool_lab = ['p_wkz_ist','T_wkz_ist']
@@ -80,54 +82,66 @@ def LoadData(dim_c):
     
     return data,cycles_train_label,cycles_val_label
 
-data,cycles_train_label,cycles_val_label = LoadData(dim_c=7)
+data,cycles_train_label,cycles_val_label = LoadData(dim_c=dim_c)
 
 path = './temp/PSO_param/q_model_Stegbreite_Gelenk/'
 
 
 # Load PSO results
 hist = pkl.load(open(path+'HyperParamPSO_hist.pkl','rb'))
-particle = pkl.load(open(path+'particle[7 3].pkl','rb'))
-param_7_3 = particle.loc[10].params #hist.loc[7,3].model_params[0]                                       
+# particle = pkl.load(open(path+'particle[7 3].pkl','rb'))
+param_5_8 = hist.loc[5,8].model_params[0]     #particle.loc[10].params                                    
 
 # Initialize model structure
-injection_model = LSTM(dim_u=5,dim_c=7,dim_hidden=5,dim_out=1,name='inject')
-press_model = LSTM(dim_u=5,dim_c=7,dim_hidden=5,dim_out=1,name='press')
-cool_model = LSTM(dim_u=2,dim_c=7,dim_hidden=5,dim_out=1,name='cool')
+injection_model = LSTM(dim_u=5,dim_c=5,dim_hidden=5,dim_out=1,name='inject')
+press_model = LSTM(dim_u=5,dim_c=5,dim_hidden=5,dim_out=1,name='press')
+cool_model = LSTM(dim_u=2,dim_c=5,dim_hidden=5,dim_out=1,name='cool')
 
 quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
-                              name='q_model_Durchmesser_innen')
+                              name='q_model_Stegbreite_Gelenk')
 
-quality_model.AssignParameters(param_7_3)
+quality_model.AssignParameters(param_5_8)
 
 
 # y_train = []
 y_val = []
 e_val = []
 y_val_hist = []
+c_val_hist = []
+
 #Estimation on training data cycles
 # for i in range(0,1362): 
 #     _,y = quality_model.Simulation(data['init_state_train'][i], data['u_train'][i],None,data['switch_train'][i])
 #     y = np.array(y[-1])[0,0]
 #     y_train.append(y)
 
+
 #Estimation on validation data cycles    
 for i in range(0,273): 
-    _,y = quality_model.Simulation(data['init_state_val'][i], data['u_val'][i],None,data['switch_val'][i])
+    # data['u_val'][i][0] = np.ones(data['u_val'][i][0].shape)
+    # data['u_val'][i][1] = np.ones(data['u_val'][i][1].shape)
+    # data['u_val'][i][2] = np.ones(data['u_val'][i][2].shape)
+    
+    c,y = quality_model.Simulation(data['init_state_val'][i], data['u_val'][i],None,data['switch_val'][i])
+    
+    c = np.array(c)
     y = np.array(y)
+    
     y_val_hist.append(y)
-    y_val.append(y)
-    e_val.append(data['y_val'][i]-y)
+    c_val_hist.append(c)
+    
+    y_val.append(y[-1][0])
+    e_val.append(data['y_val'][i]-y_val[-1])
 
-
-
-e_val = np.array(e_val).reshape((-1,1))
-plt.hist(e_val)
-
+plt.plot(np.array(data['y_val']),np.array(y_val).T,'o')
+plt.xlim([27.2,27.9])
+plt.ylim([27.2,27.9])
 
 plt.figure()
-plt.plot(y_val_hist[0])
+plt.hist(np.array(e_val),bins=40)
 
+plt.figure()
+plt.plot(np.array(data['y_val']),np.array(e_val),'o')
 
 
 

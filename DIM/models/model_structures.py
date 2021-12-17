@@ -483,7 +483,7 @@ class LSTM(RNN):
         
         u = cs.MX.sym('u',dim_u,1)
         c = cs.MX.sym('c',dim_c,1)
-        h = cs.MX.sym('c',dim_c,1)
+        h = cs.MX.sym('h',dim_c,1)
         
         # Parameters
         # RNN part
