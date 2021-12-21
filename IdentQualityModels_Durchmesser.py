@@ -39,6 +39,9 @@ cycles_train_label = np.hstack(cycles_train_label)
 cycles_val_label = np.hstack(cycles_val_label)
 
 
+''' FOR DEBUGGING PURPOSES'''
+cycles_train_label = cycles_train_label[0:10]
+
 # Delete cycles that for some reason don't exist
 cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
 
@@ -96,7 +99,7 @@ quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model]
 # options = {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k':5, 'p':1}
 
 
-s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 10,
+s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 2000,
           "print_level":2}
 
 
@@ -104,76 +107,16 @@ s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 10,
 #                           options = options, initializations=15,p_opts=None,
 #                           s_opts=s_opts)
 
-results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
+results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                   p_opts=None, s_opts=None)
 
-pkl.dump(results_GRU,open('GRU_'+str(*y_lab)+'.pkl'))
-
-# results = pkl.load(open('QualityModel_GRU_1c_5in_1out.pkl','rb'))
-
-# quality_model.AssignParameters(results.loc[3,'params'])
-
-# quality_model.switching_instances = data['switch_val'][0]
-
-# c,y = quality_model.Simulation(data['init_state_val'][0], data['u_val'][0])
+pkl.dump(results_GRU,open('GRU_'+str(*y_lab)+'.pkl','wb'))
 
 
-# plt.plot(data['u_val'][0])
-# plt.plot(np.array(y))
-# plt.plot(np.array(c))
+# Assign and evaluate
+quality_model.AssignParameters(results_GRU.loc[0]['params'])
 
-# u_press_names = u_inj_names
-# u_cool_names = u_inj_names
-
-# # Choose measured process variables (is)
-# # Keep temperatures out of the equation for now
-
-# # Predict quality measurements : Gewicht, Durchmesser_innen
-
-# inject,press,cool = arrange_data_for_ident(cycle1,x_names,u_inj_names,
-#                                            u_press_names,u_cool_names)
+x,y = quality_model.Simulation(c0=c0_val[0], u=x_val[0])
 
 
-# dim_c = 1
-
-
-
-
-# quality_model.switching_instances =[14,339]
-
-# u = cycle1['p_inj_ist'].values.reshape(1,-1,1)
-# # c,y = quality_model.Simulation(np.zeros((10,1)),u)
-
-
-
-
-# # values = ModelParameterEstimation(quality_model,data,p_opts=None,s_opts=None)
-
-# results = ModelTraining(quality_model,data,initializations=10, BFR=False, 
-#                   p_opts=None, s_opts=None)
-
-
-# quality_model.AssignParameters(results.loc[9,'params'])
-
-# c,y = quality_model.Simulation(data['init_state_train'][0],data['u_train'][0])
-
-# plt.plot(y)
-# plt.plot(c)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+plt.plot(np.array(x))
