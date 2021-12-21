@@ -110,7 +110,7 @@ data = {'u_train': x_train,
 
 # Usually the model and the data is given to the ModelTraining() procedure, to estimate the optimal parameters, this has been done in advance so the results are merely loaded by calling pkl.load()
 
-# results = ModelTraining(quality_model,data,3)
+results = ModelTraining(quality_model,data,3)
 # results = pkl.load(open('./QualityModel_GRU_one_2c_5in_1out.pkl','rb'))
 # print(results)
 

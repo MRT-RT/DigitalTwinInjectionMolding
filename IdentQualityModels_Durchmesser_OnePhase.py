@@ -63,12 +63,12 @@ u_press_lab = u_inj_lab
 u_cool_lab = ['p_wkz_ist','T_wkz_ist']
 # 
 x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
-                                    [u_inj_lab,u_press_lab,u_cool_lab],'quality')
+                                    [u_inj_lab],'quality')
 #
 # x_train,q_train,switch_train = arrange_data_for_qual_ident(cycles_train,x_lab,q_lab)
 
 x_val,q_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
-                                    [u_inj_lab,u_press_lab,u_cool_lab],'quality')
+                                    [u_inj_lab],'quality')
 
 c0_train = [np.zeros((dim_c,1)) for i in range(0,len(x_train))]
 c0_val = [np.zeros((dim_c,1)) for i in range(0,len(x_val))]
@@ -107,7 +107,7 @@ s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 10,
 results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
                   p_opts=None, s_opts=None)
 
-pkl.dump(results_GRU,open('GRU_'+str(*y_lab)+'.pkl'))
+pkl.dump(results_GRU,open('GRU_'+str(*y_lab)+'_OnePhase.pkl'))
 
 # results = pkl.load(open('QualityModel_GRU_1c_5in_1out.pkl','rb'))
 
