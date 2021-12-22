@@ -1,43 +1,60 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec 15 16:45:55 2021
+Created on Mon Oct 25 14:44:37 2021
 
 @author: alexa
 """
+
 import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from DIM.models.model_structures import GRU
+from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
+
+from DIM.models.model_structures import GRU,LSTM
 from DIM.models.injection_molding import QualityModel
-from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, 
-eliminate_outliers, LoadData
+from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
+from DIM.miscellaneous.PreProcessing import LoadData
 
-# Load Data
-
-
-
-dim_c = 2
+dim_c = 20
 
 data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
 LoadData(dim_c=dim_c)
 
-path = './temp/PSO_param/q_model_Durchmesser_innen/'
 
-
-# Load results
-results = pkl.load(open('LSTM_Durchmesser_innen_test.pkl','rb'))
-param = results.loc[14]['params']
-
-# Initialize model structure
-injection_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
-press_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
-cool_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
+#
+injection_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
+cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
 
 quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
                               name='q_model_Durchmesser_innen')
+
+
+# param_bounds = {'dim_c':[1,10],'dim_hidden':[1,10]} 
+
+# options = {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k':5, 'p':1}
+
+
+s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 2000,
+          "print_level":2}
+
+
+# hist =  HyperParameterPSO(quality_model,data,param_bounds,n_particles=20,
+#                           options = options, initializations=15,p_opts=None,
+#                           s_opts=s_opts)
+
+results = ModelTraining(quality_model,data,initializations=10, BFR=False, 
+                  p_opts=None, s_opts=s_opts)
+
+pkl.dump(results,open('GRU_'+str(*y_lab)+'_c'+str(dim_c)+'_test.pkl','wb'))
+
+
+idx_min = results['loss_val'].idxmin()
+
+param = results.loc[idx_min]['params']
 
 quality_model.AssignParameters(param)
 
@@ -48,7 +65,7 @@ e_val = []
 y_val_hist = []
 c_val_hist = []
 
-for i in range[4,6]: 
+for i in range(0,len(data['y_val'])): 
     c,y = quality_model.Simulation(data['init_state_val'][i], data['u_val'][i],None,data['switch_val'][i])
     
     c = np.array(c)
@@ -78,7 +95,7 @@ e_train = []
 y_train_hist = []
 c_train_hist = []
 
-for i in range(0,20): 
+for i in range(0,len(data['y_train'])): 
     c,y = quality_model.Simulation(data['init_state_train'][i], data['u_train'][i],None,data['switch_train'][i])
     
     c = np.array(c)
@@ -105,8 +122,8 @@ results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train,
 # Plot results
 
 plt.plot(np.array(data['y_val']),np.array(y_val),'o')
-plt.xlim([27.2,27.9])
-plt.ylim([27.2,27.9])
+# plt.xlim([27.2,27.9])
+# plt.ylim([27.2,27.9])
 
 plt.figure()
 plt.hist(np.array(e_val),bins=40)
@@ -139,72 +156,6 @@ plt.plot(results_train[results_train['charge']==1]['y_est'],'d',markersize=12,la
 plt.figure()
 plt.plot(results_train[results_train['charge']==1]['y_true'],'d',markersize=12,label='val true')
 plt.plot(results_train[results_train['charge']==1]['y_est'],'d',markersize=12,label='val est')
-# plt.ylim([27.5,27.9])
-
-
-
-# plt.subplot(2,3,6,title='D innen',xlabel='cycle')
-# plt.plot([2,3,4,5,6],q_train,'d',markersize=12,label='train true')
-# plt.plot([7,8,9],q_val,'d',markersize=12,label='val true')
-# plt.legend()
-# plt.subplots_adjust(hspace=0.3)
-# plt.show()
-
-'''
-TO DO:
-- Residuen gruppiert nach Faktorstufen plotten
-- Residuen im Histogramm plotten
-- Residuen über wahre Zielgröße plotten    
-- Woher kommen harte Begrenzungen oben und unten?
-'''
-
-
-# e_val = np.array(e_val).reshape((-1,1))
-# plt.hist(e_val)
-
-
-
-# u_lab= ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
-# plt.close('all')
-
-# plt.figure()
-
-# for i in range(0,1):
-    
-#     cycle_num = cycles_val_label[i]
-
-#     cycle_data = pkl.load(open('./data/Versuchsplan/cycle'+str(cycle_num)+'.pkl','rb'))
-    
-#     # plt.figure()
-#     # plt.plot(cycle_data[u_lab])
-#     # plt.legend(u_lab)
-#     # plt.title(str(cycle_num))
-    
-#     plt.figure()
-#     plt.plot(cycle_data.index[0:y_val_hist[i].shape[0]],y_val_hist[i])
-#     plt.legend(['Q'])
-#     plt.title(str(cycle_num))
-
-#     plt.figure()
-#     plt.plot(cycle_data.index[0:c_val_hist[i].shape[0]],c_val_hist[i])
-#     plt.legend(['c1','c2','c3','c4','c5','c6','c7'])
-#     plt.title(str(cycle_num))
-    
-    # y_lab = ['Durchmesser_innen']
-    # u_inj_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    # u_press_lab = u_inj_lab
-    # u_cool_lab = ['p_wkz_ist','T_wkz_ist']
-
-
-
-
-
-
-
-
-
-
-
 
 
 

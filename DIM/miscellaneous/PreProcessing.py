@@ -273,62 +273,6 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
         
     return u,y,switch
 
-def arrange_data_for_ident_onephase(cycles,y_lab,u_lab,mode):
-    
-    u = []
-    y = []
-    switch = []
-    
-    for cycle in cycles:
-        # Find switching instances
-        # Assumption: First switch is were pressure is maximal
-        t1 = cycle['p_inj_ist'].idxmax()
-        idx_t1 = np.argmin(abs(cycle.index.values-t1))
-        
-        # Second switch 
-        t2 = t1 + cycle.loc[0]['t_press1_soll'] + cycle.loc[0]['t_press2_soll']
-        idx_t2 = np.argmin(abs(cycle.index.values-t2))
-        
-        # Third switch, machine opens
-        t3 = t2 + cycle.loc[0,'Kühlzeit']
-        idx_t3 = np.argmin(abs(cycle.index.values-t3))
-        
-        # Reduce dataframe to desired variables and treat NaN
-        
-        cycle = cycle[u_lab+y_lab]
-        
-        if mode == 'quality':
-            nan_cycle = np.isnan(cycle[u_lab]).any(axis=1)
-            cycle = cycle.loc[~nan_cycle]
-            
-            y.append(cycle.loc[0,y_lab].values)
-            
-        elif mode == 'process':
-            nan_cycle = np.isnan(cycle).any(axis=1)
-            cycle = cycle.loc[~nan_cycle]
-            
-            y.append(cycle.loc[1:idx_t3+1,y_lab].values)            
-        
-        # At this point one should test, whether there were NaN not only deleted
-        # at the end of the dataframe cycle due to different long charts, 
-        # but also if NaN were deleted somewhere "in between"
-        # However, I have no time for this right now
-        
-        # Read desired data from dataframe
-        u_inj = cycle[u_inj_lab].values                                         # can contain NaN at the end
-        u_press = cycle[u_press_lab].values  
-        u_cool = cycle[u_cool_lab].values  
-
-
-        u_inj = u_inj[0:idx_t1,::]
-        u_press = u_press[idx_t1:idx_t2,::]
-        u_cool = u_cool[idx_t2:idx_t3,::]
-        
-
-        u.append([u_inj,u_press,u_cool])
-        switch.append([idx_t1,idx_t2])
-   
-    return u,y,switch
 
 
 def eliminate_outliers(doe_plan):
@@ -341,6 +285,88 @@ def eliminate_outliers(doe_plan):
     
     return doe_plan
     
+def LoadData(dim_c,charges):
     
+    # Load Versuchsplan to find cycles that should be considered for modelling
+    data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
+    
+    data = eliminate_outliers(data)
+    
+    # Delete outliers rudimentary
+    
+    # Cycles for parameter estimation
+    cycles_train_label = []
+    cycles_val_label = []
+    
+    charge_train_label = []
+    charge_val_label = []
+    
+    for charge in charges:
+        cycles = data[data['Charge']==charge].index.values
+        cycles_train_label.append(cycles[-6:-1])
+        cycles_val_label.append(cycles[-1])
+        
+        charge_train_label.extend([charge]*len(cycles[-6:-1]))
+        charge_val_label.extend([charge]*len(cycles[[-1]]))
+    
+    cycles_train_label = np.hstack(cycles_train_label)
+    cycles_val_label = np.hstack(cycles_val_label)
+    
+    # Delete cycles that for some reason don't exist
+    charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 767)) 
+    cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
+    
+    
+    
+    # # Load cycle data, check if usable, convert to numpy array
+    cycles_train = []
+    cycles_val = []
+    
+    for c in cycles_train_label:
+        cycles_train.append(pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl',
+                                          'rb')))
+    
+    for c in cycles_val_label:
+        cycles_val.append(pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl',
+                                          'rb')))
+    
+    # Select input and output for dynamic model
+    y_lab = ['Durchmesser_innen']
+    u_inj_lab= ['p_wkz_ist','T_wkz_ist'] #['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_press_lab = ['p_wkz_ist','T_wkz_ist'] #u_inj_lab
+    u_cool_lab = ['p_wkz_ist','T_wkz_ist']
+    # 
+    # Normalize with respect to first cycle    
+    mean_u = cycles_train[0][u_inj_lab].mean()
+    mean_y = cycles_train[0][y_lab].mean()
+    min_u = cycles_train[0][u_inj_lab].min()
+    max_u = cycles_train[0][u_inj_lab].max()
+
+
+    for cycle in cycles_train+cycles_val:
+        cycle[u_inj_lab] = (cycle[u_inj_lab]-min_u)/(max_u-min_u)
+        cycle[y_lab] = cycle[y_lab]-mean_y
+    
+    x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
+                                        [u_inj_lab,u_press_lab,u_cool_lab],'quality')
+    #
+    # x_train,q_train,switch_train = arrange_data_for_qual_ident(cycles_train,x_lab,q_lab)
+    
+    x_val,q_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
+                                        [u_inj_lab,u_press_lab,u_cool_lab],'quality')
+    
+    c0_train = [np.zeros((dim_c,1)) for i in range(0,len(x_train))]
+    c0_val = [np.zeros((dim_c,1)) for i in range(0,len(x_val))]
+    
+    data = {'u_train': x_train,
+            'y_train': q_train,
+            'switch_train': switch_train,
+            'init_state_train': c0_train,
+            'u_val': x_val,
+            'y_val': q_val,
+            'switch_val': switch_val,
+            'init_state_val': c0_val}
+    
+    return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label    
     
     
