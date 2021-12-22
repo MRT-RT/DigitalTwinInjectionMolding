@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from DIM.models.model_structures import LSTM
+from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 
@@ -68,12 +68,12 @@ def LoadData(dim_c):
     u_cool_lab = ['p_wkz_ist','T_wkz_ist']
     # 
     x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
-                                        u_inj_lab,u_press_lab,u_cool_lab,'quality')
+                                        [u_inj_lab,u_press_lab,u_cool_lab],'quality')
     #
     # x_train,q_train,switch_train = arrange_data_for_qual_ident(cycles_train,x_lab,q_lab)
     
     x_val,q_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
-                                        u_inj_lab,u_press_lab,u_cool_lab,'quality')
+                                        [u_inj_lab,u_press_lab,u_cool_lab],'quality')
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(x_train))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(x_val))]
@@ -97,14 +97,14 @@ LoadData(dim_c=dim_c)
 path = './temp/PSO_param/q_model_Durchmesser_innen/'
 
 
-# Load PSO results
-hist = pkl.load(open(path+'HyperParamPSO_hist.pkl','rb'))
-param = hist.loc[2,1].model_params[0]                                       
+# Load results
+results = pkl.load(open('GRU_Durchmesser_innen.pkl','rb'))
+param = results.loc[0]['params']
 
 # Initialize model structure
-injection_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=5,dim_out=1,name='inject')
-press_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=5,dim_out=1,name='press')
-cool_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='cool')
+injection_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+press_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
+cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
 
 quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
                               name='q_model_Durchmesser_innen')
@@ -174,7 +174,7 @@ results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train,
 
 # Plot results
 
-plt.plot(np.array(data['y_val']),np.array(y_val).T,'o')
+plt.plot(np.array(data['y_val']),np.array(y_val),'o')
 plt.xlim([27.2,27.9])
 plt.ylim([27.2,27.9])
 
