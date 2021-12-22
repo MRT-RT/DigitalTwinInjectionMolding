@@ -18,7 +18,7 @@ from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadData
 
-dim_c = 2
+dim_c = 20
 
 versuchsplan = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
 
@@ -38,7 +38,7 @@ LoadData(dim_c,charges)
 
 
 # Load good model
-# res = pkl.load(open('LSTM_Durchmesser_innen_save.pkl','rb'))
+res = pkl.load(open('LSTM_Durchmesser_innen_c2_save.pkl','rb'))
 
 # initial_params = res.loc[0]['params']
 
@@ -68,10 +68,10 @@ s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 2000,
 #                           options = options, initializations=15,p_opts=None,
 #                           s_opts=s_opts)
 
-results_LSTM = ModelTraining(quality_model,data,initializations=20, BFR=False, 
+results_LSTM = ModelTraining(quality_model,data,initializations=50, BFR=False, 
                   p_opts=None, s_opts=s_opts)
 
-pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_test.pkl','wb'))
+pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_c20_test.pkl','wb'))
 
 
 idx_min = results_LSTM['loss_val'].idxmin()
