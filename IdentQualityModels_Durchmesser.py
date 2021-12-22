@@ -31,19 +31,19 @@ data = eliminate_outliers(data)
 cycles_train_label = []
 cycles_val_label = []
 
-for charge in range(1,274):
-    cycles_train_label.append(data[data['Charge']==charge].index.values[-2:-1])
+for charge in range(1,5):
+    cycles_train_label.append(data[data['Charge']==charge].index.values[-3:-1])
     cycles_val_label.append(data[data['Charge']==charge].index.values[-1])
 
-cycles_train_label = np.hstack(cycles_train_label)
-cycles_val_label = np.hstack(cycles_val_label)
+cycles_train_label = list(cycles_train_label)
+cycles_val_label = list(cycles_val_label)
 
 
 # ''' FOR DEBUGGING PURPOSES'''
 # cycles_train_label = cycles_train_label[0:10]
 
 # Delete cycles that for some reason don't exist
-cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
+cycles_train_label = list(np.delete(cycles_train_label, np.where(cycles_train_label == 767)))
 
 
 
@@ -58,13 +58,27 @@ for c in cycles_train_label:
 for c in cycles_val_label:
     cycles_val.append(pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl',
                                       'rb')))
-
+    
+    
 # Select input and output for dynamic model
 y_lab = ['Durchmesser_innen']
-u_inj_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-u_press_lab = u_inj_lab
+u_inj_lab= ['p_wkz_ist','T_wkz_ist'] #['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
+u_press_lab = ['p_wkz_ist','T_wkz_ist'] #u_inj_lab
 u_cool_lab = ['p_wkz_ist','T_wkz_ist']
 # 
+
+# Normalize with respect to first cycle    
+mean_u = cycles_train[0][u_inj_lab].mean()
+mean_y = cycles_train[0][y_lab].mean()
+min_u = cycles_train[0][u_inj_lab].min()
+max_u = cycles_train[0][u_inj_lab].max()
+
+
+for cycle in cycles_train+cycles_val:
+    cycle[u_inj_lab] = (cycle[u_inj_lab]-min_u)/(max_u-min_u)
+    cycle[y_lab] = cycle[y_lab]-mean_y
+
+#
 x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
                                     [u_inj_lab,u_press_lab,u_cool_lab],'quality')
 #
@@ -86,8 +100,8 @@ data = {'u_train': x_train,
         'init_state_val': c0_val}
 
 #
-injection_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
-press_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
+injection_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
 cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
 
 quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
@@ -107,10 +121,10 @@ s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 2000,
 #                           options = options, initializations=15,p_opts=None,
 #                           s_opts=s_opts)
 
-results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
+results_GRU = ModelTraining(quality_model,data,initializations=10, BFR=False, 
                   p_opts=None, s_opts=s_opts)
 
-pkl.dump(results_GRU,open('GRU_'+str(*y_lab)+'.pkl','wb'))
+pkl.dump(results_GRU,open('GRU_'+str(*y_lab)+'_test.pkl','wb'))
 
 
 # Assign and evaluate

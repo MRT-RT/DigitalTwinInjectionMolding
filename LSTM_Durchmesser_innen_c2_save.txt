@@ -1,0 +1,15 @@
+Verwendung folgender Chargen für Modellschätzung:
+0 [4 , 6]				# Umschaltpunkt frei
+1 [4, 6, 15, 33]			# Umschaltpunkt,Nachdruckzeit frei
+2 [4, 6, 15, 24, 26, 33, 34, 45]	# Umschaltpunkt,Nachdruckzeit, Nachdruckhöhe frei
+
+
+
+Faktorstufenauswahl wie folgt:
+charges = versuchsplan[(versuchsplan['Werkzeugtemperatur']==40)& 
+             (versuchsplan['Einspritzgeschwindigkeit']==48) & 
+             (versuchsplan['Düsentemperatur']==250) & 
+              (versuchsplan['Nachdruckhöhe']==500) & 
+              (versuchsplan['Nachdruckzeit']==3) & 
+             (versuchsplan['Staudruck']==75) & 
+             (versuchsplan['Kühlzeit']==15)]['Charge'].unique()

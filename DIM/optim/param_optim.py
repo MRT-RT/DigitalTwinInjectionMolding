@@ -130,6 +130,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         e_val = e_val / len(u_val)
         e_val = float(np.array(e_val))
         
+        print('Validation error: '+str(e_val))
         
         # # Evaluate estimated model on test data
         
