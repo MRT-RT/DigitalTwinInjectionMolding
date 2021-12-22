@@ -39,7 +39,7 @@ cycles_train_label = np.hstack(cycles_train_label)
 cycles_val_label = np.hstack(cycles_val_label)
 
 ''' FOR DEBUGGING PURPOSES'''
-cycles_train_label = cycles_train_label[0:10]
+# cycles_train_label = cycles_train_label[0:10]
 
 # Delete cycles that for some reason don't exist
 cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
@@ -90,12 +90,12 @@ quality_model = QualityModel(subsystems=[model],
                               name='q_model_Durchmesser_innen')
 
 
-s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 2000,
+s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 3000,
           "print_level":2}
 
 
-results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
-                  p_opts=None, s_opts=None)
+results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
+                  p_opts=None, s_opts=s_opts)
 
 pkl.dump(results_GRU,open('GRU_'+str(*y_lab)+'_OnePhase.pkl','wb'))
 
