@@ -172,3 +172,5 @@ sns.stripplot(x="charge", y="e", data=results_val,
 plt.figure()
 plt.plot(results_train.index,results_train['e'],'d')
 
+
+#
