@@ -23,9 +23,9 @@ dim_c = 2
 versuchsplan = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
 
 charges = versuchsplan[(versuchsplan['Werkzeugtemperatur']==40)& 
-             (versuchsplan['Einspritzgeschwindigkeit']==48) & 
+             # (versuchsplan['Einspritzgeschwindigkeit']==48) & 
              (versuchsplan['Düsentemperatur']==250) & 
-              # (versuchsplan['Nachdruckhöhe']==500) & 
+               (versuchsplan['Nachdruckhöhe']==500) & 
              # (versuchsplan['Nachdruckzeit']==3) & 
              (versuchsplan['Staudruck']==75) & 
              (versuchsplan['Kühlzeit']==15)]['Charge'].unique()
