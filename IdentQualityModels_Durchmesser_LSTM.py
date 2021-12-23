@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import multiprocessing
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 
@@ -18,15 +19,9 @@ from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadData
 
-dim_c = 2
-
-Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
-
-c = 1
-
-for charges in Modellierungsplan:
 
     
+def Fit_LSTM_to_Charges(charges,counter):
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
     LoadData(dim_c,charges)
@@ -55,11 +50,31 @@ for charges in Modellierungsplan:
     results_LSTM = ModelTraining(quality_model,data,initializations=20, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
-    pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_c'+str(c)+'.pkl','wb'))
+    results_LSTM['Chargen'] = 'c'+str(counter)
+    
+    pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
 
-    c = c + 1
+    return results_LSTM  
+
+
     
+if __name__ == '__main__':
     
+    print('Process started..')
+    
+    dim_c = 2
+
+    Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
+    counter = range(1,14)
+    
+    multiprocessing.freeze_support()
+    
+    pool = multiprocessing.Pool()
+    
+    result = pool.starmap(Fit_LSTM_to_Charges, zip(Modellierungsplan,counter) ) 
+
+
+
 # idx_min = results_LSTM['loss_val'].idxmin()
 
 # param = results_LSTM.loc[idx_min]['params']
