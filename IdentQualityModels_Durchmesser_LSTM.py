@@ -60,8 +60,8 @@ quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model]
 # options = {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k':5, 'p':1}
 
 
-s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 2000,
-          "print_level":2}
+s_opts = None #{"hessian_approximation": 'limited-memory',"max_iter": 2000,
+          #"print_level":2}
 
 
 # hist =  HyperParameterPSO(quality_model,data,param_bounds,n_particles=20,

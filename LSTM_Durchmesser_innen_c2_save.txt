@@ -1,6 +1,6 @@
 Verwendung folgender Chargen für Modellschätzung:
 0 [4 , 6]				# Umschaltpunkt frei
-1 [4, 6, 15, 33]			# Umschaltpunkt,Nachdruckzeit frei
+1 [4, 6, 15, 33]			# Umschaltpunkt,Nachdruckzeit frei AUSVERSEHEN GELÖSCHT
 2 [4, 6, 15, 24, 26, 33, 34, 45]	# Umschaltpunkt,Nachdruckzeit, Nachdruckhöhe frei
 
 
