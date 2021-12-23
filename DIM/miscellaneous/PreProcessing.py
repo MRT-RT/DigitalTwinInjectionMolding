@@ -345,7 +345,7 @@ def LoadData(dim_c,charges):
 
     for cycle in cycles_train+cycles_val:
         cycle[u_inj_lab] = (cycle[u_inj_lab]-min_u)/(max_u-min_u)
-        cycle[y_lab] = cycle[y_lab]-mean_y
+        cycle[y_lab] = cycle[y_lab]-mean_y+1
     
     x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
                                         [u_inj_lab,u_press_lab,u_cool_lab],'quality')
