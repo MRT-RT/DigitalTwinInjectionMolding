@@ -493,18 +493,18 @@ class LSTM(RNN):
         W_i = cs.MX.sym('W_i_'+name,dim_c,dim_u+dim_c)
         b_i = cs.MX.sym('b_i_'+name,dim_c,1)    
         
-        W_o = cs.MX.sym('W_c_'+name,dim_c,dim_u+dim_c)
-        b_o = cs.MX.sym('b_c_'+name,dim_c,1)    
+        W_o = cs.MX.sym('W_o_'+name,dim_c,dim_u+dim_c)
+        b_o = cs.MX.sym('b_o_'+name,dim_c,1)    
 
         W_c = cs.MX.sym('W_c_'+name,dim_c,dim_u+dim_c)
         b_c = cs.MX.sym('b_c_'+name,dim_c,1)     
     
         # MLP part
-        W_h = cs.MX.sym('W_z_'+name,dim_hidden,dim_c)
-        b_h = cs.MX.sym('b_z_'+name,dim_hidden,1)    
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_c)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)    
         
-        W_y = cs.MX.sym('W_c_'+name,dim_out,dim_hidden)
-        b_y = cs.MX.sym('b_c_'+name,dim_out,1)  
+        W_y = cs.MX.sym('W_y_'+name,dim_out,dim_hidden)
+        b_y = cs.MX.sym('b_y_'+name,dim_out,1)  
         
         
         # Equations
