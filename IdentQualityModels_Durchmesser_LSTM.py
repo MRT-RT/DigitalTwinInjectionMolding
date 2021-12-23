@@ -18,14 +18,14 @@ from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadData
 
-dim_c = 20
+dim_c = 2
 
 versuchsplan = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
 
 charges = versuchsplan[(versuchsplan['Werkzeugtemperatur']==40)& 
              (versuchsplan['Einspritzgeschwindigkeit']==48) & 
              (versuchsplan['Düsentemperatur']==250) & 
-             # (versuchsplan['Nachdruckhöhe']==500) & 
+              (versuchsplan['Nachdruckhöhe']==500) & 
              # (versuchsplan['Nachdruckzeit']==3) & 
              (versuchsplan['Staudruck']==75) & 
              (versuchsplan['Kühlzeit']==15)]['Charge'].unique()
@@ -47,6 +47,15 @@ injection_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject'
 press_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
 cool_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
 
+for rnn in [injection_model,press_model,cool_model]:
+    name = rnn.name
+    
+    initial_params = {'b_f_'+name: np.random.uniform(0,1,(dim_c,1)),
+                      'b_i_'+name: np.random.uniform(-2,0,(dim_c,1)),
+                      'b_o_'+name: np.random.uniform(-2,0,(dim_c,1))}
+    
+    rnn.InitialParameters = initial_params
+    
 # injection_model.InitialParameters = initial_params
 # press_model.InitialParameters = initial_params
 # cool_model.InitialParameters = initial_params
@@ -60,18 +69,18 @@ quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model]
 # options = {'c1': 0.6, 'c2': 0.3, 'w': 0.4, 'k':5, 'p':1}
 
 
-s_opts = None #{"hessian_approximation": 'limited-memory',"max_iter": 2000,
-          #"print_level":2}
+s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 2000,
+          "print_level":2}
 
 
 # hist =  HyperParameterPSO(quality_model,data,param_bounds,n_particles=20,
 #                           options = options, initializations=15,p_opts=None,
 #                           s_opts=s_opts)
 
-results_LSTM = ModelTraining(quality_model,data,initializations=50, BFR=False, 
+results_LSTM = ModelTraining(quality_model,data,initializations=10, BFR=False, 
                   p_opts=None, s_opts=s_opts)
 
-pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_c20_test.pkl','wb'))
+# pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_c2_test.pkl','wb'))
 
 
 idx_min = results_LSTM['loss_val'].idxmin()
