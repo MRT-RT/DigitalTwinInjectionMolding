@@ -34,7 +34,7 @@ import numpy as np
 #     return Wx,bx
 def RandomInitialization(dimensions,bias=False):
     
-    return np.random.rand(*dimensions)
+    return 0.1*np.random.randn(*dimensions)
 
 
 def XavierInitialization(dimensions,bias=False):
