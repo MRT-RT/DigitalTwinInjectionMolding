@@ -23,6 +23,8 @@ from DIM.miscellaneous.PreProcessing import LoadData
     
 def Fit_LSTM_to_Charges(charges,counter):
     
+    dim_c = 2
+    
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
     LoadData(dim_c,charges)
     
@@ -62,7 +64,7 @@ if __name__ == '__main__':
     
     print('Process started..')
     
-    dim_c = 2
+    
 
     Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
     counter = range(1,14)
