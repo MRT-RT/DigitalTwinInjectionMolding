@@ -25,7 +25,7 @@ versuchsplan = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
 charges = versuchsplan[(versuchsplan['Werkzeugtemperatur']==40)& 
              (versuchsplan['Einspritzgeschwindigkeit']==48) & 
              (versuchsplan['Düsentemperatur']==250) & 
-              (versuchsplan['Nachdruckhöhe']==500) & 
+              # (versuchsplan['Nachdruckhöhe']==500) & 
              # (versuchsplan['Nachdruckzeit']==3) & 
              (versuchsplan['Staudruck']==75) & 
              (versuchsplan['Kühlzeit']==15)]['Charge'].unique()
@@ -77,7 +77,7 @@ s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 2000,
 #                           options = options, initializations=15,p_opts=None,
 #                           s_opts=s_opts)
 
-results_LSTM = ModelTraining(quality_model,data,initializations=10, BFR=False, 
+results_LSTM = ModelTraining(quality_model,data,initializations=20, BFR=False, 
                   p_opts=None, s_opts=s_opts)
 
 # pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_c2_test.pkl','wb'))
