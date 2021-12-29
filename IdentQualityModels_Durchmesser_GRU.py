@@ -21,16 +21,16 @@ from DIM.miscellaneous.PreProcessing import LoadData
 
 
     
-def Fit_LSTM_to_Charges(charges,counter):
+def Fit_GRU_to_Charges(charges,counter):
     
     dim_c = 2
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
     LoadData(dim_c,charges)
     
-    injection_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
-    press_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
-    cool_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
+    injection_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+    press_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
+    cool_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
     
     for rnn in [injection_model,press_model,cool_model]:
         name = rnn.name
@@ -49,14 +49,14 @@ def Fit_LSTM_to_Charges(charges,counter):
               "print_level":2}
     
     
-    results_LSTM = ModelTraining(quality_model,data,initializations=20, BFR=False, 
+    results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
-    results_LSTM['Chargen'] = 'c'+str(counter)
+    results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
 
-    return results_LSTM  
+    return results_GRU  
 
 
     
