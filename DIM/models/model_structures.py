@@ -370,7 +370,8 @@ class GRU(RNN):
         
         u = cs.MX.sym('u',dim_u,1)
         c = cs.MX.sym('c',dim_c,1)
-        
+ 
+ 
         # Parameters
         # RNN part
         W_r = cs.MX.sym('W_r_'+name,dim_c,dim_u+dim_c)
@@ -383,11 +384,11 @@ class GRU(RNN):
         b_c = cs.MX.sym('b_c_'+name,dim_c,1)    
     
         # MLP part
-        W_h = cs.MX.sym('W_z_'+name,dim_hidden,dim_c)
-        b_h = cs.MX.sym('b_z_'+name,dim_hidden,1)    
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_c)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)    
         
-        W_o = cs.MX.sym('W_c_'+name,dim_out,dim_hidden)
-        b_o = cs.MX.sym('b_c_'+name,dim_out,1)  
+        W_y = cs.MX.sym('W_y_'+name,dim_out,dim_hidden)
+        b_y = cs.MX.sym('b_y_'+name,dim_out,1)  
         
         
         # Equations
@@ -399,17 +400,17 @@ class GRU(RNN):
         f_c = cs.tanh(cs.mtimes(W_c,cs.vertcat(u,c_r))+b_c)
         
         
-        c_new = f_z*c+(1-f_z)*f_c
+        c_new = f_z*f_c+(1-f_z)*c
         
         h =  cs.tanh(cs.mtimes(W_h,c_new)+b_h)
-        x_new = cs.mtimes(W_o,h)+b_o    
+        x_new = cs.mtimes(W_y,h)+b_y    
     
         
         # Casadi Function
-        input = [c,u,W_r,b_r,W_z,b_z,W_c,b_c,W_h,b_h,W_o,b_o]
+        input = [c,u,W_r,b_r,W_z,b_z,W_c,b_c,W_h,b_h,W_y,b_y]
         input_names = ['c','u','W_r_'+name,'b_r_'+name,'W_z_'+name,'b_z_'+name
                        ,'W_c_'+name,'b_c_'+name,'W_h_'+name,'b_h_'+name,
-                        'W_o_'+name,'b_o_'+name]
+                        'W_y_'+name,'b_y_'+name]
         
         output = [c_new,x_new]
         output_names = ['c_new','x_new']
