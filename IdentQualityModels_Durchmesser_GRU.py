@@ -35,9 +35,9 @@ def Fit_GRU_to_Charges(charges,counter):
     for rnn in [injection_model,press_model,cool_model]:
         name = rnn.name
         
-        initial_params = {'b_f_'+name: np.random.uniform(0,1,(dim_c,1)),
-                          'b_i_'+name: np.random.uniform(-2,0,(dim_c,1)),
-                          'b_o_'+name: np.random.uniform(-2,0,(dim_c,1))}
+        initial_params = {'b_r_'+name: np.random.uniform(-2,0,(dim_c,1)),
+                          'b_z_'+name: np.random.uniform(-1,0,(dim_c,1)),
+                          'b_c_'+name: np.random.uniform(-2,0,(dim_c,1))}
         
         rnn.InitialParameters = initial_params
         
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     
     pool = multiprocessing.Pool()
     
-    result = pool.starmap(Fit_LSTM_to_Charges, zip(Modellierungsplan,counter) ) 
+    result = pool.starmap(Fit_GRU_to_Charges, zip(Modellierungsplan,counter) ) 
 
 
 
