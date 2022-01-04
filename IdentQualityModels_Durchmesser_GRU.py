@@ -28,9 +28,9 @@ def Fit_GRU_to_Charges(charges,counter):
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
     LoadData(dim_c,charges)
     
-    injection_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
-    press_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
-    cool_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
+    injection_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
+    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
     
     for rnn in [injection_model,press_model,cool_model]:
         name = rnn.name
