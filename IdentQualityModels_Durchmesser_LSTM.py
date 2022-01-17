@@ -49,7 +49,7 @@ def Fit_LSTM_to_Charges(charges,counter):
               "print_level":2}
     
     
-    results_LSTM = ModelTraining(quality_model,data,initializations=20, BFR=False, 
+    results_LSTM = ModelTraining(quality_model,data,initializations=50, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_LSTM['Chargen'] = 'c'+str(counter)
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     
 
     Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
-    counter = [7,10,11,12,13]
+    counter = [411]
     
     multiprocessing.freeze_support()
     
