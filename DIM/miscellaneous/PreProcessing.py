@@ -332,9 +332,9 @@ def LoadData(dim_c,charges):
     
     # Select input and output for dynamic model
     y_lab = ['Durchmesser_innen']
-    u_inj_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_press_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_cool_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_inj_lab= ['p_wkz_ist','T_wkz_ist' ]#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_press_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_cool_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
     # 
     # Normalize with respect to first cycle    
     mean_u = cycles_train[0][u_inj_lab].mean()
