@@ -25,4 +25,9 @@ for i in range(1,14):
 path = '04_01_2022/'
 for i in range(1,14):
     c = pkl.load(open(path+'GRU_Durchmesser_innen_c'+str(i)+'.pkl','rb'))
-    df.loc[i]['GRU 5 Inputs'] = c['loss_val'].min()    
+    df.loc[i]['GRU 5 Inputs'] = c['loss_val'].min()
+    
+path = '17_01_2022/'
+for i in range(1,14):
+    c = pkl.load(open(path+'GRU_Durchmesser_innen_c'+str(i)+'.pkl','rb'))
+    df.loc[i]['GRU 2 Inputs'] = c['loss_val'].min()    

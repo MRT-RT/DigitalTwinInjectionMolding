@@ -19,9 +19,9 @@ data_clean = data_clean[data_clean.loc[:,'Breite_Lasche']>=4]
 data = data_clean
 
 # quality_meas = 'Gewicht'
-# quality_meas = 'Durchmesser_innen'
+quality_meas = 'Durchmesser_innen'
 # quality_meas = 'Durchmesser_außen'
-quality_meas = 'Stegbreite_Gelenk'
+# quality_meas = 'Stegbreite_Gelenk'
 # quality_meas = 'Breite_Lasche'
 # quality_meas = 'Rundheit_außen'
 

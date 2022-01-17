@@ -22,68 +22,6 @@ dim_c = 2
 
 versuchsplan = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
 
-c1 = versuchsplan[
-    # (versuchsplan['Düsentemperatur']==250) & 
-                       (versuchsplan['Werkzeugtemperatur']==40)& 
-                       (versuchsplan['Einspritzgeschwindigkeit']==48) & 
-                       (versuchsplan['Umschaltpunkt']==14) &
-                       (versuchsplan['Nachdruckhöhe']==500) & 
-                       (versuchsplan['Nachdruckzeit']==3) & 
-                       (versuchsplan['Staudruck']==75) & 
-                       (versuchsplan['Kühlzeit']==15)
-                       ]['Charge'].unique()
-
-c2 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
-                       # (versuchsplan['Werkzeugtemperatur']==40)& 
-                        (versuchsplan['Einspritzgeschwindigkeit']==48) & 
-                       (versuchsplan['Umschaltpunkt']==14) &
-                       (versuchsplan['Nachdruckhöhe']==500) & 
-                       (versuchsplan['Nachdruckzeit']==3) & 
-                       (versuchsplan['Staudruck']==75) & 
-                       (versuchsplan['Kühlzeit']==15)
-                       ]['Charge'].unique()
-
-c3 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
-                       (versuchsplan['Werkzeugtemperatur']==40)& 
-                       # (versuchsplan['Einspritzgeschwindigkeit']==48) & 
-                       (versuchsplan['Umschaltpunkt']==14) &
-                       (versuchsplan['Nachdruckhöhe']==500) & 
-                       (versuchsplan['Nachdruckzeit']==3) & 
-                       (versuchsplan['Staudruck']==75) & 
-                       (versuchsplan['Kühlzeit']==15)
-                       ]['Charge'].unique()
-
-c4 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
-                       (versuchsplan['Werkzeugtemperatur']==40)& 
-                       (versuchsplan['Einspritzgeschwindigkeit']==48) & 
-                       # (versuchsplan['Umschaltpunkt']==14) &
-                       (versuchsplan['Nachdruckhöhe']==500) & 
-                       (versuchsplan['Nachdruckzeit']==3) & 
-                       (versuchsplan['Staudruck']==75) & 
-                       (versuchsplan['Kühlzeit']==15)
-                       ]['Charge'].unique()
-
-c5 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
-                       (versuchsplan['Werkzeugtemperatur']==40)& 
-                       (versuchsplan['Einspritzgeschwindigkeit']==48) & 
-                       (versuchsplan['Umschaltpunkt']==14) &
-                       # (versuchsplan['Nachdruckhöhe']==500) & 
-                       (versuchsplan['Nachdruckzeit']==3) & 
-                       (versuchsplan['Staudruck']==75) & 
-                       (versuchsplan['Kühlzeit']==15)
-                       ]['Charge'].unique()
-
-
-c6 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
-                       (versuchsplan['Werkzeugtemperatur']==40)& 
-                       (versuchsplan['Einspritzgeschwindigkeit']==48) & 
-                       (versuchsplan['Umschaltpunkt']==14) &
-                       (versuchsplan['Nachdruckhöhe']==500) & 
-                       # (versuchsplan['Nachdruckzeit']==3) & 
-                       (versuchsplan['Staudruck']==75) & 
-                       (versuchsplan['Kühlzeit']==15)
-                       ]['Charge'].unique()
-
 
 c7 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
                        (versuchsplan['Werkzeugtemperatur']==40)& 
@@ -95,26 +33,6 @@ c7 = versuchsplan[(versuchsplan['Düsentemperatur']==250) &
                        (versuchsplan['Kühlzeit']==15)
                        ]['Charge'].unique()
 
-c8 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
-                       (versuchsplan['Werkzeugtemperatur']==40)& 
-                       (versuchsplan['Einspritzgeschwindigkeit']==48) & 
-                       (versuchsplan['Umschaltpunkt']==14) &
-                       (versuchsplan['Nachdruckhöhe']==500) & 
-                       (versuchsplan['Nachdruckzeit']==3) & 
-                       (versuchsplan['Staudruck']==75) 
-                       # (versuchsplan['Kühlzeit']==15)
-                       ]['Charge'].unique()
-
-
-c9 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
-                       (versuchsplan['Werkzeugtemperatur']==40)& 
-                       (versuchsplan['Einspritzgeschwindigkeit']==48) & 
-                       # (versuchsplan['Umschaltpunkt']==14) &
-                       (versuchsplan['Nachdruckhöhe']==500) & 
-                       # (versuchsplan['Nachdruckzeit']==3) & 
-                       (versuchsplan['Staudruck']==75) & 
-                        (versuchsplan['Kühlzeit']==15)
-                       ]['Charge'].unique()
 
 c10 = versuchsplan[(versuchsplan['Düsentemperatur']==250) & 
                        (versuchsplan['Werkzeugtemperatur']==40)& 
@@ -158,7 +76,7 @@ c13 = versuchsplan[(versuchsplan['Düsentemperatur']==250) &
 
 plan = []
 
-for i in range(1,14):
+for i in [7,10,11,12,13]:
     plan.append(list(eval('c'+str(i))))
 
 
