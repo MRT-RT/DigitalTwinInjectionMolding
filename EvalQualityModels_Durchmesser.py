@@ -10,18 +10,18 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from DIM.models.model_structures import GRU
+from DIM.models.model_structures import LSTM
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.common import BestFitRate
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadData
 
 
-def Eval_GRU_on_Val(charges,counter):
+def Eval_LSTM_on_Val(charges,counter):
     
     dim_c = 2
-    path = 'Results/17_01_2022/'
+    path = 'Results/29_12_2021/'
     # Load best model
-    res = pkl.load(open(path+'GRU_Durchmesser_innen_c'+str(counter)+'.pkl','rb'))
+    res = pkl.load(open(path+'LSTM_Durchmesser_innen_c'+str(counter)+'.pkl','rb'))
        
     params = res.loc[res['loss_val'].idxmin()][['params']][0]
     
@@ -30,9 +30,9 @@ def Eval_GRU_on_Val(charges,counter):
     LoadData(dim_c,charges)
     
     # Initialize model structures
-    injection_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
-    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
-    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
+    injection_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+    press_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
+    cool_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
  
     quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
                                   name='q_model_Durchmesser_innen')
@@ -104,23 +104,23 @@ def Eval_GRU_on_Val(charges,counter):
     return results_train, results_val
 
 
-res = []
+# res = []
 Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
 
-for i in range(0,1):
-    res.append(Eval_GRU_on_Val(Modellierungsplan[i],i+1))
+# for i in range(0,1):
+#     res.append(Eval_LSTM_on_Val(Modellierungsplan[i],i+1))
 
-BFR = np.array(BFR)
+# BFR = np.array(BFR)
 
-results_train, results_val = Eval_GRU_on_Val(Modellierungsplan[12],13)
+results_train, results_val = Eval_LSTM_on_Val(Modellierungsplan[12],13)
  
 
 
-plt.figure()
-sns.stripplot(x="charge", y="e", data=results_train,
-              size=4, color=".3", linewidth=0)
-sns.stripplot(x="charge", y="e", data=results_val,
-              size=4,  linewidth=0)
+# plt.figure()
+# sns.stripplot(x="charge", y="e", data=results_train,
+#               size=4, color=".3", linewidth=0)
+# sns.stripplot(x="charge", y="e", data=results_val,
+#               size=4,  linewidth=0)
 
 
 plt.figure()
@@ -130,15 +130,17 @@ sns.stripplot(x=results_train.index, y="y_est", data=results_train,
               size=4,  linewidth=0)
 
 
-plt.figure()
-plt.plot(results_train['y_true'],results_train['y_est'],'o')
+# plt.figure()
+# plt.plot(results_train['y_true'],results_train['y_est'],'o')
 
-plt.figure()
-plt.hist(results_train['e'].values,bins=40)
-plt.xlabel(['error'])
+# plt.figure()
+# plt.hist(results_train['e'].values,bins=40)
+# plt.xlabel(['error'])
 
-plt.figure()
-plt.plot(results_train['cycle'],results_train['y_true'],'o')
+# plt.figure()
+# plt.plot(results_train['cycle'],results_train['y_true'],'o')
+# plt.plot(results_val['cycle'],results_val['y_true'],'o')
+
 
 # plt.plot(np.array(data['y_val']),np.array(y_val),'o')
 # plt.xlim([27.2,27.9])
