@@ -22,16 +22,16 @@ from DIM.miscellaneous.PreProcessing import LoadData
     
 def Fit_GRU_to_Charges(charges,counter):
     
-    path = 'Results/GRU_2c_1sub_2in_allCharg/'
+    path = 'Results/GRU_2c_1sub_5in_allCharg/'
     dim_c = 2
     
-    u_lab= [['p_wkz_ist','T_wkz_ist']]
+    u_lab= [['p_wkz_ist','T_wkz_ist' ,'p_inj_ist','Q_Vol_ist','V_Screw_ist']]
     y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
     LoadData(dim_c,charges,y_lab,u_lab)
     
-    one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+    one_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
     
     for rnn in [one_model]:
         name = rnn.name
@@ -50,7 +50,7 @@ def Fit_GRU_to_Charges(charges,counter):
               "print_level":2}
     
     
-    results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
+    results_GRU = ModelTraining(quality_model,data,initializations=50, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
