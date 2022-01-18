@@ -20,6 +20,14 @@ def Eval_LSTM_on_Val(charges,counter):
     
     dim_c = 2
     path = 'Results/29_12_2021/'
+      
+    u_inj_lab= ['p_wkz_ist','T_wkz_ist' ,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_press_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_cool_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist'] 
+    
+    y_lab = ['Durchmesser_innen']
+    
+    u_lab= [u_inj_lab,u_press_lab,u_cool_lab]
     # Load best model
     res = pkl.load(open(path+'LSTM_Durchmesser_innen_c'+str(counter)+'.pkl','rb'))
        
@@ -27,7 +35,7 @@ def Eval_LSTM_on_Val(charges,counter):
     
     # Load data
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
-    LoadData(dim_c,charges)
+    LoadData(dim_c,charges,y_lab,u_lab)
     
     # Initialize model structures
     injection_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
