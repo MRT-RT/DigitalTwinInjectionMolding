@@ -19,10 +19,10 @@ from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadData
 
-
-    
+   
 def Fit_LSTM_to_Charges(charges,counter):
     
+    path = 'Results/LSTM_2c_1sub_2in_allCharg/'
     dim_c = 2
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
@@ -54,7 +54,7 @@ def Fit_LSTM_to_Charges(charges,counter):
     
     results_LSTM['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_LSTM,open('LSTM_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
+    pkl.dump(results_LSTM,open(path+'LSTM_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
 
     return results_LSTM  
 
@@ -64,8 +64,12 @@ if __name__ == '__main__':
     
     print('Process started..')
     
-    
+    u_inj_lab= ['p_wkz_ist','T_wkz_ist' ,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_press_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_cool_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']    
 
+    y_lab = ['Durchmesser_innen']
+        
     Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
     counter = [411]
     
