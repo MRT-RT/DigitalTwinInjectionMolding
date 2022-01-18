@@ -285,7 +285,7 @@ def eliminate_outliers(doe_plan):
     
     return doe_plan
     
-def LoadData(dim_c,charges):
+def LoadData(dim_c,charges,y_lab,u_lab):
     
     # Load Versuchsplan to find cycles that should be considered for modelling
     data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
@@ -331,29 +331,40 @@ def LoadData(dim_c,charges):
                                           'rb')))
     
     # Select input and output for dynamic model
-    y_lab = ['Durchmesser_innen']
-    u_inj_lab= ['p_wkz_ist','T_wkz_ist' ,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_press_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_cool_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    # 
+    if len(u_lab)==3:
+        u_inj_lab = u_lab[0]
+        u_press_lab = u_lab[1]
+        u_cool_lab = u_lab[2]
+        
+        u_lab_all = u_lab[0] + list(set(u_lab[1])-set(u_lab[0]))
+        u_lab_all = u_lab_all + list(set(u_lab_all)-set(u_lab[2]))
+        
+    elif len(u_lab)==1:
+        u_lab_all = u_lab[0]
+    else:
+        raise ValueError('''u_lab needs to be a list of either one or three 
+                         elements with input labels!''')
+
     # Normalize with respect to first cycle    
-    mean_u = cycles_train[0][u_inj_lab].mean()
     mean_y = cycles_train[0][y_lab].mean()
-    min_u = cycles_train[0][u_inj_lab].min()
-    max_u = cycles_train[0][u_inj_lab].max()
+    
+    mean_u = cycles_train[0][u_lab_all].mean()
+    mean_u = cycles_train[0][u_lab_all].mean()
+    min_u = cycles_train[0][u_lab_all].min()
+    max_u = cycles_train[0][u_lab_all].max()
 
 
     for cycle in cycles_train+cycles_val:
-        cycle[u_inj_lab] = (cycle[u_inj_lab]-min_u)/(max_u-min_u)
+        cycle[u_lab_all] = (cycle[u_lab_all]-min_u)/(max_u-min_u)
         cycle[y_lab] = cycle[y_lab]-mean_y+1
     
     x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
-                                        [u_inj_lab,u_press_lab,u_cool_lab],'quality')
+                                        u_lab,'quality')
     #
     # x_train,q_train,switch_train = arrange_data_for_qual_ident(cycles_train,x_lab,q_lab)
     
     x_val,q_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
-                                        [u_inj_lab,u_press_lab,u_cool_lab],'quality')
+                                        u_lab,'quality')
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(x_train))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(x_val))]
@@ -367,6 +378,6 @@ def LoadData(dim_c,charges):
             'switch_val': switch_val,
             'init_state_val': c0_val}
     
-    return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label    
+    return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
     
     

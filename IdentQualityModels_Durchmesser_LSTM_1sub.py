@@ -9,7 +9,6 @@ import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 import multiprocessing
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
@@ -24,24 +23,25 @@ def Fit_LSTM_to_Charges(charges,counter):
     
     path = 'Results/LSTM_2c_1sub_2in_allCharg/'
     dim_c = 2
+
+    u_lab= [['p_wkz_ist','T_wkz_ist']]
+    y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
-    LoadData(dim_c,charges)
+    LoadData(dim_c,charges,y_lab,u_lab)
     
-    injection_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
-    press_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
-    cool_model = LSTM(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
+    one_model = LSTM(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
     
-    for rnn in [injection_model,press_model,cool_model]:
+    for rnn in [one_model]:
         name = rnn.name
         
-        initial_params = {'b_f_'+name: np.random.uniform(0,1,(dim_c,1)),
+        initial_params = {'b_f_'+name: np.random.uniform(0,2,(dim_c,1)),
                           'b_i_'+name: np.random.uniform(-2,0,(dim_c,1)),
                           'b_o_'+name: np.random.uniform(-2,0,(dim_c,1))}
         
         rnn.InitialParameters = initial_params
         
-    quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
+    quality_model = QualityModel(subsystems=[one_model],
                                   name='q_model_Durchmesser_innen')
     
     
@@ -64,13 +64,9 @@ if __name__ == '__main__':
     
     print('Process started..')
     
-    u_inj_lab= ['p_wkz_ist','T_wkz_ist' ,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_press_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_cool_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']    
 
-    y_lab = ['Durchmesser_innen']
         
-    Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
+    Modellierungsplan = pkl.load(open('Modellierungsplan_all.pkl','rb'))
     counter = [411]
     
     multiprocessing.freeze_support()
