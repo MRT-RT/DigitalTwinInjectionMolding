@@ -14,7 +14,7 @@ import multiprocessing
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 
-from DIM.models.model_structures import GRU,LSTM
+from DIM.models.model_structures import LSTM
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadData
