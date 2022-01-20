@@ -11,13 +11,13 @@ import pandas as pd
 df = pd.DataFrame(columns=['LSTM 2 Inputs','LSTM 5 Inputs','GRU 2 Inputs',
                            'GRU 5 Inputs'], index = range(1,14))
 
-path = '23_12_2021/'
+path = 'LSTM_2c_1sub_2in_Plan_c1_c14/'
 for i in range(1,14):
     c = pkl.load(open(path+'LSTM_Durchmesser_innen_c'+str(i)+'.pkl','rb'))
     df.loc[i]['LSTM 2 Inputs'] = c['loss_val'].min()
 
 
-path = '29_12_2021/'
+path = 'LSTM_2c_1sub_5in_Plan_c1_c14/'
 for i in range(1,14):
     c = pkl.load(open(path+'LSTM_Durchmesser_innen_c'+str(i)+'.pkl','rb'))
     df.loc[i]['LSTM 5 Inputs'] = c['loss_val'].min()

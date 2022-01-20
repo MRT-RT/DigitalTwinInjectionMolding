@@ -16,10 +16,9 @@ from DIM.optim.common import BestFitRate
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadData
 
 
-def Eval_GRU_on_Val(charges,counter):
+def Eval_GRU_on_Val(charges,counter,path):
     
     dim_c = 2
-    path = 'Results/17_01_2022/'
       
     u_inj_lab= ['p_wkz_ist','T_wkz_ist']
     u_press_lab = ['p_wkz_ist','T_wkz_ist']
@@ -27,12 +26,11 @@ def Eval_GRU_on_Val(charges,counter):
     
     y_lab = ['Durchmesser_innen']
     
-    u_lab= [u_inj_lab,u_press_lab,u_cool_lab]
+    u_lab= [u_inj_lab] #,u_press_lab,u_cool_lab]
     
     # Load best model
     res = pkl.load(open(path+'GRU_Durchmesser_innen_c'+str(counter)+'.pkl','rb'))
        
-    print(str(res['loss_val'].idxmin()))
     params = res.loc[res['loss_val'].idxmin()][['params']][0]
     
     # Load data
@@ -41,10 +39,10 @@ def Eval_GRU_on_Val(charges,counter):
     
     # Initialize model structures
     injection_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
-    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
-    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
+    # press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
+    # cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
  
-    quality_model = QualityModel(subsystems=[injection_model,press_model,cool_model],
+    quality_model = QualityModel(subsystems=[injection_model],
                                   name='q_model_Durchmesser_innen')
     
     # Assign best parameters to model
@@ -73,8 +71,8 @@ def Eval_GRU_on_Val(charges,counter):
     y_train = np.array(y_train).reshape((-1,1))
     e_train = np.array(e_train).reshape((-1,1))
     cycles_train_label = np.array(cycles_train_label).reshape((-1,))
-    charge_train_label = np.array(charge_train_label).reshape((-1,1))
-        
+    charge_train_label = np.array(charge_train_label).reshape((-1,1))  
+    
     results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train,
                                   charge_train_label]),
                                 index = cycles_train_label,
@@ -114,13 +112,15 @@ def Eval_GRU_on_Val(charges,counter):
     return results_train, results_val, data, quality_model
 
 
-# res = []
 Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
-results_train, results_val, data, quality_model = Eval_GRU_on_Val(Modellierungsplan[12],13)
+counter = range(1,14)
 
+path = 'Results/GRU_2c_1sub_2in_Plan_c1_c14/'
 
-path = 'Results/17_01_2022/'
-pkl.dump(results_train,open(path+'results_train_c13.pkl','wb')) 
-pkl.dump(results_val,open(path+'results_val_c13.pkl','wb')) 
-pkl.dump(quality_model,open(path+'quality_model_c13.pkl','wb'))
-pkl.dump(data,open(path+'data_c13.pkl','wb'))
+for charges,c in  zip(Modellierungsplan,counter):
+    results_train, results_val, data, quality_model = Eval_GRU_on_Val(charges,c,path)
+    
+    pkl.dump(results_train,open(path+'results_train_c'+str(c)+'.pkl','wb')) 
+    pkl.dump(results_val,open(path+'results_val_c'+str(c)+'.pkl','wb')) 
+    pkl.dump(quality_model,open(path+'quality_model_c'+str(c)+'.pkl','wb'))
+    pkl.dump(data,open(path+'data_c'+str(c)+'.pkl','wb'))
