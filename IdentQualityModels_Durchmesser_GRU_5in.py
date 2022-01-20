@@ -62,7 +62,7 @@ def Fit_GRU_to_Charges(charges,counter):
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
+    pkl.dump(results_GRU,open(path+'GRU_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
 
     return results_GRU  
 
