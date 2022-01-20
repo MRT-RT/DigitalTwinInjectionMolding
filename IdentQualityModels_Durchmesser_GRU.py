@@ -14,7 +14,7 @@ import multiprocessing
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 
-from DIM.models.model_structures import GRU,LSTM
+from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadData
@@ -23,12 +23,12 @@ from DIM.miscellaneous.PreProcessing import LoadData
     
 def Fit_GRU_to_Charges(charges,counter):
     
-    path = 'Results/GRU_2c_1sub_5in_Plan_c1_c14/'
+    path = 'Results/GRU_2c_1sub_2in_Plan_c1_c14/'
     dim_c = 2
     
-    u_inj_lab= ['p_wkz_ist','T_wkz_ist' ,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_press_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_cool_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_inj_lab= ['p_wkz_ist','T_wkz_ist']# ,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_press_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_cool_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
     
     u_lab = [u_inj_lab,u_press_lab,u_cool_lab]
     
@@ -37,7 +37,7 @@ def Fit_GRU_to_Charges(charges,counter):
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
     LoadData(dim_c,charges,y_lab,u_lab)
     
-    one_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+    one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
 
     
     for rnn in [one_model]:
