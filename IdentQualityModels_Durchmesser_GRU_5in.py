@@ -75,7 +75,8 @@ if __name__ == '__main__':
     
 
     Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
-    counter = range(1,14)
+    Modellierungsplan = [Modellierungsplan[i] for i  in [3,6,7,8,9,10,11,12]]
+    counter = [4,7,8,9,10,11,12,13]
     
     multiprocessing.freeze_support()
     
