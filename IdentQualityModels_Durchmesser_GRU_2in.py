@@ -62,7 +62,7 @@ def Fit_GRU_to_Charges(charges,counter):
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
+    pkl.dump(results_GRU,open(path+'GRU_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
 
     return results_GRU  
 
@@ -75,7 +75,9 @@ if __name__ == '__main__':
     
 
     Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
-    counter = range(1,14)
+    Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
+    Modellierungsplan = [Modellierungsplan[i] for i  in [0,1,2,3,4,5,8,9,10,11]]
+    counter = [1,2,3,4,5,6,9,10,11,12]
     
     multiprocessing.freeze_support()
     
