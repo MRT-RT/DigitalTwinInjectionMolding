@@ -20,9 +20,9 @@ def Eval_GRU_on_Val(charges,counter,path):
     
     dim_c = 2
       
-    u_inj_lab= ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_press_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    u_cool_lab = ['p_wkz_ist','T_wkz_ist','p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_inj_lab= ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_press_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
+    u_cool_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
     
     y_lab = ['Durchmesser_innen']
     
@@ -38,7 +38,7 @@ def Eval_GRU_on_Val(charges,counter,path):
     LoadData(dim_c,charges,y_lab,u_lab)
     
     # Initialize model structures
-    injection_model = GRU(dim_u=5,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+    injection_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
     # press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='press')
     # cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
  
@@ -113,10 +113,9 @@ def Eval_GRU_on_Val(charges,counter,path):
 
 
 Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
-Modellierungsplan = Modellierungsplan[0:12]
-counter = range(1,12)
+counter = range(1,14)
 
-path = 'Results/GRU_2c_1sub_5in_Plan_c1_c14/'
+path = 'Results/GRU_2c_1sub_2in_Plan_c1_c14/'
 
 for charges,c in  zip(Modellierungsplan,counter):
     results_train, results_val, data, quality_model = Eval_GRU_on_Val(charges,c,path)
