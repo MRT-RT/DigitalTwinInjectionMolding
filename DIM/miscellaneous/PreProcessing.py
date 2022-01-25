@@ -284,6 +284,19 @@ def eliminate_outliers(doe_plan):
     
     
     return doe_plan
+
+def FindCyclesFromCharge(charges):
+    
+    # Load Versuchsplan to find cycles that should be considered for modelling
+    data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
+    data = eliminate_outliers(data)
+    
+    cycle_label = []
+    charge_label = []
+    
+    
+    return cycle_label, charge_label
+
     
 def LoadData(dim_c,charges,y_lab,u_lab):
     
@@ -380,4 +393,79 @@ def LoadData(dim_c,charges,y_lab,u_lab):
     
     return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
     
+
+def StaticFeatureExtraction(charges):
     
+    # Load Versuchsplan to find cycles that should be considered for modelling
+    data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
+    
+    data = eliminate_outliers(data)
+    
+    # Delete outliers rudimentary
+    
+    # Cycles for parameter estimation
+    cycles_train_label = []
+    cycles_val_label = []
+    
+    charge_train_label = []
+    charge_val_label = []
+    
+    for charge in charges:
+        cycles = data[data['Charge']==charge].index.values
+        cycles_train_label.append(cycles[-6:-1])
+        cycles_val_label.append(cycles[-1])
+        
+        charge_train_label.extend([charge]*len(cycles[-6:-1]))
+        charge_val_label.extend([charge]*len(cycles[[-1]]))
+    
+    cycles_train_label = np.hstack(cycles_train_label)
+    cycles_val_label = np.hstack(cycles_val_label)
+    
+    # Delete cycles that for some reason don't exist
+    charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 767)) 
+    cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
+    
+        
+    # Load cycle data and extract features
+    cycles_train = []
+    cycles_val = []
+    
+    for c in cycles_train_label:
+        
+        # Load Data
+        df = pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl','rb'))
+        
+        # TO DO: Daten ab Werkzeugauswurf abschneiden
+        
+        # To Do: Get Switching instances
+        t1 = 5
+        t2 = 300
+        
+        # Extract features
+        T_wkz_0 = df.loc[0]['T_wkz_ist']
+        T_wkz_max = df['T_wkz_ist'].max()
+        T_wkz_int = df['T_wkz_ist'].sum()
+        T_cool = df.loc[t2::]['T_wkz_ist'] /(df.index[-1]-t2) 
+        
+        
+        p_wkz_max = df['p_wkz_ist'].max()
+        p_wkz_int = df['p_wkz_ist'].sum()
+        p_wkz_res = df.loc[t2::]['p_wkz_ist'] /(df.index[-1]-t2)
+        
+        t_inj = t1
+        x_inj = df.loc[0]['V_Screw_ist']-df.loc[t1]['V_Screw_ist']
+        x_um =  df.loc[t1]['V_Screw_ist']
+        # v = df.loc[t1]['Q_Screw_ist'] MACH WAS DAMIT
+        t_
+        
+        # done
+        
+        
+    
+    for c in cycles_val_label:
+        cycles_val.append(pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl',
+                                          'rb')))
+
+
+    
+    return data_train,data_val
