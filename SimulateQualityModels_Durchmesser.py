@@ -13,7 +13,7 @@ import seaborn as sns
 
 
 dim_c = 2
-path = 'Results/17_01_2022/'
+path = 'Results/29_12_2021/'
 
 results_train = pkl.load(open(path+'results_train_c13.pkl','rb')) 
 results_val = pkl.load(open(path+'results_val_c13.pkl','rb')) 
@@ -64,15 +64,16 @@ ax2.set_ylim([-2.5,2.5])
 
 plt.figure()
 sns.stripplot(x=results_train.index, y="y_true", data=results_train,
-              size=4, color=".3", linewidth=0)
+              size=4, color=".3", linewidth=0, s=10)
 sns.stripplot(x=results_train.index, y="y_est", data=results_train,
-              size=4,  linewidth=0)
+              size=4,  linewidth=0, s=10)
 
 plt.figure()
 sns.stripplot(x=results_val.index, y="y_true", data=results_val,
-              size=4, color=".3", linewidth=0)
+              size=4, color=".3", linewidth=0, s=10)
 sns.stripplot(x=results_val.index, y="y_est", data=results_val,
-              size=4,  linewidth=0)
+              size=4,  linewidth=0, s=10)
+plt.xticks([])
 
 plt.figure()
 plt.plot(np.vstack(data['u_val'][idx_591])[:,0:2],'k')
