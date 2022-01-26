@@ -200,6 +200,34 @@ def arrange_data_for_qual_ident(cycles,x_lab,q_lab):
     # cool['x_init'] = df.loc[t_um2][x].values    
     
     return x,q,switch
+def find_switches(cycle):
+    '''
+    
+
+    Parameters
+    ----------
+    cycle : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+    
+    '''
+    
+    # Assumption: First switch is were pressure is maximal
+    t1 = cycle['p_inj_ist'].idxmax()
+    idx_t1 = np.argmin(abs(cycle.index.values-t1))
+    
+    # Second switch 
+    t2 = t1 + cycle.loc[0]['t_press1_soll'] + cycle.loc[0]['t_press2_soll']
+    idx_t2 = np.argmin(abs(cycle.index.values-t2))
+    
+    # Third switch, machine opens
+    t3 = t2 + cycle.loc[0,'Kühlzeit']
+    idx_t3 = np.argmin(abs(cycle.index.values-t3))
+    
+    return t1,t2,t3
 
 def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
     
@@ -208,18 +236,9 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
     switch = []
     
     for cycle in cycles:
+        
         # Find switching instances
-        # Assumption: First switch is were pressure is maximal
-        t1 = cycle['p_inj_ist'].idxmax()
-        idx_t1 = np.argmin(abs(cycle.index.values-t1))
-        
-        # Second switch 
-        t2 = t1 + cycle.loc[0]['t_press1_soll'] + cycle.loc[0]['t_press2_soll']
-        idx_t2 = np.argmin(abs(cycle.index.values-t2))
-        
-        # Third switch, machine opens
-        t3 = t2 + cycle.loc[0,'Kühlzeit']
-        idx_t3 = np.argmin(abs(cycle.index.values-t3))
+        t1,t2,t3 = find_switches(cycle)
         
         # Reduce dataframe to desired variables and treat NaN
         if len(u_lab)==1:
@@ -246,10 +265,11 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
             y.append(cycle.loc[0,y_lab].values)
             
         elif mode == 'process':
-            nan_cycle = np.isnan(cycle).any(axis=1)
-            cycle = cycle.loc[~nan_cycle]
+            print('This needs to be implemented properly!')
+            # nan_cycle = np.isnan(cycle).any(axis=1)
+            # cycle = cycle.loc[~nan_cycle]
             
-            y.append(cycle.loc[1:idx_t3+1,y_lab].values)    
+            # y.append(cycle.loc[1:idx_t3+1,y_lab].values)    
         
         # Read desired data from dataframe
         if len(u_lab)==1:
@@ -258,18 +278,21 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
             switch.append([None])
             
         elif len(u_lab)==3:
-            u_inj = cycle[u_inj_lab].values                                         # can contain NaN at the end
-            u_press = cycle[u_press_lab].values  
-            u_cool = cycle[u_cool_lab].values  
+            # u_inj = cycle[u_inj_lab].values                                         # can contain NaN at the end
+            # u_press = cycle[u_press_lab].values  
+            # u_cool = cycle[u_cool_lab].values  
 
 
-            u_inj = u_inj[0:idx_t1,::]
-            u_press = u_press[idx_t1:idx_t2,::]
-            u_cool = u_cool[idx_t2:idx_t3,::]
-        
+            # u_inj = u_inj[0:idx_t1,::]
+            # u_press = u_press[idx_t1:idx_t2,::]
+            # u_cool = u_cool[idx_t2:idx_t3,::]
+
+            u_inj = cycle.loc[0:t1][u_inj_lab].values                                         # can contain NaN at the end
+            u_press = cycle.loc[t1:t2][u_press_lab].values  
+            u_cool = cycle.loc[t2_t3][u_cool_lab].values  
 
             u.append([u_inj,u_press,u_cool])
-            switch.append([idx_t1,idx_t2])
+            switch.append([cycle.index.get_lox(t1),cycle.index.get_lox(t2)])
         
     return u,y,switch
 
@@ -285,20 +308,7 @@ def eliminate_outliers(doe_plan):
     
     return doe_plan
 
-def FindCyclesFromCharge(charges):
-    
-    # Load Versuchsplan to find cycles that should be considered for modelling
-    data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
-    data = eliminate_outliers(data)
-    
-    cycle_label = []
-    charge_label = []
-    
-    
-    return cycle_label, charge_label
-
-    
-def LoadData(dim_c,charges,y_lab,u_lab):
+def split_charges_to_trainval_data(charges):
     
     # Load Versuchsplan to find cycles that should be considered for modelling
     data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
@@ -330,8 +340,15 @@ def LoadData(dim_c,charges,y_lab,u_lab):
     cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
     
     
+    return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
+
     
-    # # Load cycle data, check if usable, convert to numpy array
+def LoadData(dim_c,charges,y_lab,u_lab):
+    
+    cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
+    split_charges_to_trainval_data(charges)
+      
+    # Load cycle data, check if usable, convert to numpy array
     cycles_train = []
     cycles_val = []
     
@@ -394,78 +411,64 @@ def LoadData(dim_c,charges,y_lab,u_lab):
     return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
     
 
-def StaticFeatureExtraction(charges):
+def StaticFeatureExtraction(charges, targets):
     
-    # Load Versuchsplan to find cycles that should be considered for modelling
-    data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
-    
-    data = eliminate_outliers(data)
-    
-    # Delete outliers rudimentary
-    
-    # Cycles for parameter estimation
-    cycles_train_label = []
-    cycles_val_label = []
-    
-    charge_train_label = []
-    charge_val_label = []
-    
-    for charge in charges:
-        cycles = data[data['Charge']==charge].index.values
-        cycles_train_label.append(cycles[-6:-1])
-        cycles_val_label.append(cycles[-1])
-        
-        charge_train_label.extend([charge]*len(cycles[-6:-1]))
-        charge_val_label.extend([charge]*len(cycles[[-1]]))
-    
-    cycles_train_label = np.hstack(cycles_train_label)
-    cycles_val_label = np.hstack(cycles_val_label)
-    
-    # Delete cycles that for some reason don't exist
-    charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 767)) 
-    cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
-    
+    cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
+    split_charges_to_trainval_data(charges)    
         
     # Load cycle data and extract features
     cycles_train = []
     cycles_val = []
     
-    for c in cycles_train_label:
-        
-        # Load Data
-        df = pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl','rb'))
-        
-        # TO DO: Daten ab Werkzeugauswurf abschneiden
-        
-        # To Do: Get Switching instances
-        t1 = 5
-        t2 = 300
-        
-        # Extract features
-        T_wkz_0 = df.loc[0]['T_wkz_ist']
-        T_wkz_max = df['T_wkz_ist'].max()
-        T_wkz_int = df['T_wkz_ist'].sum()
-        T_cool = df.loc[t2::]['T_wkz_ist'] /(df.index[-1]-t2) 
-        
-        
-        p_wkz_max = df['p_wkz_ist'].max()
-        p_wkz_int = df['p_wkz_ist'].sum()
-        p_wkz_res = df.loc[t2::]['p_wkz_ist'] /(df.index[-1]-t2)
-        
-        t_inj = t1
-        x_inj = df.loc[0]['V_Screw_ist']-df.loc[t1]['V_Screw_ist']
-        x_um =  df.loc[t1]['V_Screw_ist']
-        # v = df.loc[t1]['Q_Screw_ist'] MACH WAS DAMIT
-        t_
-        
-        # done
-        
-        
+    features=['T_wkz_0','T_wkz_max','t_wkz_max','T_wkz_int','p_wkz_max',
+              'p_wkz_int', 'p_wkz_res','p_inj_int', 'p_inj_max', 't_inj',
+              'x_inj','x_um','v']
     
-    for c in cycles_val_label:
-        cycles_val.append(pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl',
-                                          'rb')))
-
-
+    features.extend(targets)
+    
+    data_train = pd.DataFrame(data=None,columns = features, index=cycles_train_label)
+    data_val = pd.DataFrame(data=None,columns = features, index=cycles_val_label)
+    
+    counter = 0
+    for data,cycle_labels in zip([data_train,data_val],
+                                 [cycles_train_label,cycles_val_label]):
+    
+            
+        for c in cycle_labels:
+            
+            # Load Data
+            cycle = pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl','rb'))
+            
+            t1,t2,t3 = find_switches(cycle)
+            
+            cycle = cycle.loc[0:t3]                                                 # cut off data after tool opened
+            # Extract features
+            T_wkz_0 = cycle.loc[0]['T_wkz_ist']                                     # T at start of cycle
+            T_wkz_max = cycle['T_wkz_ist'].max()                                    # max. T during cycle
+            t_wkz_max = cycle['T_wkz_ist'].idxmax()                                 # time when max occurs
+            T_wkz_int = cycle['T_wkz_ist'].sum()                                    # T Integral
+            
+            p_wkz_max = cycle['p_wkz_ist'].max()                                    # max cavity pressure
+            p_wkz_int = cycle['p_wkz_ist'].sum()                                    # integral cavity pressure
+            p_wkz_res = cycle.loc[t2::]['p_wkz_ist'].mean()                         # so called pressure drop
+            
+            p_inj_int = cycle.loc[t1:t2]['p_inj_ist'].mean()                        # mean packing pressure
+            p_inj_max = cycle['p_inj_ist'].max()                                    # max hydraulic pressure
+            
+            t_inj = t1                                                              # injection time
+            
+            x_inj = cycle.loc[0]['V_Screw_ist']-cycle.loc[t1]['V_Screw_ist']        # injection stroke
+            x_um =  cycle.loc[t1]['V_Screw_ist']                                    # switch position
+            v = cycle.loc[0:t1]['Q_Vol_ist'].mean()                                 # mean injection velocity
+            
+            f = [T_wkz_0,T_wkz_max,t_wkz_max,T_wkz_int,p_wkz_max,
+                 p_wkz_int, p_wkz_res,p_inj_int, p_inj_max, t_inj,
+                 x_inj,x_um,v]
+            
+            y = list(cycle.loc[0][targets].values)
+            
+            f.extend(y)
+            
+            data.loc[c] = f
     
     return data_train,data_val
