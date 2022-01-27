@@ -19,6 +19,9 @@ from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadData
 
+import sys
+sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
+
 
     
 def Fit_GRU_to_Charges(charges,counter):
