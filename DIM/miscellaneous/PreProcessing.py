@@ -308,10 +308,10 @@ def eliminate_outliers(doe_plan):
     
     return doe_plan
 
-def split_charges_to_trainval_data(charges):
+def split_charges_to_trainval_data(path,charges):
     
     # Load Versuchsplan to find cycles that should be considered for modelling
-    data = pkl.load(open('./data/Versuchsplan/Versuchsplan.pkl','rb'))
+    data = pkl.load(open(path+'Versuchsplan.pkl','rb'))
     
     data = eliminate_outliers(data)
     
@@ -343,21 +343,21 @@ def split_charges_to_trainval_data(charges):
     return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
 
     
-def LoadData(dim_c,charges,y_lab,u_lab):
+def LoadDynamicData(path,charges,y_lab,u_lab):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
-    split_charges_to_trainval_data(charges)
+    split_charges_to_trainval_data(path,charges)
       
     # Load cycle data, check if usable, convert to numpy array
     cycles_train = []
     cycles_val = []
     
     for c in cycles_train_label:
-        cycles_train.append(pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl',
+        cycles_train.append(pkl.load(open(path+'cycle'+str(c)+'.pkl',
                                           'rb')))
     
     for c in cycles_val_label:
-        cycles_val.append(pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl',
+        cycles_val.append(pkl.load(open(path+'cycle'+str(c)+'.pkl',
                                           'rb')))
     
     # Select input and output for dynamic model
@@ -390,23 +390,17 @@ def LoadData(dim_c,charges,y_lab,u_lab):
     
     x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
                                         u_lab,'quality')
-    #
-    # x_train,q_train,switch_train = arrange_data_for_qual_ident(cycles_train,x_lab,q_lab)
     
     x_val,q_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
                                         u_lab,'quality')
     
-    c0_train = [np.zeros((dim_c,1)) for i in range(0,len(x_train))]
-    c0_val = [np.zeros((dim_c,1)) for i in range(0,len(x_val))]
-    
     data = {'u_train': x_train,
             'y_train': q_train,
             'switch_train': switch_train,
-            'init_state_train': c0_train,
             'u_val': x_val,
             'y_val': q_val,
-            'switch_val': switch_val,
-            'init_state_val': c0_val}
+            'switch_val': switch_val}
+    
     
     return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
     
