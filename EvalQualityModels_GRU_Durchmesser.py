@@ -18,7 +18,7 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 
 def Eval_GRU_on_Val(charges,counter,path):
     
-    dim_c = 2
+    dim_c = 1
       
     u_inj_lab= ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
     u_press_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']

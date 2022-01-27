@@ -24,6 +24,7 @@ data_train,data_val = StaticFeatureExtraction(charges,targets)
 
 inputs = [col for col in data_train.columns if col not in targets]
 
+inputs = inputs[0:8]
 # Normalize Data ?
 
 
@@ -32,17 +33,17 @@ inputs = [col for col in data_train.columns if col not in targets]
 # Linear Model
 LinModel = LinearRegression()
 
-# sfs = SequentialFeatureSelector(LinModel, n_features_to_select=11)
-# sfs.fit(data[inputs], data[targets])
-# inputs_sel = [inputs[i] for i in sfs.get_support(indices=True)]
-# LinModel.fit(data[inputs_sel],data[targets])
+# sfs = SequentialFeatureSelector(LinModel, n_features_to_select=10)
+# sfs.fit(data_train[inputs], data_train[targets])
+# inputs = [inputs[i] for i in sfs.get_support(indices=True)]
 
+# LinModel.fit(data[inputs],data[targets])
 LinModel.fit(data_train[inputs],data_train[targets])
 print(LinModel.score(data_val[inputs],data_val[targets]))
 
 
 # Polynomial Model
-poly = PolynomialFeatures(2)
+poly = PolynomialFeatures(1)
 X_poly_train = poly.fit_transform(data_train[inputs])
 X_poly_val = poly.fit_transform(data_val[inputs])
 

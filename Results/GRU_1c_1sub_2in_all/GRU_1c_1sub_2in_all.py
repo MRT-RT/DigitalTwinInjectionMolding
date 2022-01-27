@@ -6,30 +6,24 @@ Created on Mon Oct 25 14:44:37 2021
 """
 
 import pickle as pkl
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
 import multiprocessing
 
-from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
+import sys
+sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 
+
+from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadData
 
 
-    
 def Fit_GRU_to_Charges(charges,counter):
     
-    path = 'Results/GRU_1c_1sub_2in_all/'
     dim_c = 2
     
-    u_inj_lab= ['p_wkz_ist','T_wkz_ist']# ,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    # u_press_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    # u_cool_lab = ['p_wkz_ist','T_wkz_ist']#,'p_inj_ist','Q_Vol_ist','V_Screw_ist']
-    
+    u_lab= ['p_wkz_ist','T_wkz_ist']
     u_lab = [u_inj_lab]
     
     y_lab = ['Durchmesser_innen']
@@ -37,7 +31,7 @@ def Fit_GRU_to_Charges(charges,counter):
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
     LoadData(dim_c,charges,y_lab,u_lab)
     
-    one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='inject')
+    one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='one_model')
 
     
     for rnn in [one_model]:
@@ -50,7 +44,7 @@ def Fit_GRU_to_Charges(charges,counter):
         rnn.InitialParameters = initial_params
         
     quality_model = QualityModel(subsystems=[one_model],
-                                  name='q_model_Durchmesser_innen')
+                                  name='q_model')
     
     
     s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 3000,
@@ -62,8 +56,10 @@ def Fit_GRU_to_Charges(charges,counter):
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open(path+'GRU_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
-
+    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
+    
+    print('Charge '+str(counter)+' finished.')
+    
     return results_GRU  
 
 
@@ -71,16 +67,10 @@ def Fit_GRU_to_Charges(charges,counter):
 if __name__ == '__main__':
     
     print('Process started..')
-    
-    
-
-    Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
-    Modellierungsplan = [Modellierungsplan[i] for i  in [12]]
-    counter = [13]
-    
+        
     multiprocessing.freeze_support()
     
     pool = multiprocessing.Pool()
     
-    result = pool.starmap(Fit_GRU_to_Charges, zip(Modellierungsplan,counter) ) 
+    result = pool.starmap(Fit_GRU_to_Charges, zip(range(1,275),counter) ) 
 
