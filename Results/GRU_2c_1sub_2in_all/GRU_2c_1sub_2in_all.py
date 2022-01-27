@@ -6,25 +6,24 @@ Created on Mon Oct 25 14:44:37 2021
 """
 
 import pickle as pkl
-import multiprocessing
+import numpy as np
 
 import sys
-sys.path.insert(0,'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding')
+sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
-from DIM.miscellaneous.PreProcessing import LoadData
+from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
-
-
-    
 def Fit_GRU_to_Charges(charges,counter):
     
-    dim_c = 1
+    dim_c = 2
+    
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_lab= ['p_wkz_ist','T_wkz_ist']
     u_lab = [u_lab]
@@ -32,7 +31,14 @@ def Fit_GRU_to_Charges(charges,counter):
     y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
-    LoadData(dim_c,charges,y_lab,u_lab)
+    LoadDynamicData(path,charges,y_lab,u_lab)
+    
+    c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data['u_train']))]
+    c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data['u_val']))]    
+    
+    data['init_state_train'] = c0_train
+    data['init_state_val'] = c0_val
+    
     
     one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='one_model')
 
@@ -66,5 +72,5 @@ def Fit_GRU_to_Charges(charges,counter):
     return results_GRU  
 
 
-result = Fit_GRU_to_Charges(list(range(1,275)),0) 
+results = Fit_GRU_to_Charges(list(range(1,275)),0)
 
