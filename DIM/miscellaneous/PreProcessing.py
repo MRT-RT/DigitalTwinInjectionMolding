@@ -217,15 +217,17 @@ def find_switches(cycle):
     
     # Assumption: First switch is were pressure is maximal
     t1 = cycle['p_inj_ist'].idxmax()
-    idx_t1 = np.argmin(abs(cycle.index.values-t1))
+    idx_t1 = cycle.index.get_loc(t1)
     
     # Second switch 
     t2 = t1 + cycle.loc[0]['t_press1_soll'] + cycle.loc[0]['t_press2_soll']
     idx_t2 = np.argmin(abs(cycle.index.values-t2))
+    t2 = cycle.index[idx_t2]
     
     # Third switch, machine opens
     t3 = t2 + cycle.loc[0,'Kühlzeit']
     idx_t3 = np.argmin(abs(cycle.index.values-t3))
+    t3 = cycle.index[idx_t3]
     
     return t1,t2,t3
 
