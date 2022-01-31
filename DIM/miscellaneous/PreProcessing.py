@@ -289,10 +289,10 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
 
             u_inj = cycle.loc[0:t1][u_inj_lab].values                                         # can contain NaN at the end
             u_press = cycle.loc[t1:t2][u_press_lab].values  
-            u_cool = cycle.loc[t2_t3][u_cool_lab].values  
+            u_cool = cycle.loc[t2:t3][u_cool_lab].values  
 
             u.append([u_inj,u_press,u_cool])
-            switch.append([cycle.index.get_lox(t1),cycle.index.get_lox(t2)])
+            switch.append([cycle.index.get_loc(t1),cycle.index.get_loc(t2)])
         
     return u,y,switch
 
