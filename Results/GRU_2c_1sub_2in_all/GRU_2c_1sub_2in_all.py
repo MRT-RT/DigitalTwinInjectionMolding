@@ -10,7 +10,6 @@ import numpy as np
 
 import sys
 # sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
-
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 
@@ -27,9 +26,11 @@ def Fit_GRU_to_Charges(charges,counter):
     
     path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    u_lab= ['p_wkz_ist','T_wkz_ist']
-    u_lab = [u_lab]
+    u_inj= ['p_wkz_ist','T_wkz_ist']
+    u_press= ['p_wkz_ist','T_wkz_ist']
+    u_cool= ['p_wkz_ist','T_wkz_ist']
     
+    u_lab = [u_inj,u_press,u_cool]
     y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
@@ -42,10 +43,11 @@ def Fit_GRU_to_Charges(charges,counter):
     data['init_state_val'] = c0_val
     
     
-    one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='one_model')
-
+    inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='inj')
+    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='press')
+    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='cool')
     
-    for rnn in [one_model]:
+    for rnn in [inj_model,press_model,cool_model]:
         name = rnn.name
         
         initial_params = {'b_r_'+name: np.random.uniform(-2,0,(dim_c,1)),
@@ -54,7 +56,7 @@ def Fit_GRU_to_Charges(charges,counter):
         
         rnn.InitialParameters = initial_params
         
-    quality_model = QualityModel(subsystems=[one_model],
+    quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
     
