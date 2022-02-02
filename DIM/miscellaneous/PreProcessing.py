@@ -407,18 +407,18 @@ def LoadDynamicData(path,charges,y_lab,u_lab):
     return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
     
 
-def StaticFeatureExtraction(charges, targets):
+def LoadStaticData(path,charges, targets):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
-    split_charges_to_trainval_data(charges)    
+    split_charges_to_trainval_data(path,charges)    
         
     # Load cycle data and extract features
     cycles_train = []
     cycles_val = []
     
-    features=['T_wkz_0','T_wkz_max','t_wkz_max','T_wkz_int','p_wkz_max',
-              'p_wkz_int', 'p_wkz_res','p_inj_int', 'p_inj_max', 't_inj',
-              'x_inj','x_um','v']
+    features=['T_wkz_0','T_wkz_max','t_Twkz_max','T_wkz_int','p_wkz_max',
+              'p_wkz_int', 'p_wkz_res','t_pwkz_max','p_inj_int', 'p_inj_max',
+              't_inj','x_inj','x_um','v']
     
     features.extend(targets)
     
@@ -441,12 +441,13 @@ def StaticFeatureExtraction(charges, targets):
             # Extract features
             T_wkz_0 = cycle.loc[0]['T_wkz_ist']                                     # T at start of cycle
             T_wkz_max = cycle['T_wkz_ist'].max()                                    # max. T during cycle
-            t_wkz_max = cycle['T_wkz_ist'].idxmax()                                 # time when max occurs
+            t_Twkz_max = cycle['T_wkz_ist'].idxmax()                                 # time when max occurs
             T_wkz_int = cycle['T_wkz_ist'].sum()                                    # T Integral
             
             p_wkz_max = cycle['p_wkz_ist'].max()                                    # max cavity pressure
             p_wkz_int = cycle['p_wkz_ist'].sum()                                    # integral cavity pressure
             p_wkz_res = cycle.loc[t2::]['p_wkz_ist'].mean()                         # so called pressure drop
+            t_pwkz_max = cycle['p_wkz_ist'].idxmax()
             
             p_inj_int = cycle.loc[t1:t2]['p_inj_ist'].mean()                        # mean packing pressure
             p_inj_max = cycle['p_inj_ist'].max()                                    # max hydraulic pressure
@@ -457,8 +458,8 @@ def StaticFeatureExtraction(charges, targets):
             x_um =  cycle.loc[t1]['V_Screw_ist']                                    # switch position
             v = cycle.loc[0:t1]['Q_Vol_ist'].mean()                                 # mean injection velocity
             
-            f = [T_wkz_0,T_wkz_max,t_wkz_max,T_wkz_int,p_wkz_max,
-                 p_wkz_int, p_wkz_res,p_inj_int, p_inj_max, t_inj,
+            f = [T_wkz_0,T_wkz_max,t_Twkz_max,T_wkz_int,p_wkz_max,
+                 p_wkz_int, p_wkz_res,t_pwkz_max,p_inj_int, p_inj_max, t_inj,
                  x_inj,x_um,v]
             
             y = list(cycle.loc[0][targets].values)
