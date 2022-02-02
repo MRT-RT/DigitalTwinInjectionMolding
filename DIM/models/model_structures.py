@@ -174,7 +174,7 @@ class MLP():
     """
 
     def __init__(self,dim_u,dim_out,dim_hidden,initial_params=None, 
-                 frozen_params = [], init_proc='random', name='MLP'):
+                 frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the Feedforward Neural Network Architecture
         
@@ -228,21 +228,19 @@ class MLP():
         x = cs.MX.sym('x',dim_out,1)
         
         # Model Parameters
-        W_h = cs.MX.sym('W_h',dim_hidden,dim_u+dim_out)
-        b_h = cs.MX.sym('b_h',dim_hidden,1)
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_u+dim_out)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)
         
-        W_o = cs.MX.sym('W_out',dim_out,dim_hidden)
-        b_o = cs.MX.sym('b_out',dim_out,1)
-  
-  
-       
+        W_o = cs.MX.sym('W_out_'+name,dim_out,dim_hidden)
+        b_o = cs.MX.sym('b_out_'+name,dim_out,1)
+
         # Model Equations
         h =  cs.tanh(cs.mtimes(W_h,cs.vertcat(u,x))+b_h)
         x_new = cs.mtimes(W_o,h)+b_o
         
         
         input = [x,u,W_h,b_h,W_o,b_o]
-        input_names = ['x','u','W_h','b_h','W_o','b_o']
+        input_names = ['x','u','W_h_'+name,'b_h_'+name,'W_o_'+name,'b_o_'+name]
         
         output = [x_new]
         output_names = ['x_new']  
@@ -299,6 +297,215 @@ class MLP():
         return x1
    
 
+    def ParameterInitialization(self):
+        '''
+        Routine for parameter initialization. Takes input_names from the Casadi-
+        Function defining the model equations self.Function and defines a 
+        dictionary with input_names as keys. According to the initialization
+        procedure defined in self.InitializationProcedure each key contains 
+        a numpy array of appropriate shape
+
+        Returns
+        -------
+        None.
+
+        '''
+                
+        # Initialization procedure
+        if self.InitializationProcedure == 'random':
+            initialization = RandomInitialization
+        elif self.InitializationProcedure == 'xavier':
+            initialization = XavierInitialization
+        elif self.InitializationProcedure == 'he':
+            initialization = HeInitialization      
+        
+        # Define all parameters in a dictionary and initialize them 
+        self.Parameters = {}
+        
+        new_param_values = {}
+        for p_name in self.Function.name_in()[2::]:
+            new_param_values[p_name] = initialization(self.Function.size_in(p_name))
+        
+        self.AssignParameters(new_param_values)
+
+        # Initialize with specific inital parameters if given
+        if self.InitialParameters is not None:
+            for param in self.InitialParameters.keys():
+                if param in self.Parameters.keys():
+                    self.Parameters[param] = self.InitialParameters[param]
+                    
+    def AssignParameters(self,params):
+        
+        for p_name in self.Function.name_in()[2::]:
+            self.Parameters[p_name] = params[p_name]
+
+class Static_MLP():
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_out,dim_hidden,name,initial_params=None, 
+                 frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_hidden = dim_hidden
+        self.dim_out = dim_out
+        self.name = name
+        
+        self.InitialParameters = initial_params
+        self.FrozenParameters = frozen_params
+        self.InitializationProcedure = init_proc
+        
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        dim_u = self.dim_u
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out 
+        name = self.name
+    
+        u = cs.MX.sym('u',dim_u,1)
+        
+        # Model Parameters
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_u)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)
+        
+        W_o = cs.MX.sym('W_out_'+name,dim_out,dim_hidden)
+        b_o = cs.MX.sym('b_out_'+name,dim_out,1)
+
+        # Model Equations
+        h =  cs.tanh(cs.mtimes(W_h,u)+b_h)
+        y = cs.mtimes(W_o,h)+b_o
+        
+        
+        input = [u,W_h,b_h,W_o,b_o]
+        input_names = ['u','W_h_'+name,'b_h_'+name,'W_o_'+name,'b_o_'+name]
+        
+        output = [y]
+        output_names = ['y']  
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None
+   
+    def OneStepPrediction(self,u0,params=None):
+        """
+        OneStepPrediction() evaluates the model equation defined in 
+        self.Function()
+        
+        self.Function() takes initial state x0, input u0 and all model 
+        parameters as input. The model parameters can either be optimization
+        variables themselves (as in system identification) or the take specific 
+        values (when the estimated model is used for control)
+
+        Parameters
+        ----------
+        u0 : array-like with dimension [self.dim_u, 1]
+            input
+        params : dictionary, optional
+            params is None: This is the case during model based control,
+            self.Function() is evaluated with the numerical
+            values of the model parameters saved in self.Parameters
+            params is dictionary of opti.variables: During system identification
+            the model parameters are optimization variables themselves, so a 
+            dictionary of opti.variables is passed to self.Function()
+
+        Returns
+        -------
+        y : array-like with dimension [self.dim_x, 1]
+            output of the Feedforward Neural Network
+
+        """
+        if params==None:
+            params = self.Parameters
+        
+        params_new = []
+            
+        for name in  self.Function.name_in():
+            try:
+                params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
+            except:
+                continue
+        
+        y = self.Function(u0,*params_new)     
+                              
+        return y
+   
+
+    def ParameterInitialization(self):
+        '''
+        Routine for parameter initialization. Takes input_names from the Casadi-
+        Function defining the model equations self.Function and defines a 
+        dictionary with input_names as keys. According to the initialization
+        procedure defined in self.InitializationProcedure each key contains 
+        a numpy array of appropriate shape
+
+        Returns
+        -------
+        None.
+
+        '''
+                
+        # Initialization procedure
+        if self.InitializationProcedure == 'random':
+            initialization = RandomInitialization
+        elif self.InitializationProcedure == 'xavier':
+            initialization = XavierInitialization
+        elif self.InitializationProcedure == 'he':
+            initialization = HeInitialization      
+        
+        # Define all parameters in a dictionary and initialize them 
+        self.Parameters = {}
+        
+        new_param_values = {}
+        for p_name in self.Function.name_in()[1::]:
+            new_param_values[p_name] = initialization(self.Function.size_in(p_name))
+        
+        self.AssignParameters(new_param_values)
+
+        # Initialize with specific inital parameters if given
+        if self.InitialParameters is not None:
+            for param in self.InitialParameters.keys():
+                if param in self.Parameters.keys():
+                    self.Parameters[param] = self.InitialParameters[param]
+                    
+    def AssignParameters(self,params):
+        
+        for p_name in self.Function.name_in()[1::]:
+            self.Parameters[p_name] = params[p_name]
 
     
 def logistic(x):
