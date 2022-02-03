@@ -104,30 +104,21 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         model.AssignParameters(new_params)
         
         # Evaluate on Validation data
-        u_val = data['u_val']
-        y_ref_val = data['y_val']
-        init_state_val = data['init_state_val']
+        u = data['u_val']
+        y_ref = data['y_val']
 
-        # Evaluate estimated model on validation data        
-        e_val = 0
-        
-        for j in range(0,len(u_val)):   
-            # Simulate Model
-            pred = model.Simulation(init_state_val[j],u_val[j])
+     
+        if mode == 'parallel':
+            x0 = data['init_state_val']
+            e = parallel_mode(model,u,y_ref,x0)    
+        elif mode == 'static':
+            e = static_mode(model,u,y_ref)   
+        elif mode == 'series':
+            x0 = data['init_state_val']
+            e = series_parallel_mode(model,u,y_ref,x0)
             
-            if isinstance(pred, tuple):
-                pred = pred[1]
-
-            # Calculate simulation error            
-            # Check for the case, where only last value is available
-            if y_ref_val[j].shape[0]==1:
-                e_val = e_val + cs.sumsqr(y_ref_val[j] - pred[-1,:])
-            else:
-                e = e + cs.sumsqr(y_ref_val[i] - pred)
-
-        
         # Calculate mean error over all validation batches
-        e_val = e_val / len(u_val)
+        e_val = e / len(u)
         e_val = float(np.array(e_val))
         
         print('Validation error: '+str(e_val))
@@ -366,58 +357,19 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
         
     
     params_opti = CreateOptimVariables(opti, OptiParameters)
-    
-    # e = 0
 
-    if mode == 'parallel':
-        e = parallel_training(model,data,params_opti)    
-    elif mode == 'static':
-        e = static_training(model,data,params_opti)   
-    # ''' Depending on whether a reference trajectory for the hidden state is
-    # provided or not, the model is either trained in parallel (recurrent) or 
-    # series-parallel configuration'''
+    # Evaluate on Validation data
+    u = data['u_train']
+    y_ref = data['y_train']
     
-    # # Training in parallel configuration 
-    # if x_ref is None:
-        
-    #     # Loop over all batches 
-    #     for i in range(0,len(u)):   
-            
-    #         try:
-    #             model.switching_instances = data['switch_train'][i]
-    #         except NameError:
-    #             pass
-            
-    #         # Simulate Model
-    #         pred = model.Simulation(init_state[i],u[i],params_opti)
-            
-            
-            
-    #         if isinstance(pred, tuple):
-    #             pred = pred[1]
-            
-    #         # Calculate simulation error            
-    #         # Check for the case, where only last value is available
-    #         if y_ref[i].shape[0]==1:
-    #             e = e + cs.sumsqr(y_ref[i] - pred[-1,:])
-    #         else:
-    #             e = e + cs.sumsqr(y_ref[i] - pred)
-            
-            
-    # Training in series parallel configuration        
-    else:
-        # Loop over all batches 
-        for i in range(0,len(u)):  
-            
-            # One-Step prediction
-            for k in range(u[i].shape[0]-1):  
-                # print(k)
-                x_new,y_new = model.OneStepPrediction(x_ref[i][k,:],u[i][k,:],
-                                                      params_opti)
-                
-                # Calculate one step prediction error
-                e = e + cs.sumsqr(y_ref[i][k,:]-y_new) + \
-                    cs.sumsqr(x_ref[i][k+1,:]-x_new) 
+    if mode == 'parallel':
+        x0 = data['init_state_train']
+        e = parallel_mode(model,u,y_ref,x0,params_opti)    
+    elif mode == 'static':
+        e = static_mode(model,u,y_ref,params_opti)   
+    elif mode == 'series':
+        x0 = data['init_state_train']
+        e = series_parallel_mode(model,u,y_ref,x0,params_opti)
     
     opti.minimize(e)
         
@@ -445,12 +397,8 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     
     return values
 
-def parallel_training(model,data,params):
-    
-
-    u = data['u_train']
-    y_ref = data['y_train']
-    
+def parallel_mode(model,u,y_ref,x0,params=None):
+      
     e = 0
     
     # Loop over all batches 
@@ -462,7 +410,7 @@ def parallel_training(model,data,params):
             pass
         
         # Simulate Model
-        pred = model.Simulation(init_state[i],u[i],params)
+        pred = model.Simulation(x0[i],u[i],params)
         
         if isinstance(pred, tuple):
             pred = pred[1]
@@ -476,10 +424,7 @@ def parallel_training(model,data,params):
     
     return e
 
-def static_training(model,data,params):
-    
-    u = data['u_train']
-    y_ref = data['y_train']
+def static_mode(model,u,y_ref,params=None):
     
     e = 0
 
@@ -497,6 +442,25 @@ def static_training(model,data,params):
     return e
 
 
-
+def series_parallel_mode(model,u,y_ref,x_ref,x0,params=None):
+   
+    e = 0
+    
+    # Training in series parallel configuration        
+    # Loop over all batches 
+    for i in range(0,u.shape[0]):  
+        
+        # One-Step prediction
+        for k in range(u[i,:,:].shape[0]-1):  
+            # predict x1 and y1 from x0 and u0
+            x_new,y_new = model.OneStepPrediction(x_ref[i,k,:],u[i,k,:],
+                                                  params)
+        
+          
+            # Calculate one step prediction error as 
+            e = e + cs.sumsqr(y_ref[i,k,:]-y_new) + \
+                cs.sumsqr(x_ref[i,k+1,:]-x_new) 
+                
+    return e 
 
 
