@@ -9,7 +9,7 @@ import pickle as pkl
 import numpy as np
 
 import sys
-# sys.path.insert(0, "E:/GitHub/DigitalTwinInjectionMolding/")
+sys.path.insert(0, "E:/GitHub/DigitalTwinInjectionMolding/")
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 
