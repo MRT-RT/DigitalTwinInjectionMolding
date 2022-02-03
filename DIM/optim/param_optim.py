@@ -87,7 +87,7 @@ def CreateOptimVariables(opti, Parameters):
 
 
 def ModelTraining(model,data,initializations=10, BFR=False, 
-                  p_opts=None, s_opts=None):
+                  p_opts=None, s_opts=None,mode='parallel'):
     
    
     results = [] 
@@ -98,7 +98,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         model.ParameterInitialization()
         
         # Estimate Parameters on training data
-        new_params = ModelParameterEstimation(model,data,p_opts,s_opts)
+        new_params = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
         
         # Assign estimated parameters to model
         model.AssignParameters(new_params)
@@ -318,7 +318,7 @@ def HyperParameterPSO(model,data,param_bounds,n_particles,options,
     
     return hist
 
-def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
+def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel'):
     """
     
 
@@ -346,9 +346,9 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
     """
     
     
-    u = data['u_train']
-    y_ref = data['y_train']
-    init_state = data['init_state_train']
+    # u = data['u_train']
+    # y_ref = data['y_train']
+    # init_state = data['init_state_train']
     
     try:
         x_ref = data['x_train']
@@ -367,37 +367,41 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
     
     params_opti = CreateOptimVariables(opti, OptiParameters)
     
-    e = 0
+    # e = 0
+
+    if mode == 'parallel':
+        e = parallel_training(model,data,params_opti)    
+    elif mode == 'static':
+        e = static_training(model,data,params_opti)   
+    # ''' Depending on whether a reference trajectory for the hidden state is
+    # provided or not, the model is either trained in parallel (recurrent) or 
+    # series-parallel configuration'''
     
-    ''' Depending on whether a reference trajectory for the hidden state is
-    provided or not, the model is either trained in parallel (recurrent) or 
-    series-parallel configuration'''
-    
-    # Training in parallel configuration 
-    if x_ref is None:
+    # # Training in parallel configuration 
+    # if x_ref is None:
         
-        # Loop over all batches 
-        for i in range(0,len(u)):   
+    #     # Loop over all batches 
+    #     for i in range(0,len(u)):   
             
-            try:
-                model.switching_instances = data['switch_train'][i]
-            except NameError:
-                pass
+    #         try:
+    #             model.switching_instances = data['switch_train'][i]
+    #         except NameError:
+    #             pass
             
-            # Simulate Model
-            pred = model.Simulation(init_state[i],u[i],params_opti)
+    #         # Simulate Model
+    #         pred = model.Simulation(init_state[i],u[i],params_opti)
             
             
             
-            if isinstance(pred, tuple):
-                pred = pred[1]
+    #         if isinstance(pred, tuple):
+    #             pred = pred[1]
             
-            # Calculate simulation error            
-            # Check for the case, where only last value is available
-            if y_ref[i].shape[0]==1:
-                e = e + cs.sumsqr(y_ref[i] - pred[-1,:])
-            else:
-                e = e + cs.sumsqr(y_ref[i] - pred)
+    #         # Calculate simulation error            
+    #         # Check for the case, where only last value is available
+    #         if y_ref[i].shape[0]==1:
+    #             e = e + cs.sumsqr(y_ref[i] - pred[-1,:])
+    #         else:
+    #             e = e + cs.sumsqr(y_ref[i] - pred)
             
             
     # Training in series parallel configuration        
@@ -440,3 +444,59 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None):
     values = OptimValues_to_dict(params_opti,sol)
     
     return values
+
+def parallel_training(model,data,params):
+    
+
+    u = data['u_train']
+    y_ref = data['y_train']
+    
+    e = 0
+    
+    # Loop over all batches 
+    for i in range(0,len(u)):   
+        
+        try:
+            model.switching_instances = data['switch_train'][i]
+        except NameError:
+            pass
+        
+        # Simulate Model
+        pred = model.Simulation(init_state[i],u[i],params)
+        
+        if isinstance(pred, tuple):
+            pred = pred[1]
+        
+        # Calculate simulation error            
+        # Check for the case, where only last value is available
+        if y_ref[i].shape[0]==1:
+            e = e + cs.sumsqr(y_ref[i] - pred[-1,:])
+        else:
+            e = e + cs.sumsqr(y_ref[i] - pred)
+    
+    return e
+
+def static_training(model,data,params):
+    
+    u = data['u_train']
+    y_ref = data['y_train']
+    
+    e = 0
+
+    # Loop over all batches 
+    for i in range(0,len(u)):  
+        
+        # One-Step prediction
+        for k in range(u[i].shape[0]):  
+            # print(k)
+            y_new = model.OneStepPrediction(u[i][k,:],params)
+            
+            # Calculate one step prediction error
+            e = e + cs.sumsqr(y_ref[i][k,:]-y_new) 
+    
+    return e
+
+
+
+
+
