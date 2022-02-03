@@ -5,6 +5,12 @@ Created on Tue Jan 25 15:16:22 2022
 @author: LocalAdmin
 """
 
+import sys
+sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
+
+# import os.path as path
+# two_up =  path.abspath(path.join(__file__ ,"../.."))
+# print(two_up)
 
 from DIM.miscellaneous.PreProcessing import LoadStaticData,LoadDynamicData
 from DIM.models.model_structures import Static_MLP
@@ -19,7 +25,7 @@ def Fit_MLP(dim_hidden):
     charges = list(range(1,275))
     targets = ['Durchmesser_innen']
     
-    path = './data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     data_train,data_val = LoadStaticData(path,charges,targets)
     

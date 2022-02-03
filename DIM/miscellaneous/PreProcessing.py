@@ -433,7 +433,7 @@ def LoadStaticData(path,charges, targets):
         for c in cycle_labels:
             
             # Load Data
-            cycle = pkl.load(open('data/Versuchsplan/cycle'+str(c)+'.pkl','rb'))
+            cycle = pkl.load(open(path+'/cycle'+str(c)+'.pkl','rb'))
             
             t1,t2,t3 = find_switches(cycle)
             
