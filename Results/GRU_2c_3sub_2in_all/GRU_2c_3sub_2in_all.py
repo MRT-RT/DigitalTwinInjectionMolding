@@ -51,7 +51,7 @@ def Fit_GRU_to_Charges(charges,counter):
         name = rnn.name
         
         initial_params = {'b_r_'+name: np.random.uniform(-2,0,(dim_c,1)),
-                          'b_z_'+name: np.random.uniform(-1,0,(dim_c,1)),
+                          'b_z_'+name: np.random.uniform(-2,0,(dim_c,1)),
                           'b_c_'+name: np.random.uniform(-2,0,(dim_c,1))}
         
         rnn.InitialParameters = initial_params
@@ -64,7 +64,7 @@ def Fit_GRU_to_Charges(charges,counter):
               "print_level":2}
     
     
-    results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
+    results_GRU = ModelTraining(quality_model,data,initializations=10, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
@@ -76,5 +76,5 @@ def Fit_GRU_to_Charges(charges,counter):
     return results_GRU  
 
 
-results = Fit_GRU_to_Charges(list(range(1,275)),0)
+results = Fit_GRU_to_Charges(list(range(1,275)),1)
 
