@@ -57,7 +57,7 @@ def Fit_GRU_to_Charges(charges,counter):
               "print_level":2}
     
     
-    results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
+    results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
@@ -75,8 +75,8 @@ if __name__ == '__main__':
     
 
     Modellierungsplan = pkl.load(open('Modellierungsplan.pkl','rb'))
-    Modellierungsplan = [Modellierungsplan[i] for i  in [12]]
-    counter = [13]
+    Modellierungsplan = [Modellierungsplan[i] for i  in [0]]
+    counter = [1]
     
     multiprocessing.freeze_support()
     
