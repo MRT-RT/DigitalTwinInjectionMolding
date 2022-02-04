@@ -400,6 +400,8 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
 def parallel_mode(model,u,y_ref,x0,params=None):
       
     e = 0
+    y = []
+    x = []
     
     # Loop over all batches 
     for i in range(0,len(u)):   
@@ -412,22 +414,28 @@ def parallel_mode(model,u,y_ref,x0,params=None):
         # Simulate Model
         pred = model.Simulation(x0[i],u[i],params)
         
+        x.append(pred[0])
+        y.append(pred[1])
+        
         if isinstance(pred, tuple):
             pred = pred[1]
         
         # Calculate simulation error            
         # Check for the case, where only last value is available
+        
         if y_ref[i].shape[0]==1:
             e = e + cs.sumsqr(y_ref[i] - pred[-1,:])
         else:
             e = e + cs.sumsqr(y_ref[i] - pred)
     
-    return e
+    return e,x,y
 
 def static_mode(model,u,y_ref,params=None):
     
-    e = 0
-
+    loss = 0
+    y = []
+    e = []
+    
     # Loop over all batches 
     for i in range(0,len(u)):  
         
@@ -436,31 +444,45 @@ def static_mode(model,u,y_ref,params=None):
             # print(k)
             y_new = model.OneStepPrediction(u[i][k,:],params)
             
+            y.append(y_new)
+            e.append(y_ref[i][k,:]-y_new)
             # Calculate one step prediction error
-            e = e + cs.sumsqr(y_ref[i][k,:]-y_new) 
+            loss = loss + cs.sumsqr(e[-1]) 
+            
     
-    return e
+    return loss,e,y
 
 
 def series_parallel_mode(model,u,y_ref,x_ref,x0,params=None):
    
-    e = 0
+    loss = 0
+    y = []
+    x = []
+    e = []
+
     
     # Training in series parallel configuration        
     # Loop over all batches 
-    for i in range(0,u.shape[0]):  
+    for i in range(0,len(u)):  
+        x_batch = np.zeros(u[i,:,:].shape[0],model.dim_c)
+        y_batch = np.zeros(u[i,:,:].shape[0],model.dim_y)
         
         # One-Step prediction
         for k in range(u[i,:,:].shape[0]-1):  
             # predict x1 and y1 from x0 and u0
             x_new,y_new = model.OneStepPrediction(x_ref[i,k,:],u[i,k,:],
                                                   params)
-        
-          
+            x_batch[k,:] = x_new
+            y_batch[k,:] = y_new
+            
             # Calculate one step prediction error as 
-            e = e + cs.sumsqr(y_ref[i,k,:]-y_new) + \
+            loss = loss + cs.sumsqr(y_ref[i,k,:]-y_new) + \
                 cs.sumsqr(x_ref[i,k+1,:]-x_new) 
+        
+        x.append(x_batch)
+        y.append(y_batch)
+        
                 
-    return e 
+    return loss,x,y 
 
 

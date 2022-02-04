@@ -12,6 +12,7 @@ import seaborn as sns
 
 import sys
 sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
+sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 # sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 from DIM.models.model_structures import GRU
@@ -26,10 +27,13 @@ def Eval_GRU_on_Val(charges,counter):
     
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    u_lab= ['p_wkz_ist','T_wkz_ist']
-    u_lab = [u_lab]
+    u_inj= ['p_wkz_ist','T_wkz_ist']
+    u_press= ['p_wkz_ist','T_wkz_ist']
+    u_cool= ['p_wkz_ist','T_wkz_ist']
     
+    u_lab = [u_inj,u_press,u_cool]
     y_lab = ['Durchmesser_innen']
     
     # Load best model
@@ -48,8 +52,12 @@ def Eval_GRU_on_Val(charges,counter):
     data['init_state_val'] = c0_val   
     
     # Initialize model structures
-    one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='one_model')
-    quality_model = QualityModel(subsystems=[one_model], name='q_model')
+    inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='inj')
+    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='press')
+    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='cool')
+    
+    quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
+                                  name='q_model')
     
     # Assign best parameters to model
     quality_model.AssignParameters(params)
@@ -119,9 +127,9 @@ def Eval_GRU_on_Val(charges,counter):
 
 
 charges = list(range(1,275))
-counter = [0]
+c = 0
 
-results_train, results_val, data, quality_model = Eval_GRU_on_Val(charges,c)
+results_train, results_val, data, quality_model = Eval_GRU_on_Val(charges,counter)
 
 pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
 pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 

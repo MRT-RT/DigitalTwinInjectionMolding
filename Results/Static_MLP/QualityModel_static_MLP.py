@@ -18,16 +18,20 @@ from DIM.optim.param_optim import ModelTraining
 
 import multiprocessing
 
+import pickle as pkl
 
 
 def Fit_MLP(dim_hidden):
     
+    print(dim_hidden)
     charges = list(range(1,275))
     targets = ['Durchmesser_innen']
     
     path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    data_train,data_val = LoadStaticData(path,charges,targets)
+    data_train,data_val,cycles_train_label,cycles_val_label,\
+        charge_train_label,charge_val_label = \
+            LoadStaticData(path,charges,targets)
     
     # Normalize Data
     data_max = data_train.max()
@@ -49,11 +53,11 @@ def Fit_MLP(dim_hidden):
     model = Static_MLP(dim_u=8, dim_out=1, dim_hidden=dim_hidden,name='MLP',
                        init_proc='xavier')
     
-    result = ModelTraining(model,data,p_opts=None,s_opts=None,mode='static')
+    result = ModelTraining(model,data,initializations=1,p_opts=None,s_opts=None,mode='static')
 
     result['dim_hidden'] = dim_hidden
     
-    pkl.dump(result,open(path+'MLP_Durchmesser_innen_dimhidden'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(result,open('MLP_Durchmesser_innen_dimhidden'+str(dim_hidden)+'.pkl','wb'))
 
 
 if __name__ == '__main__':
@@ -64,8 +68,9 @@ if __name__ == '__main__':
     
     pool = multiprocessing.Pool()
     
-    result = pool.map(Fit_MLP, range(1,11) ) 
+    # result = pool.map(Fit_MLP, range(1,11) ) 
 
+    result = pool.map(Fit_MLP, [5])
 
 
 
