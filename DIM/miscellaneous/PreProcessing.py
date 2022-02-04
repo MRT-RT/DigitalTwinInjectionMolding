@@ -468,4 +468,4 @@ def LoadStaticData(path,charges, targets):
             
             data.loc[c] = f
     
-    return data_train,data_val
+    return data_train,data_val,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
