@@ -45,7 +45,7 @@ def Fit_GRU_to_Charges(charges,counter):
     
     inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='inj')
     press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='press')
-    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=5,dim_out=1,name='cool')
+    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
     
     for rnn in [inj_model,press_model,cool_model]:
         name = rnn.name
@@ -64,7 +64,7 @@ def Fit_GRU_to_Charges(charges,counter):
               "print_level":2}
     
     
-    results_GRU = ModelTraining(quality_model,data,initializations=10, BFR=False, 
+    results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
@@ -76,5 +76,5 @@ def Fit_GRU_to_Charges(charges,counter):
     return results_GRU  
 
 
-results = Fit_GRU_to_Charges(list(range(1,275)),1)
+results = Fit_GRU_to_Charges(list(range(1,275)),2)
 
