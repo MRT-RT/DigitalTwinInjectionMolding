@@ -53,12 +53,13 @@ def Fit_MLP(dim_hidden):
     model = Static_MLP(dim_u=8, dim_out=1, dim_hidden=dim_hidden,name='MLP',
                        init_proc='xavier')
     
-    result = ModelTraining(model,data,initializations=1,p_opts=None,s_opts=None,mode='static')
+    result = ModelTraining(model,data,initializations=10,p_opts=None,s_opts=None,mode='static')
 
     result['dim_hidden'] = dim_hidden
     
     pkl.dump(result,open('MLP_Durchmesser_innen_dimhidden'+str(dim_hidden)+'.pkl','wb'))
 
+    return result
 
 if __name__ == '__main__':
     
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     
     pool = multiprocessing.Pool()
     
-    result = pool.map(Fit_MLP, range(10,12)) 
+    result = pool.map(Fit_MLP, list(range(10,12))) 
     
 
 
