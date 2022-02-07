@@ -107,21 +107,20 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         u = data['u_val']
         y_ref = data['y_val']
 
-     
         if mode == 'parallel':
             x0 = data['init_state_val']
-            e = parallel_mode(model,u,y_ref,x0)    
+            loss,_,_ = parallel_mode(model,u,y_ref,x0,params_opti)    
         elif mode == 'static':
-            e = static_mode(model,u,y_ref)   
+            loss,_ = static_mode(model,u,y_ref,params_opti)   
         elif mode == 'series':
             x0 = data['init_state_val']
-            e = series_parallel_mode(model,u,y_ref,x0)
-            
+            loss,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
+                 
         # Calculate mean error over all validation batches
-        e_val = e / len(u)
-        e_val = float(np.array(e_val))
+        loss = loss / len(u)
+        loss = float(np.array(loss))
         
-        print('Validation error: '+str(e_val))
+        print('Validation error: '+str(loss))
         
         # # Evaluate estimated model on test data
         
@@ -140,7 +139,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         
         # # save parameters and performance in list
         # results.append([e_val,BFR,model.name,i,model.Parameters])
-        results.append([e_val,model.name,i,model.Parameters])
+        results.append([loss,model.name,i,model.Parameters])
          
     # results = pd.DataFrame(data = results, columns = ['loss_val','BFR_test',
     #                     'model','initialization','params'])
@@ -364,14 +363,14 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     
     if mode == 'parallel':
         x0 = data['init_state_train']
-        e = parallel_mode(model,u,y_ref,x0,params_opti)    
+        loss,_,_ = parallel_mode(model,u,y_ref,x0,params_opti)    
     elif mode == 'static':
-        e = static_mode(model,u,y_ref,params_opti)   
+        loss,_ = static_mode(model,u,y_ref,params_opti)   
     elif mode == 'series':
         x0 = data['init_state_train']
-        e = series_parallel_mode(model,u,y_ref,x0,params_opti)
+        loss,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
     
-    opti.minimize(e)
+    opti.minimize(loss)
         
     # Solver options
     if p_opts is None:
@@ -399,7 +398,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
 
 def parallel_mode(model,u,y_ref,x0,params=None):
       
-    e = 0
+    loss = 0
     y = []
     x = []
     
@@ -424,11 +423,11 @@ def parallel_mode(model,u,y_ref,x0,params=None):
         # Check for the case, where only last value is available
         
         if y_ref[i].shape[0]==1:
-            e = e + cs.sumsqr(y_ref[i] - pred[-1,:])
+            loss = loss + cs.sumsqr(y_ref[i] - pred[-1,:])
         else:
-            e = e + cs.sumsqr(y_ref[i] - pred)
+            loss = loss + cs.sumsqr(y_ref[i] - pred)
     
-    return e,x,y
+    return loss,x,y
 
 def static_mode(model,u,y_ref,params=None):
     
@@ -450,7 +449,7 @@ def static_mode(model,u,y_ref,params=None):
             loss = loss + cs.sumsqr(e[-1]) 
             
     
-    return loss,e,y
+    return loss,y
 
 
 def series_parallel_mode(model,u,y_ref,x_ref,x0,params=None):
@@ -458,7 +457,6 @@ def series_parallel_mode(model,u,y_ref,x_ref,x0,params=None):
     loss = 0
     y = []
     x = []
-    e = []
 
     
     # Training in series parallel configuration        
