@@ -28,8 +28,8 @@ def Fit_MLP(dim_hidden):
     charges = list(range(1,275))
     targets = ['Durchmesser_innen']
     
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     data_train,data_val,cycles_train_label,cycles_val_label,\
         charge_train_label,charge_val_label = \
@@ -64,17 +64,17 @@ def Fit_MLP(dim_hidden):
     return result
 
 
-res = Fit_MLP(10)
+# res = Fit_MLP(10)
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
     
-#     print('Process started..')
+    print('Process started..')
     
-#     multiprocessing.freeze_support()
+    multiprocessing.freeze_support()
     
-#     pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool()
     
-#     result = pool.map(Fit_MLP, list(range(10,12))) 
+    result = pool.map(Fit_MLP, list(range(10,12))) 
     
 
 
