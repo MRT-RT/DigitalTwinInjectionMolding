@@ -68,9 +68,9 @@ if __name__ == '__main__':
     
     pool = multiprocessing.Pool()
     
-    # result = pool.map(Fit_MLP, range(1,11) ) 
-
-    result = pool.map(Fit_MLP, [5])
+    result = pool.map(Fit_MLP, range(1,11) ) 
+    
+    # result = pool.map(Fit_MLP, [5])
 
 
 
