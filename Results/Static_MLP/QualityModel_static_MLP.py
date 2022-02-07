@@ -62,19 +62,18 @@ def Fit_MLP(dim_hidden):
     pkl.dump(result,open('MLP_Durchmesser_innen_dimhidden'+str(dim_hidden)+'.pkl','wb'))
 
 
-Fit_MLP(5)
 
-# if __name__ == '__main__':
-    
-#     print('Process started..')
-    
-#     multiprocessing.freeze_support()
-    
-#     pool = multiprocessing.Pool()
-    
-#     # result = pool.map(Fit_MLP, range(1,11) ) 
 
-#     result = pool.map(Fit_MLP, [5])
+if __name__ == '__main__':
+    
+    print('Process started..')
+    
+    multiprocessing.freeze_support()
+    
+    pool = multiprocessing.Pool()
+    
+    result = pool.map(Fit_MLP, range(7,12) ) 
+
 
 
 
