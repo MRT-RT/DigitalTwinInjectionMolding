@@ -7,6 +7,7 @@ Created on Tue Jan 25 15:16:22 2022
 
 import sys
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
+sys.path.insert(0, "E:/GitHub/DigitalTwinInjectionMolding/")
 
 # import os.path as path
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
@@ -27,7 +28,8 @@ def Fit_MLP(dim_hidden):
     charges = list(range(1,275))
     targets = ['Durchmesser_innen']
     
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     data_train,data_val,cycles_train_label,cycles_val_label,\
         charge_train_label,charge_val_label = \
@@ -60,17 +62,19 @@ def Fit_MLP(dim_hidden):
     pkl.dump(result,open('MLP_Durchmesser_innen_dimhidden'+str(dim_hidden)+'.pkl','wb'))
 
 
-if __name__ == '__main__':
-    
-    print('Process started..')
-    
-    multiprocessing.freeze_support()
-    
-    pool = multiprocessing.Pool()
-    
-    # result = pool.map(Fit_MLP, range(1,11) ) 
+Fit_MLP(5)
 
-    result = pool.map(Fit_MLP, [5])
+# if __name__ == '__main__':
+    
+#     print('Process started..')
+    
+#     multiprocessing.freeze_support()
+    
+#     pool = multiprocessing.Pool()
+    
+#     # result = pool.map(Fit_MLP, range(1,11) ) 
+
+#     result = pool.map(Fit_MLP, [5])
 
 
 
