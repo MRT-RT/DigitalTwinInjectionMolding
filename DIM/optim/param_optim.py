@@ -109,12 +109,12 @@ def ModelTraining(model,data,initializations=10, BFR=False,
 
         if mode == 'parallel':
             x0 = data['init_state_val']
-            loss,_,_ = parallel_mode(model,u,y_ref,x0,params_opti)    
+            loss,_,_ = parallel_mode(model,u,y_ref,x0,new_params)    
         elif mode == 'static':
-            loss,_ = static_mode(model,u,y_ref,params_opti)   
+            loss,_ = static_mode(model,u,y_ref,new_params)   
         elif mode == 'series':
             x0 = data['init_state_val']
-            loss,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
+            loss,_,_ = series_parallel_mode(model,u,y_ref,x0,new_params)
                  
         # Calculate mean error over all validation batches
         loss = loss / len(u)
@@ -122,28 +122,10 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         
         print('Validation error: '+str(loss))
         
-        # # Evaluate estimated model on test data
         
-        # u_test = data['u_test']
-        # y_ref_test = data['y_test']
-        # init_state_test = data['init_state_test']
-            
-        # pred = model.Simulation(init_state_test[0],u_test[0])
-        
-        # if isinstance(pred, tuple):
-        #     pred = pred[1]
-        
-        # y_est = np.array(pred)
-        
-        # BFR = BestFitRate(y_ref_test[0],y_est)
-        
-        # # save parameters and performance in list
-        # results.append([e_val,BFR,model.name,i,model.Parameters])
+        # save parameters and performance in list
         results.append([loss,model.name,i,model.Parameters])
-         
-    # results = pd.DataFrame(data = results, columns = ['loss_val','BFR_test',
-    #                     'model','initialization','params'])
-    
+           
     results = pd.DataFrame(data = results, columns = ['loss_val',
                         'model','initialization','params'])
     return results 
