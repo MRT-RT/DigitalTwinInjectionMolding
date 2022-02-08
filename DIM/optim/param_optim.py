@@ -76,9 +76,14 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         u = data['u_val']
         y_ref = data['y_val']
 
+        try:
+            switch =  data['switch_val']
+        except NameError:
+            switch = None
+
         if mode == 'parallel':
             x0 = data['init_state_val']
-            loss,_,_ = parallel_mode(model,u,y_ref,x0,new_params)    
+            loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,new_params)    
         elif mode == 'static':
             loss,_ = static_mode(model,u,y_ref,new_params)   
         elif mode == 'series':
