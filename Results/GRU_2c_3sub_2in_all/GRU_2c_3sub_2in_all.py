@@ -80,7 +80,13 @@ def Fit_GRU(counter,initial_params):
     
     return results_GRU  
 
+# res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
+# res_sorted = res.sort_values('loss_val')
 
+# initial_params = res_sorted.iloc[0]['params']
+
+# Fit_GRU(0,initial_params)
+    
 if __name__ == '__main__':
     
     print('Process started..')
