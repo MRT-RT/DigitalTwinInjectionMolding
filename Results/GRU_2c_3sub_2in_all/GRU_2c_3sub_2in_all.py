@@ -8,6 +8,8 @@ Created on Mon Oct 25 14:44:37 2021
 import pickle as pkl
 import numpy as np
 
+import multiprocessing
+
 import sys
 # sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
@@ -26,8 +28,8 @@ def Fit_GRU(counter,initial_params):
     charges = list(range(1,275))
     dim_c = 2
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -94,5 +96,5 @@ if __name__ == '__main__':
     
     pool = multiprocessing.Pool()
     
-    result = pool.starmap(Fit_GRU, [2,9,0] ,initial_params) 
+    result = pool.starmap(Fit_GRU, zip([2,9,0] ,initial_params)) 
 

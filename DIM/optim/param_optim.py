@@ -312,9 +312,14 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     u = data['u_train']
     y_ref = data['y_train']
     
+    try:
+        switch =  data['switch_train']
+    except NameError:
+        switch = None
+    
     if mode == 'parallel':
         x0 = data['init_state_train']
-        loss,_,_ = parallel_mode(model,u,y_ref,x0,params_opti)    
+        loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,params_opti)    
     elif mode == 'static':
         loss,_ = static_mode(model,u,y_ref,params_opti)   
     elif mode == 'series':
