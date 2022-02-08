@@ -85,22 +85,34 @@ def Fit_GRU(counter,initial_params):
 
 # initial_params = res_sorted.iloc[0]['params']
 
-# Fit_GRU(0,initial_params)
-    
-if __name__ == '__main__':
-    
-    print('Process started..')
-    
-    res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
-    res_sorted = res.sort_values('loss_val')
 
-    initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-                      res_sorted.iloc[2]['params']]
+# Fit_GRU(0,initial_params)
+res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
+res_sorted = res.sort_values('loss_val')
+
+initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
+                  res_sorted.iloc[2]['params']]
+counter = [2,9,0]
+
+for i in range(0,3):
+    
+    Fit_GRU(counter[i],initial_params[i])
+    
+  
+# if __name__ == '__main__':
+    
+#     print('Process started..')
+    
+#     res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
+#     res_sorted = res.sort_values('loss_val')
+
+#     initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
+#                       res_sorted.iloc[2]['params']]
     
     
-    multiprocessing.freeze_support()
+#     multiprocessing.freeze_support()
     
-    pool = multiprocessing.Pool()
+#     pool = multiprocessing.Pool()
     
-    result = pool.starmap(Fit_GRU, zip([2,9,0] ,initial_params)) 
+#     result = pool.starmap(Fit_GRU, zip([2,9,0] ,initial_params)) 
 
