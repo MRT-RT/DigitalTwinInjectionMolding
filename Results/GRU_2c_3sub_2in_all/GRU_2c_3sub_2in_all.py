@@ -11,6 +11,7 @@ import numpy as np
 import sys
 # sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
@@ -20,11 +21,13 @@ from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
-def Fit_GRU_to_Charges(charges,counter):
-    
+def Fit_GRU(counter,initial_params):
+
+    charges = list(range(1,275))
     dim_c = 2
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -50,9 +53,9 @@ def Fit_GRU_to_Charges(charges,counter):
     for rnn in [inj_model,press_model,cool_model]:
         name = rnn.name
         
-        initial_params = {'b_r_'+name: np.random.uniform(-2,0,(dim_c,1)),
-                          'b_z_'+name: np.random.uniform(-2,0,(dim_c,1)),
-                          'b_c_'+name: np.random.uniform(-2,0,(dim_c,1))}
+        # initial_params = {'b_r_'+name: np.random.uniform(-2,0,(dim_c,1)),
+        #                   'b_z_'+name: np.random.uniform(-2,0,(dim_c,1)),
+        #                   'b_c_'+name: np.random.uniform(-2,0,(dim_c,1))}
         
         rnn.InitialParameters = initial_params
         
@@ -60,21 +63,36 @@ def Fit_GRU_to_Charges(charges,counter):
                                   name='q_model')
     
     
-    s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 3000,
-              "print_level":2}
+    # s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 3000,
+    #           "print_level":2}
     
     
-    results_GRU = ModelTraining(quality_model,data,initializations=20, BFR=False, 
-                      p_opts=None, s_opts=s_opts)
+    results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
+                      p_opts=None, s_opts=None)
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned.pkl','wb'))
     
     print('Charge '+str(counter)+' finished.')
     
     return results_GRU  
 
 
-results = Fit_GRU_to_Charges(list(range(1,275)),2)
+if __name__ == '__main__':
+    
+    print('Process started..')
+    
+    res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
+    res_sorted = res.sort_values('loss_val')
+
+    initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
+                      res_sorted.iloc[2]['params']]
+    
+    
+    multiprocessing.freeze_support()
+    
+    pool = multiprocessing.Pool()
+    
+    result = pool.starmap(Fit_GRU, [2,9,0] ,initial_params) 
 

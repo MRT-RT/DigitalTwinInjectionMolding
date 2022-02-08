@@ -21,37 +21,6 @@ import pickle as pkl
 from DIM.optim.DiscreteBoundedPSO import DiscreteBoundedPSO
 from .common import OptimValues_to_dict,BestFitRate
 
-# Import sphere function as objective function
-#from pyswarms.utils.functions.single_obj import sphere as f
-
-# Import backend modules
-# import pyswarms.backend as P
-# from pyswarms.backend.topology import Star
-# from pyswarms.discrete.binary import BinaryPSO
-
-# Some more magic so that the notebook will reload external python modules;
-# see http://stackoverflow.com/questions/1907993/autoreload-of-modules-in-ipython
-
-
-# from miscellaneous import *
-
-
-# def SimulateModel(model,x,u,params=None):
-#     # Casadi Function needs list of parameters as input
-#     if params==None:
-#         params = model.Parameters
-    
-#     params_new = []
-        
-#     for name in  model.Function.name_in():
-#         try:
-#             params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
-#         except:
-#             continue
-    
-#     x_new = model.Function(x,u,*params_new)     
-                          
-#     return x_new
 
 def ControlInput(ref_trajectories,opti_vars,k):
     """
@@ -378,38 +347,40 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     
     return values
 
-def parallel_mode(model,u,y_ref,x0,params=None):
+def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
       
     loss = 0
     y = []
     x = []
-    
+    e = []
     # Loop over all batches 
     for i in range(0,len(u)):   
         
         try:
-            model.switching_instances = data['switch_train'][i]
+            model.switching_instances = switch[i]
         except NameError:
             pass
         
         # Simulate Model
         pred = model.Simulation(x0[i],u[i],params)
         
-        x.append(pred[0])
-        y.append(pred[1])
-        
-        if isinstance(pred, tuple):
-            pred = pred[1]
+        if isinstance(pred, tuple):           
+            x.append(pred[0])
+            y.append(pred[1])
         
         # Calculate simulation error            
         # Check for the case, where only last value is available
         
         if y_ref[i].shape[0]==1:
-            loss = loss + cs.sumsqr(y_ref[i] - pred[-1,:])
-        else:
-            loss = loss + cs.sumsqr(y_ref[i] - pred)
+            y[-1]=y[-1][-1,:]
+            e.append(y_ref[i] - y[-1])
+            loss = loss + cs.sumsqr(e[-1])
     
-    return loss,x,y
+        else:
+            e.append(y_ref[i] - y[-1])
+            loss = loss + cs.sumsqr(e[-1])
+    
+    return loss,e,x,y
 
 def static_mode(model,u,y_ref,params=None):
     
