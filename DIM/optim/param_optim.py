@@ -90,7 +90,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
 
         try:
             switch =  data['switch_val']
-        except NameError:
+        except KeyError:
             switch = None
 
         if mode == 'parallel':
