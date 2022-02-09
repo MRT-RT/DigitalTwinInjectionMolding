@@ -74,7 +74,7 @@ def Fit_GRU(counter,initial_params):
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned_fulldata.pkl','wb'))
     
     print('Charge '+str(counter)+' finished.')
     
