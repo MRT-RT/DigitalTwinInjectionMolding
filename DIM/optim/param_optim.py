@@ -10,6 +10,7 @@ from sys import path
 path.append(r"C:\Users\LocalAdmin\Documents\casadi-windows-py38-v3.5.5-64bit")
 
 import os
+import time
 
 import casadi as cs
 import matplotlib.pyplot as plt
@@ -382,10 +383,11 @@ def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
             model.switching_instances = switch[i]
         except TypeError:
             pass
-        
+        t = time.time()
         # Simulate Model
         pred = model.Simulation(x0[i],u[i],params)
-        
+        elapsed = time.time() - t
+        print(elapsed)
         if isinstance(pred, tuple):           
             x.append(pred[0])
             y.append(pred[1])
