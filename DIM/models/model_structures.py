@@ -173,7 +173,7 @@ class MLP():
     Implementation of a single-layered Feedforward Neural Network.
     """
 
-    def __init__(self,dim_u,dim_out,dim_hidden,initial_params=None, 
+    def __init__(self,dim_u,dim_out,dim_hidden,name,initial_params=None, 
                  frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the Feedforward Neural Network Architecture
@@ -295,7 +295,32 @@ class MLP():
         x1 = self.Function(x0,u0,*params_new)     
                               
         return x1
-   
+
+    def Simulation(self,x0,u,params=None):
+        '''
+        A iterative application of the OneStepPrediction in order to perform a
+        simulation for a whole input trajectory
+        x0: Casadi MX, inital state a begin of simulation
+        u: Casadi MX,  input trajectory
+        params: A dictionary of opti variables, if the parameters of the model
+                should be optimized, if None, then the current parameters of
+                the model are used
+        '''
+
+        x = []
+
+        # initial states
+        x.append(x0)
+                      
+        # Simulate Model
+        for k in range(u.shape[0]):
+            x_new  = self.OneStepPrediction(x[k],u[[k],:],params)
+            x.append(x_new)
+        
+        # Concatenate list to casadiMX
+        x = cs.hcat(x).T
+       
+        return x 
 
     def ParameterInitialization(self):
         '''

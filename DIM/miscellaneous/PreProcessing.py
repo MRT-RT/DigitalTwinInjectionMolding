@@ -425,7 +425,6 @@ def LoadStaticData(path,charges, targets):
     data_train = pd.DataFrame(data=None,columns = features, index=cycles_train_label)
     data_val = pd.DataFrame(data=None,columns = features, index=cycles_val_label)
     
-    counter = 0
     for data,cycle_labels in zip([data_train,data_val],
                                  [cycles_train_label,cycles_val_label]):
     
@@ -467,5 +466,26 @@ def LoadStaticData(path,charges, targets):
             f.extend(y)
             
             data.loc[c] = f
+    
+    return data_train,data_val,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label
+
+def LoadSetpointData(path,charges, targets):
+    
+    cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
+    split_charges_to_trainval_data(path,charges)    
+        
+    # Load cycle data and extract features
+    cycles_train = []
+    cycles_val = []
+    
+    doe_plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
+    
+    setpoints=list(doe_plan.columns[1:9])
+    
+    setpoints.extend(targets)
+    
+    data_train = doe_plan.loc[cycles_train_label][setpoints]
+    data_val = doe_plan.loc[cycles_val_label][setpoints]
+    
     
     return data_train,data_val,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
