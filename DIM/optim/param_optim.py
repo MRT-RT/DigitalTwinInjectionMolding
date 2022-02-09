@@ -38,11 +38,23 @@ def ControlInput(ref_trajectories,opti_vars,k):
     return control   
     
 def CreateOptimVariables(opti, Parameters):
-    """
-    Defines all parameters, which are part of the optimization problem, as 
-    opti variables with appropriate dimensions
-    """
-    
+    '''
+    Beschreibung der Funktion
+
+    Parameters
+    ----------
+    opti : Dict
+        DESCRIPTION.
+    Parameters : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    opti_vars : TYPE
+        DESCRIPTION.
+
+    '''
+        
     # Create empty dictionary
     opti_vars = {}
     
@@ -78,14 +90,14 @@ def ModelTraining(model,data,initializations=10, BFR=False,
 
         try:
             switch =  data['switch_val']
-        except NameError:
+        except KeyError:
             switch = None
 
         if mode == 'parallel':
             x0 = data['init_state_val']
             loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,new_params)    
         elif mode == 'static':
-            loss,_ = static_mode(model,u,y_ref,new_params)   
+            loss,_,_ = static_mode(model,u,y_ref,new_params)   
         elif mode == 'series':
             x0 = data['init_state_val']
             loss,_,_ = series_parallel_mode(model,u,y_ref,x0,new_params)
@@ -319,14 +331,14 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     
     try:
         switch =  data['switch_train']
-    except NameError:
+    except KeyError:
         switch = None
     
     if mode == 'parallel':
         x0 = data['init_state_train']
         loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,params_opti)    
     elif mode == 'static':
-        loss,_ = static_mode(model,u,y_ref,params_opti)   
+        loss,_,_ = static_mode(model,u,y_ref,params_opti)   
     elif mode == 'series':
         x0 = data['init_state_train']
         loss,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
@@ -368,7 +380,7 @@ def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
         
         try:
             model.switching_instances = switch[i]
-        except NameError:
+        except TypeError:
             pass
         
         # Simulate Model
@@ -377,7 +389,8 @@ def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
         if isinstance(pred, tuple):           
             x.append(pred[0])
             y.append(pred[1])
-        
+        else:
+            y.append(pred)
         # Calculate simulation error            
         # Check for the case, where only last value is available
         
@@ -412,7 +425,7 @@ def static_mode(model,u,y_ref,params=None):
             loss = loss + cs.sumsqr(e[-1]) 
             
     
-    return loss,y
+    return loss,e,y
 
 
 def series_parallel_mode(model,u,y_ref,x_ref,x0,params=None):
