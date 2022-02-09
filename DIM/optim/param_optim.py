@@ -97,7 +97,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
             x0 = data['init_state_val']
             loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,new_params)    
         elif mode == 'static':
-            loss,_ = static_mode(model,u,y_ref,new_params)   
+            loss,_,_ = static_mode(model,u,y_ref,new_params)   
         elif mode == 'series':
             x0 = data['init_state_val']
             loss,_,_ = series_parallel_mode(model,u,y_ref,x0,new_params)
