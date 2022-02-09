@@ -330,8 +330,8 @@ def split_charges_to_trainval_data(path,charges):
         cycles = data[data['Charge']==charge].index.values
         # cycles_train_label.append(cycles[-6:-1])
         # cycles_val_label.append(cycles[-1])
-        cycles_train_label.append(cycles[0:-2])
-        cycles_val_label.append(cycles[-2:])
+        cycles_train_label.append(cycles[0:-3])
+        cycles_val_label.append(cycles[-3:])
         
         charge_train_label.extend([charge]*len(cycles[-6:-1]))
         charge_val_label.extend([charge]*len(cycles[[-1]]))
