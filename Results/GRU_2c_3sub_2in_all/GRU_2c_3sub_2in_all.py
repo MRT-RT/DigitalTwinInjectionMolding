@@ -65,9 +65,9 @@ def Fit_GRU(counter,initial_params):
                                   name='q_model')
     
     
-    # s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 3000,
-    #           "print_level":2}
-    s_opts = None
+    s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 3000,
+              "print_level":5}
+    # s_opts = None
     
     results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                       p_opts=None, s_opts=s_opts)
