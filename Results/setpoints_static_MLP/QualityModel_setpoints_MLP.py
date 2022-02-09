@@ -8,6 +8,7 @@ Created on Tue Jan 25 15:16:22 2022
 import sys
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 # import os.path as path
 # two_up =  path.abspath(path.join(__file__ ,"../.."))

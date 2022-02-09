@@ -328,8 +328,10 @@ def split_charges_to_trainval_data(path,charges):
     
     for charge in charges:
         cycles = data[data['Charge']==charge].index.values
-        cycles_train_label.append(cycles[-6:-1])
-        cycles_val_label.append(cycles[-1])
+        # cycles_train_label.append(cycles[-6:-1])
+        # cycles_val_label.append(cycles[-1])
+        cycles_train_label.append(cycles[0:-2])
+        cycles_val_label.append(cycles[-2:])
         
         charge_train_label.extend([charge]*len(cycles[-6:-1]))
         charge_val_label.extend([charge]*len(cycles[[-1]]))
@@ -340,7 +342,12 @@ def split_charges_to_trainval_data(path,charges):
     # Delete cycles that for some reason don't exist
     charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 767)) 
     cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
-    
+
+    charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 764)) 
+    cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 764)) 
+
+    charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 753)) 
+    cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 753))     
     
     return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
 
