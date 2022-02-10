@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import time
 
 import sys
 sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
@@ -33,8 +34,8 @@ def Eval_GRU_on_Val(charges,counter):
     
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj = ['p_wkz_ist','T_wkz_ist']
     u_press = ['p_wkz_ist','T_wkz_ist']
@@ -64,9 +65,11 @@ def Eval_GRU_on_Val(charges,counter):
     quality_model.AssignParameters(params)
     
     # Evaluate model on training data
+    # t = time.time()
     _,e_train,_,y_train = parallel_mode(quality_model,data['u_train'],data['y_train'],
                              data['init_state_train'],data['switch_train'])
-   
+    # elapsed = time.time() - t
+    # print(elapsed)
     
     y_true = np.array(data['y_train']).reshape((-1,1))
     y_train = np.array(y_train).reshape((-1,1))
@@ -83,6 +86,7 @@ def Eval_GRU_on_Val(charges,counter):
     _,e_val,_,y_val = parallel_mode(quality_model,data['u_val'],data['y_val'],
                              data['init_state_val'],data['switch_val'])
     
+    
     y_true = np.array(data['y_val']).reshape((-1,1))
     y_val = np.array(y_val).reshape((-1,1))
     e_val = np.array(e_val).reshape((-1,1))
@@ -98,12 +102,14 @@ def Eval_GRU_on_Val(charges,counter):
     return results_train, results_val, data, quality_model
 
 
-charges = list(range(1,275))
+charges = list(range(1,20))
 c = 2
-
+t = time.time()
 results_train, results_val, data, quality_model = Eval_GRU_on_Val(charges,c)
+elapsed = time.time() - t
 
-pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
-pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 
-pkl.dump(quality_model,open('GRU_quality_model_c'+str(c)+'.pkl','wb'))
-pkl.dump(data,open('data_c'+str(c)+'.pkl','wb'))
+
+# pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
+# pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 
+# pkl.dump(quality_model,open('GRU_quality_model_c'+str(c)+'.pkl','wb'))
+# pkl.dump(data,open('data_c'+str(c)+'.pkl','wb'))
