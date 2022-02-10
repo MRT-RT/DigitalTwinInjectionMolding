@@ -70,6 +70,23 @@ class RNN():
                 the model are used
         '''
         #  old version
+        if params==None:
+            params = self.Parameters
+        
+        params_new = []
+            
+        for name in self.Function.name_in()[2::]:
+ 
+            try:
+                params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
+            except:
+                params_new.append(self.Parameters[name])  
+            
+        x1,y1 = self.Function(x0,u0,*params_new)     
+                              
+        # return x1,y1
+        
+        #  new version
         # if params==None:
         #     params = self.Parameters
         
@@ -82,24 +99,7 @@ class RNN():
         #     except:
         #         params_new.append(self.Parameters[name])  
             
-        # x1,y1 = self.Function(x0,u0,*params_new)     
-                              
-        # return x1,y1
-        
-        #  new version
-        if params==None:
-            params = self.Parameters
-        
-        # params_new = []
-            
-        # for name in self.Function.name_in()[2::]:
- 
-        #     try:
-        #         params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
-        #     except:
-        #         params_new.append(self.Parameters[name])  
-            
-        x1,y1 = self.Function(x0,u0,*list(params.values()))     
+        # x1,y1 = self.Function(x0,u0,*list(params.values()))     
                               
         return x1,y1       
         
