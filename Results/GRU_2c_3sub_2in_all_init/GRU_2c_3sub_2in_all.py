@@ -14,13 +14,13 @@ import sys
 # sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
-sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/')
+sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
-from DIM.optim.param_optim import ModelTraining, HyperParameterPSO
+from DIM.optim.param_optim import ParallelModelTraining, HyperParameterPSO
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
@@ -29,9 +29,9 @@ def Fit_GRU(counter,initial_params=None):
     charges = list(range(1,275))
     dim_c = 2
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -71,7 +71,7 @@ def Fit_GRU(counter,initial_params=None):
               "print_level":5}
     # s_opts = None
     
-    results_GRU = ModelTraining(quality_model,data,initializations=50, BFR=False, 
+    results_GRU = ParallelModelTraining(quality_model,data,initializations=50, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
@@ -84,8 +84,10 @@ def Fit_GRU(counter,initial_params=None):
 
 
 
-
-GRU_init = Fit_GRU(0)
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    GRU_init = Fit_GRU(0)
+    
 
 # res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
 # res_sorted = res.sort_values('loss_val')
