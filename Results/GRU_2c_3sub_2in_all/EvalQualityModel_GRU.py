@@ -33,9 +33,9 @@ def Eval_GRU_on_Val(charges,counter):
     dim_c = 2
     
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj = ['p_wkz_ist','T_wkz_ist']
     u_press = ['p_wkz_ist','T_wkz_ist']
@@ -65,11 +65,12 @@ def Eval_GRU_on_Val(charges,counter):
     quality_model.AssignParameters(params)
     
     # Evaluate model on training data
-    # t = time.time()
+    t = time.time()
     _,e_train,_,y_train = parallel_mode(quality_model,data['u_train'],data['y_train'],
                              data['init_state_train'],data['switch_train'])
-    # elapsed = time.time() - t
-    # print(elapsed)
+
+    elapsed = time.time() - t
+    print(elapsed)
     
     y_true = np.array(data['y_train']).reshape((-1,1))
     y_train = np.array(y_train).reshape((-1,1))
@@ -77,36 +78,38 @@ def Eval_GRU_on_Val(charges,counter):
     cycles_train_label = np.array(cycles_train_label).reshape((-1,))
     charge_train_label = np.array(charge_train_label).reshape((-1,1))  
     
+    # print(y_true.shape,y_train.shape,e_train.shape,charge_train_label.shape)
+    
     results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train,
                                   charge_train_label]),
                                 index = cycles_train_label,
                             columns=['y_true','y_est','e','charge'])
     
-    # Evaluate model on validation data
-    _,e_val,_,y_val = parallel_mode(quality_model,data['u_val'],data['y_val'],
-                             data['init_state_val'],data['switch_val'])
+    # # Evaluate model on validation data
+    # _,e_val,_,y_val = parallel_mode(quality_model,data['u_val'],data['y_val'],
+    #                          data['init_state_val'],data['switch_val'])
     
     
-    y_true = np.array(data['y_val']).reshape((-1,1))
-    y_val = np.array(y_val).reshape((-1,1))
-    e_val = np.array(e_val).reshape((-1,1))
-    cycles_val_label = np.array(cycles_val_label).reshape((-1,))
-    charge_val_label = np.array(charge_val_label).reshape((-1,1))
+    # y_true = np.array(data['y_val']).reshape((-1,1))
+    # y_val = np.array(y_val).reshape((-1,1))
+    # e_val = np.array(e_val).reshape((-1,1))
+    # cycles_val_label = np.array(cycles_val_label).reshape((-1,))
+    # charge_val_label = np.array(charge_val_label).reshape((-1,1))
     
-    results_val = pd.DataFrame(data=np.hstack([y_true,y_val,e_val,
-                                  charge_val_label]),
-                                index = cycles_val_label,
-                            columns=['y_true','y_est','e','charge'])
+    # results_val = pd.DataFrame(data=np.hstack([y_true,y_val,e_val,
+    #                               charge_val_label]),
+    #                             index = cycles_val_label,
+    #                         columns=['y_true','y_est','e','charge'])
+
+    return results_train
+    # return results_train, results_val, data, quality_model
 
 
-    return results_train, results_val, data, quality_model
-
-
-charges = list(range(1,20))
+charges = list(range(1,275))
 c = 2
-t = time.time()
-results_train, results_val, data, quality_model = Eval_GRU_on_Val(charges,c)
-elapsed = time.time() - t
+
+# results_train, results_val, data, quality_model = Eval_GRU_on_Val(charges,c)
+results_train = Eval_GRU_on_Val(charges,c)
 
 
 # pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 

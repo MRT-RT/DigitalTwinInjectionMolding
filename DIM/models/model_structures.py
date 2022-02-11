@@ -69,7 +69,6 @@ class RNN():
                 should be optimized, if None, then the current parameters of
                 the model are used
         '''
-        #  old version
         if params==None:
             params = self.Parameters
         
@@ -84,22 +83,6 @@ class RNN():
             
         x1,y1 = self.Function(x0,u0,*params_new)     
                               
-        # return x1,y1
-        
-        #  new version
-        # if params==None:
-        #     params = self.Parameters
-        
-        # params_new = []
-            
-        # for name in self.Function.name_in()[2::]:
- 
-        #     try:
-        #         params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
-        #     except:
-        #         params_new.append(self.Parameters[name])  
-            
-        # x1,y1 = self.Function(x0,u0,*list(params.values()))     
                               
         return x1,y1       
         
@@ -115,23 +98,26 @@ class RNN():
                 should be optimized, if None, then the current parameters of
                 the model are used
         '''
-
-        # x = cs.DM(self.dim_c,u.shape[0]+1)
-        # y = cs.DM(self.dim_out,u.shape[0])
+        # if params==None:
+        #     params = self.Parameters
         
-        # # initial states
-        # x[:,0]=x0
-
-                      
-        # # Simulate Model
-        # for k in range(u.shape[0]):
-        #     x[:,k+1],y[:,k] = self.OneStepPrediction(x[k],u[[k],:],params)
-
+        # params_new = []
+            
+        # for name in self.Function.name_in()[2::]:
+ 
+        #     try:
+        #         params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
+        #     except:
+        #         params_new.append(self.Parameters[name])
+                
+        # F_sim = self.Function.mapaccum(u.shape[0])
+        # # print(params_new)
+        # x,y = F_sim(x0,u.T,*params_new)
         
-        # # Concatenate list to casadiMX
-        # y = y.T 
         # x = x.T
-        
+        # y = y.T
+
+        # old version, nine times slower
         x = []
         y = []
 
@@ -148,7 +134,7 @@ class RNN():
         # Concatenate list to casadiMX
         y = cs.hcat(y).T    
         x = cs.hcat(x).T
-       
+ 
         return x,y    
 
 class LinearSSM(RNN):
