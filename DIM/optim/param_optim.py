@@ -172,7 +172,7 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
-    pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool(5)
     results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
     results = pd.DataFrame(data = results, columns = ['loss_val',
                         'model','params'])

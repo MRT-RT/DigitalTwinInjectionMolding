@@ -26,12 +26,12 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 def Fit_GRU(counter,initial_params=None):
 
-    charges = list(range(1,2))
+    charges = list(range(1,275))
     dim_c = 2
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -67,16 +67,16 @@ def Fit_GRU(counter,initial_params=None):
                                   name='q_model')
     
     
-    s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 1,
+    s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 500,
               "print_level":5}
     # s_opts = None
     
-    results_GRU = ParallelModelTraining(quality_model,data,initializations=4, BFR=False, 
+    results_GRU = ParallelModelTraining(quality_model,data,initializations=100, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    # pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_init.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_init.pkl','wb'))
     
     print('Charge '+str(counter)+' finished.')
     
