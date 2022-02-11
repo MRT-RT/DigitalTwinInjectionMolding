@@ -11,6 +11,7 @@ path.append(r"C:\Users\LocalAdmin\Documents\casadi-windows-py38-v3.5.5-64bit")
 
 import os
 import time
+import copy
 
 import casadi as cs
 import matplotlib.pyplot as plt
@@ -18,6 +19,7 @@ import numpy as np
 import math
 import pandas as pd
 import pickle as pkl
+
 
 from DIM.optim.DiscreteBoundedPSO import DiscreteBoundedPSO
 from .common import OptimValues_to_dict,BestFitRate
@@ -119,9 +121,51 @@ def ModelTraining(model,data,initializations=10, BFR=False,
                         'model','initialization','params'])
     return results
 
+def TrainingProcedure(model, data, p_opts, s_opts, mode):
+    
+    # initialize model to make sure given initial parameters are assigned
+    model.ParameterInitialization()
+    
+    # Estimate Parameters on training data
+    new_params = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
+    
+    # Assign estimated parameters to model
+    model.AssignParameters(new_params)
+    
+    # Evaluate on Validation data
+    u = data['u_val']
+    y_ref = data['y_val']
+
+    try:
+        switch =  data['switch_val']
+    except KeyError:
+        switch = None
+
+    if mode == 'parallel':
+        x0 = data['init_state_val']
+        loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,new_params)    
+    elif mode == 'static':
+        loss,_,_ = static_mode(model,u,y_ref,new_params)   
+    elif mode == 'series':
+        x0 = data['init_state_val']
+        loss,_,_ = series_parallel_mode(model,u,y_ref,x0,new_params)
+             
+    # Calculate mean error over all validation batches
+    loss = loss / len(u)
+    loss = float(np.array(loss))
+    
+    print('Validation error: '+str(loss))
+    
+    
+    # save parameters and performance in list
+    result = [loss,model.name,model.Parameters]
+    
+    return result
+
 def ParallelModelTraining(model,data,initializations=10, BFR=False, 
                   p_opts=None, s_opts=None,mode='parallel'):
     
+     
     data = [copy.deepcopy(data) for i in range(0,initializations)]
     model = [copy.deepcopy(model) for i in range(0,initializations)]
     p_opts = [copy.deepcopy(p_opts) for i in range(0,initializations)]
@@ -129,49 +173,7 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
     pool = multiprocessing.Pool()
-    results = pool.starmap(TrainingProcedure, zip(model data, p_opts, s_opts, mode)) 
-    
-    def TrainingProcedure(model data, p_opts, s_opts, mode):
-        
-        # initialize model to make sure given initial parameters are assigned
-        model.ParameterInitialization()
-        
-        # Estimate Parameters on training data
-        new_params = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
-        
-        # Assign estimated parameters to model
-        model.AssignParameters(new_params)
-        
-        # Evaluate on Validation data
-        u = data['u_val']
-        y_ref = data['y_val']
-
-        try:
-            switch =  data['switch_val']
-        except KeyError:
-            switch = None
-
-        if mode == 'parallel':
-            x0 = data['init_state_val']
-            loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,new_params)    
-        elif mode == 'static':
-            loss,_,_ = static_mode(model,u,y_ref,new_params)   
-        elif mode == 'series':
-            x0 = data['init_state_val']
-            loss,_,_ = series_parallel_mode(model,u,y_ref,x0,new_params)
-                 
-        # Calculate mean error over all validation batches
-        loss = loss / len(u)
-        loss = float(np.array(loss))
-        
-        print('Validation error: '+str(loss))
-        
-        
-        # save parameters and performance in list
-        result = [loss,model.name,model.Parameters]
-        
-        return result
-           
+    results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
     # results = pd.DataFrame(data = results, columns = ['loss_val',
     #                     'model','initialization','params'])
     return results 
