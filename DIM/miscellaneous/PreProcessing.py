@@ -328,19 +328,21 @@ def split_charges_to_trainval_data(path,charges):
     
     for charge in charges:
         cycles = data[data['Charge']==charge].index.values
-        # cycles_train_label.append(cycles[-6:-1])
-        # cycles_val_label.append(cycles[-1])
-        cycles_train_label.append(cycles[0:-3])
-        cycles_val_label.append(cycles[-3:])
         
+        # cycles_train_label.append(cycles[0:-3])
+        # cycles_val_label.append(cycles[-3:])
+        
+        cyc_t = [*cycles[0:2],*cycles[-2:]]
+        cyc_v = [cycles[2],cycles[-4]]
         # cycles_train_label.extend([*cycles[0:2],*cycles[3:-4],*cycles[-3:]])
         # cycles_val_label.extend([cycles[2],cycles[-4:]])
-        
-        charge_train_label.extend([charge]*len(cycles[0:-3]))
-        charge_val_label.extend([charge]*len(cycles[-3:]))
 
-        # charge_train_label.extend([*cycles[0:2],*cycles[3:-4],*cycles[-3:]])
-        # charge_val_label.extend([cycles[2],cycles[-4:]])
+        cycles_train_label.extend(cyc_t)
+        cycles_val_label.extend(cyc_v)
+        
+        charge_train_label.extend([charge]*len(cyc_t))
+        charge_val_label.extend([charge]*len(cyc_v))
+
     
     cycles_train_label = np.hstack(cycles_train_label)
     cycles_val_label = np.hstack(cycles_val_label)
