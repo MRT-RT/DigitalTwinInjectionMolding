@@ -386,7 +386,7 @@ def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
 
         # Simulate Model
         pred = model.Simulation(x0[i],u[i],params)
-
+        
 
         if isinstance(pred, tuple):           
             x.append(pred[0])
