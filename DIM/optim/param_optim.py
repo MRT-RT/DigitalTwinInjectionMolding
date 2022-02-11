@@ -383,11 +383,11 @@ def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
             model.switching_instances = switch[i]
         except TypeError:
             pass
-        t = time.time()
+
         # Simulate Model
         pred = model.Simulation(x0[i],u[i],params)
-        elapsed = time.time() - t
-        print(elapsed)
+
+
         if isinstance(pred, tuple):           
             x.append(pred[0])
             y.append(pred[1])

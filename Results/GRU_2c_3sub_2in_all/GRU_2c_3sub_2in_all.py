@@ -26,12 +26,12 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 def Fit_GRU(counter,initial_params):
 
-    charges = list(range(1,2))
+    charges = list(range(1,275))
     dim_c = 2
     
     path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -82,39 +82,37 @@ def Fit_GRU(counter,initial_params):
     
     return results_GRU  
 
+
+
+
+# # Fit_GRU(0,initial_params)
 # res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
 # res_sorted = res.sort_values('loss_val')
 
-# initial_params = res_sorted.iloc[0]['params']
+# initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
+#                   res_sorted.iloc[2]['params']]
+# counter = [2,9,0]
 
-
-# Fit_GRU(0,initial_params)
-res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
-res_sorted = res.sort_values('loss_val')
-
-initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-                  res_sorted.iloc[2]['params']]
-counter = [2,9,0]
-
-for i in range(0,3):
+# for i in range(0,3):
     
-    Fit_GRU(counter[i],initial_params[i])
+#     Fit_GRU(counter[i],initial_params[i])
     
   
-# if __name__ == '__main__':
+if __name__ == '__main__':
     
-#     print('Process started..')
+    print('Process started..')
     
-#     res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
-#     res_sorted = res.sort_values('loss_val')
+    res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
+    res_sorted = res.sort_values('loss_val')
 
-#     initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-#                       res_sorted.iloc[2]['params']]
+    initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
+                      res_sorted.iloc[2]['params']]
+
+    initial_params = [res_sorted.iloc[0]['params']]    
     
+    multiprocessing.freeze_support()
     
-#     multiprocessing.freeze_support()
+    pool = multiprocessing.Pool()
     
-#     pool = multiprocessing.Pool()
-    
-#     result = pool.starmap(Fit_GRU, zip([2,9,0] ,initial_params)) 
+    result = pool.starmap(Fit_GRU, zip([2] ,initial_params)) 
 
