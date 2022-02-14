@@ -93,11 +93,11 @@ res_sorted = res.sort_values('loss_val')
 
 initial_params = [res_sorted.iloc[i]['params'] for i in range(0,10)]
 
-for i in range(0,10):
+for i in range(0,1):
     
     Fit_GRU(i,initial_params[i])
     
-  
+ 
 # if __name__ == '__main__':
     
 #     print('Process started..')
