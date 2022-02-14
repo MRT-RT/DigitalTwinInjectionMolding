@@ -478,19 +478,21 @@ def static_mode(model,u,y_ref,params=None):
     y = []
     e = []
     
+                    
     # Loop over all batches 
-    for i in range(0,len(u)):  
-        
+    for i in range(0,len(u)): 
+
         # One-Step prediction
         for k in range(u[i].shape[0]):  
             # print(k)
             y_new = model.OneStepPrediction(u[i][k,:],params)
-            
+            # print(y_new)
             y.append(y_new)
             e.append(y_ref[i][k,:]-y_new)
             # Calculate one step prediction error
             loss = loss + cs.sumsqr(e[-1]) 
             
+        break
     
     return loss,e,y
 

@@ -15,7 +15,7 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
 from DIM.miscellaneous.PreProcessing import LoadStaticData,LoadDynamicData
 from DIM.models.model_structures import Static_MLP
-from DIM.optim.param_optim import ParallelModelTraining
+from DIM.optim.param_optim import ModelTraining
 
 import multiprocessing
 
@@ -24,7 +24,7 @@ import pickle as pkl
 
 def Fit_MLP(dim_hidden):
     
-    print(dim_hidden)
+    # print(dim_hidden)
     charges = list(range(1,275))
     targets = ['Durchmesser_innen']
     
@@ -58,7 +58,7 @@ def Fit_MLP(dim_hidden):
     model = Static_MLP(dim_u=8, dim_out=1, dim_hidden=dim_hidden,name='MLP',
                        init_proc='xavier')
     
-    result = ParallelModelTraining(model,data,initializations=10,p_opts=None,s_opts=None,mode='static')
+    result = ModelTraining(model,data,initializations=10,p_opts=None,s_opts=None,mode='static')
 
     result['dim_hidden'] = dim_hidden
     
