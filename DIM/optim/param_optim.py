@@ -177,6 +177,9 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     results = pd.DataFrame(data = results, columns = ['loss_val',
                         'model','params'])
     
+    pool.close() 
+    pool.join()      
+    
     return results 
 
 def HyperParameterPSO(model,data,param_bounds,n_particles,options,
