@@ -7,6 +7,7 @@ Created on Tue Jan 25 15:16:22 2022
 import sys
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
 sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
 from sklearn.feature_selection import SequentialFeatureSelector
 from sklearn.linear_model import LinearRegression
@@ -16,18 +17,23 @@ from sklearn.preprocessing import PolynomialFeatures
 
 
 charges = list(range(1,275))
+split = 'all'
+
 # targets = ['Durchmesser_innen','Durchmesser_außen','Stegbreite_Gelenk','Gewicht',
 #            'Stegbreite_Gelenk','Breite_Lasche']
-targets = ['Durchmesser_innen']
+# targets = ['Durchmesser_innen']
+targets = ['Gewicht']
 # targets = ['Stegbreite_Gelenk']
 # targets = ['Breite_Lasche']
 # targets = ['Rundheit_außen']
 
 
 # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+# path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
-data_train,data_val,_,_,_,_  = LoadStaticData(path,charges,targets)
+
+data_train,data_val,_,_,_,_  = LoadStaticData(path,charges,split,targets)
 
 # data = data_train.append(data_val)
 

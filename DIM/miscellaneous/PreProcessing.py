@@ -421,10 +421,10 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab):
     return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
     
 
-def LoadStaticData(path,charges, targets):
+def LoadStaticData(path,charges, split, targets):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
-    split_charges_to_trainval_data(path,charges)    
+    split_charges_to_trainval_data(path,charges,split)    
         
     # Load cycle data and extract features
     cycles_train = []
@@ -483,10 +483,10 @@ def LoadStaticData(path,charges, targets):
     
     return data_train,data_val,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label
 
-def LoadSetpointData(path,charges, targets):
+def LoadSetpointData(path,charges, split, targets):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
-    split_charges_to_trainval_data(path,charges)    
+    split_charges_to_trainval_data(path,charges,split)    
         
     # Load cycle data and extract features
     cycles_train = []
