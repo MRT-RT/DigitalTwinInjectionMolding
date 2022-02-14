@@ -332,9 +332,10 @@ def split_charges_to_trainval_data(path,charges,split):
         if split == 'part':
             cyc_t = [*cycles[0:2],*cycles[-2:]]
             cyc_v = [cycles[2],cycles[-4]]
+            
         elif split == 'all':
             cyc_t = [*cycles[0:2],*cycles[3:-4],*cycles[-3:]]
-            cyc_v = [cycles[2],cycles[-4:]]
+            cyc_v = [cycles[2],cycles[-4]]
 
         cycles_train_label.extend(cyc_t)
         cycles_val_label.extend(cyc_v)
@@ -342,10 +343,12 @@ def split_charges_to_trainval_data(path,charges,split):
         charge_train_label.extend([charge]*len(cyc_t))
         charge_val_label.extend([charge]*len(cyc_v))
 
+    # print(len(charge_train_label))
+    # print(len(charge_val_label))
     
     cycles_train_label = np.hstack(cycles_train_label)
     cycles_val_label = np.hstack(cycles_val_label)
-    
+    # print(len(cycles_val_label))
     # Delete cycles that for some reason don't exist
     charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 767)) 
     cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
@@ -425,7 +428,9 @@ def LoadStaticData(path,charges, split, targets):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
     split_charges_to_trainval_data(path,charges,split)    
-        
+       
+    # print(len(charge_val_label))
+    
     # Load cycle data and extract features
     cycles_train = []
     cycles_val = []
@@ -438,10 +443,11 @@ def LoadStaticData(path,charges, split, targets):
     
     data_train = pd.DataFrame(data=None,columns = features, index=cycles_train_label)
     data_val = pd.DataFrame(data=None,columns = features, index=cycles_val_label)
-    
-    for data,cycle_labels in zip([data_train,data_val],
-                                 [cycles_train_label,cycles_val_label]):
-    
+    # print(cycles_val_label)
+    # print(len(data_val))
+       
+    for data,cycle_labels in zip([data_train,data_val],[cycles_train_label,cycles_val_label]):
+   
             
         for c in cycle_labels:
             
@@ -480,6 +486,7 @@ def LoadStaticData(path,charges, split, targets):
             f.extend(y)
             
             data.loc[c] = f
+        # print(c)
     
     return data_train,data_val,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label
 
