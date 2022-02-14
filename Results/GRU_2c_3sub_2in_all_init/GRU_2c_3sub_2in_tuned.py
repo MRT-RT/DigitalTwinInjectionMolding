@@ -58,12 +58,7 @@ def Fit_GRU(counter,initial_params=None):
     cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
     
     for rnn in [inj_model,press_model,cool_model]:
-        name = rnn.name
-        
-        initial_params = {'b_r_'+name: np.random.uniform(-2,0,(dim_c,1)),
-                          'b_z_'+name: np.random.uniform(-2,0,(dim_c,1)),
-                          'b_c_'+name: np.random.uniform(-2,0,(dim_c,1))}
-        
+       
         rnn.InitialParameters = initial_params
         
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
@@ -97,7 +92,6 @@ res = pkl.load(open('GRU_Durchmesser_innen_c0_init.pkl','rb'))
 res_sorted = res.sort_values('loss_val')
 
 initial_params = [res_sorted.iloc[i]['params'] for i in range(0,10)]
-counter = [2,9,0]
 
 for i in range(0,10):
     
