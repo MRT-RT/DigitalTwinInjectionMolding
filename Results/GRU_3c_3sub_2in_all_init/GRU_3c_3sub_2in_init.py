@@ -90,7 +90,7 @@ def Fit_GRU(counter,initial_params=None):
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     GRU_init = Fit_GRU(0)
-    
+ 
 
 # res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
 # res_sorted = res.sort_values('loss_val')
