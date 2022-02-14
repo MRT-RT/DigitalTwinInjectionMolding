@@ -98,43 +98,25 @@ class RNN():
                 should be optimized, if None, then the current parameters of
                 the model are used
         '''
-        # if params==None:
-        #     params = self.Parameters
+        if params==None:
+            params = self.Parameters
         
-        # params_new = []
+        params_new = []
             
-        # for name in self.Function.name_in()[2::]:
+        for name in self.Function.name_in()[2::]:
  
-        #     try:
-        #         params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
-        #     except:
-        #         params_new.append(self.Parameters[name])
+            try:
+                params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
+            except:
+                params_new.append(self.Parameters[name])
                 
-        # F_sim = self.Function.mapaccum(u.shape[0])
-        # # print(params_new)
-        # x,y = F_sim(x0,u.T,*params_new)
+        F_sim = self.Function.mapaccum(u.shape[0])
+        # print(params_new)
+        x,y = F_sim(x0,u.T,*params_new)
         
-        # x = x.T
-        # y = y.T
+        x = x.T
+        y = y.T
 
-        # old version, nine times slower
-        x = []
-        y = []
-
-        
-        # initial states
-        x.append(x0)
-                      
-        # Simulate Model
-        for k in range(u.shape[0]):
-            x_new,y_new = self.OneStepPrediction(x[k],u[[k],:],params)
-            x.append(x_new)
-            y.append(y_new)
-        
-        # Concatenate list to casadiMX
-        y = cs.hcat(y).T    
-        x = cs.hcat(x).T
- 
         return x,y    
 
 class LinearSSM(RNN):

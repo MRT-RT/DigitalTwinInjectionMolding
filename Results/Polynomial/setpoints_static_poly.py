@@ -22,9 +22,11 @@ from sklearn.preprocessing import PolynomialFeatures
 
 
 charges = list(range(1,275))
+split = 'all'
 # targets = ['Durchmesser_innen','Durchmesser_außen','Stegbreite_Gelenk','Gewicht',
 #            'Stegbreite_Gelenk','Breite_Lasche']
-targets = ['Durchmesser_innen']
+# targets = ['Durchmesser_innen']
+targets = ['Gewicht']
 # targets = ['Stegbreite_Gelenk']
 # targets = ['Breite_Lasche']
 # targets = ['Rundheit_außen']
@@ -34,30 +36,28 @@ targets = ['Durchmesser_innen']
 # path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
-data_train,data_val,_,_,_,_  = LoadSetpointData(path,charges,targets)
+data_train,data_val,_,_,_,_  = LoadSetpointData(path,charges,split,targets)
 
 # data = data_train.append(data_val)
 
 inputs = [col for col in data_train.columns if col not in targets]
 
-
-
-
 # LinModel.fit(data_train[inputs],data_train[targets])
 # print(LinModel.score(data_val[inputs],data_val[targets]))
 
 
-for i in range(1,3):
+for i in range(1,11):
     # Polynomial Model
     poly = PolynomialFeatures(i)
     X_poly_train = poly.fit_transform(data_train[inputs])
-    X_poly_val = poly.fit_transform(data_val[inputs])
+    X_poly_val = poly.transform(data_val[inputs])
     
     
     PolyModel = LinearRegression()
     PolyModel.fit(X_poly_train,data_train[targets])
     
     print(PolyModel.score(X_poly_val,data_val[targets]))
+    
 
 # Linear Model Feaure Selection
 # lin_reg = pd.DataFrame(columns=['BFR','feature_added'])

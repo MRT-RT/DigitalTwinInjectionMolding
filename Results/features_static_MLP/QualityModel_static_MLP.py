@@ -15,7 +15,7 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
 from DIM.miscellaneous.PreProcessing import LoadStaticData,LoadDynamicData
 from DIM.models.model_structures import Static_MLP
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ParallelModelTraining
 
 import multiprocessing
 
@@ -28,12 +28,15 @@ def Fit_MLP(dim_hidden):
     charges = list(range(1,275))
     targets = ['Durchmesser_innen']
     
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    split = 'all'
+    
+    
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     data_train,data_val,cycles_train_label,cycles_val_label,\
         charge_train_label,charge_val_label = \
-            LoadStaticData(path,charges,targets)
+            LoadStaticData(path,charges,split,targets)
     
     # Normalize Data
     data_max = data_train.max()
@@ -55,7 +58,7 @@ def Fit_MLP(dim_hidden):
     model = Static_MLP(dim_u=8, dim_out=1, dim_hidden=dim_hidden,name='MLP',
                        init_proc='xavier')
     
-    result = ModelTraining(model,data,initializations=10,p_opts=None,s_opts=None,mode='static')
+    result = ParallelModelTraining(model,data,initializations=10,p_opts=None,s_opts=None,mode='static')
 
     result['dim_hidden'] = dim_hidden
     
@@ -74,7 +77,7 @@ if __name__ == '__main__':
     
     pool = multiprocessing.Pool()
     
-    result = pool.map(Fit_MLP, list(range(10,12))) 
+    result = pool.map(Fit_MLP, list(range(1,11))) 
     
 
 
