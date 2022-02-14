@@ -108,7 +108,7 @@ def Eval_MLP(dim_hidden):
     return results_train, results_val, data, model
 
 
-for c in range(1,2):
+for c in range(1,7):
     results_train, results_val, data, quality_model = Eval_MLP(c)
 
     pkl.dump(results_train,open('results_train_c'+str(c)+'.pkl','wb')) 
