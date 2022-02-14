@@ -20,7 +20,7 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
-from DIM.optim.param_optim import ParallelModelTraining, ModelTraining
+from DIM.optim.param_optim import ParallelModelTraining
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
