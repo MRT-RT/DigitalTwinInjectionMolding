@@ -29,6 +29,9 @@ def Fit_GRU(counter,initial_params=None):
     charges = list(range(1,275))
     dim_c = 2
     
+    # split = 'all'
+    split = 'part'
+    
     path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'

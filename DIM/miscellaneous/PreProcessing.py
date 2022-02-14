@@ -310,7 +310,7 @@ def eliminate_outliers(doe_plan):
     
     return doe_plan
 
-def split_charges_to_trainval_data(path,charges):
+def split_charges_to_trainval_data(path,charges,split):
     
     # Load Versuchsplan to find cycles that should be considered for modelling
     data = pkl.load(open(path+'Versuchsplan.pkl','rb'))
@@ -328,14 +328,13 @@ def split_charges_to_trainval_data(path,charges):
     
     for charge in charges:
         cycles = data[data['Charge']==charge].index.values
-        
-        # cycles_train_label.append(cycles[0:-3])
-        # cycles_val_label.append(cycles[-3:])
-        
-        cyc_t = [*cycles[0:2],*cycles[-2:]]
-        cyc_v = [cycles[2],cycles[-4]]
-        # cycles_train_label.extend([*cycles[0:2],*cycles[3:-4],*cycles[-3:]])
-        # cycles_val_label.extend([cycles[2],cycles[-4:]])
+
+        if split == 'part':
+            cyc_t = [*cycles[0:2],*cycles[-2:]]
+            cyc_v = [cycles[2],cycles[-4]]
+        elif split == 'all':
+            cyc_t = [*cycles[0:2],*cycles[3:-4],*cycles[-3:]]
+            cyc_v = [cycles[2],cycles[-4:]]
 
         cycles_train_label.extend(cyc_t)
         cycles_val_label.extend(cyc_v)
@@ -360,10 +359,10 @@ def split_charges_to_trainval_data(path,charges):
     return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
 
     
-def LoadDynamicData(path,charges,y_lab,u_lab):
+def LoadDynamicData(path,charges,split,y_lab,u_lab):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
-    split_charges_to_trainval_data(path,charges)
+    split_charges_to_trainval_data(path,charges,split)
       
     # Load cycle data, check if usable, convert to numpy array
     cycles_train = []
