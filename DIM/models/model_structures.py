@@ -58,8 +58,9 @@ class RNN():
         
         for p_name in self.Function.name_in()[2::]:
             self.Parameters[p_name] = params[p_name]
-                        
+    
 
+        
     def OneStepPrediction(self,x0,u0,params=None):
         '''
         Estimates the next state and output from current state and input
