@@ -146,7 +146,7 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
-    pool = multiprocessing.Pool(5)
+    pool = multiprocessing.Pool(10)
     results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params'])
@@ -343,18 +343,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
 
     """
     
-    
-    # u = data['u_train']
-    # y_ref = data['y_train']
-    # init_state = data['init_state_train']
-    
-    try:
-        x_ref = data['x_train']
-    except:
-        x_ref = None
-        
-    # Create Instance of the Optimization Problem
-    # opti = cs.Opti()
+    max_iter = s_opts['max_iter']
     
     # Create dictionary of all non-frozen parameters to create Opti Variables of 
     OptiParameters = model.Parameters.copy()
@@ -366,7 +355,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     params_opti,opti_vars_vec = CreateOptimVariables(OptiParameters)
     
     
-    # Evaluate on Validation data
+    # Evaluate on model on data
     u_train = data['u_train']
     y_ref_train = data['y_train']
 
@@ -395,17 +384,9 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
         x0 = data['init_state_train']
         loss_train,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
     
-    # Calculate loss symbolic
-    # Compile Casadi function that evaluates loss and its gradient
-    # Evaluate at linearization point
-    # use quadratic solver with hessian approximation
-    # calculate parameter update
-    # evaluate if loss decreased
-    # if not make step smaller
     
     # LM Optimizer
-    # param_vector = []
-    
+   
     grad = cs.gradient(loss_train,opti_vars_vec)
     hess = cs.mtimes(grad,grad.T)
     nlp = cs.Function('loss_train',[*list(params_opti.values())],
@@ -420,7 +401,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     
     nlp_val_hist = np.inf
     
-    for i in range(0,5):
+    for i in range(0,max_iter):
 
         nlp_train,nlp_grad,nlp_hess = nlp(*list(theta.values()))
         nlp_v = nlp_val(*list(theta.values()))
@@ -457,41 +438,9 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
             nlp_val_hist = nlp_v
         else:
             print('Validation loss increased. Stopping optimization.')
-            # break
+            break
             
-        # print('Iteration: '+str(i) + '   loss_train: ' + str(nlp_f) + \
-        #       '   loss_val: ' + str(nlp_v))
-        # if loss reduced continue
-            
-    
-    # qp_struct = {'h':,'g'}
-
-    # solver = conic("solver","qrqp",qp_struct)
-
-    # opti.minimize(loss)
-        
-    # Solver options
-    # if p_opts is None:
-    #     p_opts = {"expand":False}
-    # if s_opts is None:
-    #     s_opts = {"max_iter": 3000, "print_level":2}
-
-    # Create Solver
-    # opti.solver("ipopt",p_opts, s_opts)
-    
-    # Set initial values of Opti Variables as current Model Parameters
-    # for key in params_opti:
-    #     opti.set_initial(params_opti[key], model.Parameters[key])
-    
-    
-    # Solve NLP, if solver does not converge, use last solution from opti.debug
-    # try: 
-    #     sol = opti.solve()
-    # except:
-    #     sol = opti.debug
-        
-    # values = OptimValues_to_dict(params_opti,sol)
-    
+   
     return theta,nlp_train,nlp_v
 
 def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
