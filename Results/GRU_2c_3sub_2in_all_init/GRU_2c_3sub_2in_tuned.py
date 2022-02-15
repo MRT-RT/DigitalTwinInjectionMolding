@@ -33,8 +33,8 @@ def Fit_GRU(counter,initial_params=None):
     # split = 'part'
     
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
