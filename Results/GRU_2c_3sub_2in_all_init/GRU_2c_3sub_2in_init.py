@@ -44,7 +44,7 @@ def Fit_GRU(counter,initial_params=None):
     y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
-    LoadDynamicData(path,charges,y_lab,u_lab)
+    LoadDynamicData(path,charges,split,y_lab,u_lab)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data['u_train']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data['u_val']))]    
@@ -70,8 +70,7 @@ def Fit_GRU(counter,initial_params=None):
                                   name='q_model')
     
     
-    s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 500,
-              "print_level":5}
+    s_opts = {"max_iter": 100}
     # s_opts = None
     
     results_GRU = ParallelModelTraining(quality_model,data,initializations=100, BFR=False, 
