@@ -26,7 +26,7 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 def Fit_GRU(counter,initial_params=None):
 
-    charges = list(range(1,275))
+    charges = list(range(1,2))
     dim_c = 2
     
     split = 'all'
@@ -64,12 +64,12 @@ def Fit_GRU(counter,initial_params=None):
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
+    # s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 1000,
+    #           "print_level":5}
     
-    s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 1000,
-              "print_level":5}
-    # s_opts = None
+    s_opts = None
     
-    results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
+    results_GRU = ParallelModelTraining(quality_model,data,initializations=2, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
@@ -81,19 +81,12 @@ def Fit_GRU(counter,initial_params=None):
     return results_GRU  
 
 
-
-# if __name__ == '__main__':
-#     multiprocessing.freeze_support()
-#     GRU_init = Fit_GRU(0)
-    
-
-
 res = pkl.load(open('GRU_Durchmesser_innen_c0_init.pkl','rb'))
 res_sorted = res.sort_values('loss_val')
 
-initial_params = [res_sorted.iloc[i]['params'] for i in range(0,10)]
+initial_params = [res_sorted.iloc[i]['params'] for i in range(0,1)]
 
-for i in range(0,10):
+for i in range(0,1):
     
     Fit_GRU(i,initial_params[i])
     
