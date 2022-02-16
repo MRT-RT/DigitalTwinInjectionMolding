@@ -70,11 +70,10 @@ def Fit_GRU(counter,initial_params=None):
                                   name='q_model')
     
     
-    s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 500,
-              "print_level":5}
-    # s_opts = None
+    s_opts = {"max_iter": 200}
+
     
-    results_GRU = ParallelModelTraining(quality_model,data,initializations=100, BFR=False, 
+    results_GRU = ParallelModelTraining(quality_model,data,initializations=20, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)

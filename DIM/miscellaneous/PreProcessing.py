@@ -398,7 +398,7 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab):
     mean_y = cycles_train[0][y_lab].mean()
     
     mean_u = cycles_train[0][u_lab_all].mean()
-    mean_u = cycles_train[0][u_lab_all].mean()
+
     min_u = cycles_train[0][u_lab_all].min()
     max_u = cycles_train[0][u_lab_all].max()
 
