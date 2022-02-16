@@ -32,9 +32,9 @@ def Fit_GRU(counter,initial_params=None):
     split = 'all'
     # split = 'part'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -74,7 +74,7 @@ def Fit_GRU(counter,initial_params=None):
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned_full.pkl','wb'))
     
     print('Charge '+str(counter)+' finished.')
     
