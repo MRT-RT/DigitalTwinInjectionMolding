@@ -420,23 +420,25 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
             
             # evaluate loss
             nlp_f,_,_ = nlp(*list(theta_new.values()))
+            nlp_v = nlp_val(*list(theta.values()))
             
             if nlp_f<F:
                 improvement = True
-                theta = theta_new
+                theta = theta_new.copy()
                 lam = max(lam/10,1e-07)
             else:
                 lam = min(lam*10,1e07)
                 
-        nlp_v = nlp_val(*list(theta.values()))
+
         
         if nlp_v < nlp_val_hist:
             nlp_val_hist = nlp_v
-        else:
-            print('Validation loss increased. Stopping optimization.')
-            break
+            theta_save = theta_new.copy()
+        # else:
+        #     print('Validation loss increased. Stopping optimization.')
             
-    return theta,nlp_train,nlp_v
+            
+    return theta_save,nlp_train,nlp_v
 
 def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
       
