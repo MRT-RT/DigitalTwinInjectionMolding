@@ -26,11 +26,11 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 def Fit_GRU(counter,initial_params=None):
 
-    charges = list(range(1,275))
+    charges = list(range(1,2))
     dim_c = 2
     
-    split = 'all'
-    # split = 'part'
+    # split = 'all'
+    split = 'part'
     
     path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
@@ -60,19 +60,22 @@ def Fit_GRU(counter,initial_params=None):
     for rnn in [inj_model,press_model,cool_model]:
        
         rnn.InitialParameters = initial_params
+        rnn.AssignParameters(initial_params)
         
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
+    quality_model.AssignParameters(initial_params)
+    
    
-    s_opts = {"max_iter": 100}
+    s_opts = {"max_iter": 2}
     
     results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned_full.pkl','wb'))
+    # pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned_full.pkl','wb'))
     
     print('Charge '+str(counter)+' finished.')
     
@@ -85,9 +88,9 @@ res_sorted = res.sort_values('loss_val')
 initial_params = [res_sorted.iloc[i]['params'] for i in range(0,10)]
 
 for i in range(0,1):
-    
-    Fit_GRU(i,initial_params[i])
-    
+    print(initial_params[i]['b_y_cool'])
+    res1=Fit_GRU(i,initial_params[i])
+    res2=Fit_GRU(0,res1.iloc[0]['params'])
   
 # if __name__ == '__main__':
     
