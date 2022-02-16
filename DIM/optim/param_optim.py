@@ -42,7 +42,36 @@ def ControlInput(ref_trajectories,opti_vars,k):
 
     return control   
     
-def CreateOptimVariables(opti, Parameters):
+# def CreateOptimVariables(opti, Parameters):
+#     '''
+#     Beschreibung der Funktion
+
+#     Parameters
+#     ----------
+#     opti : Dict
+#         DESCRIPTION.
+#     Parameters : TYPE
+#         DESCRIPTION.
+
+#     Returns
+#     -------
+#     opti_vars : TYPE
+#         DESCRIPTION.
+
+#     '''
+        
+#     # Create empty dictionary
+#     opti_vars = {}
+    
+#     for param in Parameters.keys():
+#         dim0 = Parameters[param].shape[0]
+#         dim1 = Parameters[param].shape[1]
+        
+#         opti_vars[param] = opti.variable(dim0,dim1)
+    
+#     return opti_vars
+
+def CreateOptimVariables(Parameters):
     '''
     Beschreibung der Funktion
 
@@ -62,14 +91,15 @@ def CreateOptimVariables(opti, Parameters):
         
     # Create empty dictionary
     opti_vars = {}
-    
+    opti_vars_vec = []
     for param in Parameters.keys():
         dim0 = Parameters[param].shape[0]
         dim1 = Parameters[param].shape[1]
         
-        opti_vars[param] = opti.variable(dim0,dim1)
-    
-    return opti_vars
+        opti_vars[param] = cs.MX.sym(param,dim0,dim1)
+        opti_vars_vec.append(opti_vars[param].reshape((-1,1)))
+        
+    return opti_vars, cs.vcat(opti_vars_vec)
 
 
 def ModelTraining(model,data,initializations=10, BFR=False, 
@@ -84,41 +114,13 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         model.ParameterInitialization()
         
         # Estimate Parameters on training data
-        new_params = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
-        
-        # Assign estimated parameters to model
-        model.AssignParameters(new_params)
-        
-        # Evaluate on Validation data
-        u = data['u_val']
-        y_ref = data['y_val']
-
-        try:
-            switch =  data['switch_val']
-        except KeyError:
-            switch = None
-
-        if mode == 'parallel':
-            x0 = data['init_state_val']
-            loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,new_params)    
-        elif mode == 'static':
-            loss,_,_ = static_mode(model,u,y_ref,new_params)   
-        elif mode == 'series':
-            x0 = data['init_state_val']
-            loss,_,_ = series_parallel_mode(model,u,y_ref,x0,new_params)
-                 
-        # Calculate mean error over all validation batches
-        loss = loss / len(u)
-        loss = float(np.array(loss))
-        
-        print('Validation error: '+str(loss))
-        
-        
+        new_params,loss_train,loss_val = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
+       
         # save parameters and performance in list
-        results.append([loss,model.name,i,model.Parameters])
+        results.append([loss_train,loss_val,model.name,new_params])
            
-    results = pd.DataFrame(data = results, columns = ['loss_val',
-                        'model','initialization','params'])
+    results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
+                        'model','params'])
     return results
 
 def TrainingProcedure(model, data, p_opts, s_opts, mode):
@@ -127,38 +129,10 @@ def TrainingProcedure(model, data, p_opts, s_opts, mode):
     model.ParameterInitialization()
     
     # Estimate Parameters on training data
-    new_params = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
-    
-    # Assign estimated parameters to model
-    model.AssignParameters(new_params)
-    
-    # Evaluate on Validation data
-    u = data['u_val']
-    y_ref = data['y_val']
-
-    try:
-        switch =  data['switch_val']
-    except KeyError:
-        switch = None
-
-    if mode == 'parallel':
-        x0 = data['init_state_val']
-        loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,new_params)    
-    elif mode == 'static':
-        loss,_,_ = static_mode(model,u,y_ref,new_params)   
-    elif mode == 'series':
-        x0 = data['init_state_val']
-        loss,_,_ = series_parallel_mode(model,u,y_ref,x0,new_params)
-             
-    # Calculate mean error over all validation batches
-    loss = loss / len(u)
-    loss = float(np.array(loss))
-    
-    print('Validation error: '+str(loss))
-    
+    new_params,loss_train,loss_val = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
     
     # save parameters and performance in list
-    result = [loss,model.name,model.Parameters]
+    result = [loss_train,loss_val,model.name,new_params]
     
     return result
 
@@ -172,9 +146,9 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
-    pool = multiprocessing.Pool(5)
+    pool = multiprocessing.Pool(10)
     results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
-    results = pd.DataFrame(data = results, columns = ['loss_val',
+    results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params'])
     
     pool.close() 
@@ -369,18 +343,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
 
     """
     
-    
-    # u = data['u_train']
-    # y_ref = data['y_train']
-    # init_state = data['init_state_train']
-    
-    try:
-        x_ref = data['x_train']
-    except:
-        x_ref = None
-        
-    # Create Instance of the Optimization Problem
-    opti = cs.Opti()
+    max_iter = s_opts['max_iter']
     
     # Create dictionary of all non-frozen parameters to create Opti Variables of 
     OptiParameters = model.Parameters.copy()
@@ -389,51 +352,95 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
         OptiParameters.pop(frozen_param)
         
     
-    params_opti = CreateOptimVariables(opti, OptiParameters)
+    params_opti,opti_vars_vec = CreateOptimVariables(OptiParameters)
+    
+    
+    # Evaluate on model on data
+    u_train = data['u_train']
+    y_ref_train = data['y_train']
 
-    # Evaluate on Validation data
-    u = data['u_train']
-    y_ref = data['y_train']
+    u_val = data['u_val']
+    y_ref_val = data['y_val']
     
     try:
-        switch =  data['switch_train']
+        switch_train =  data['switch_train']
+        switch_val =  data['switch_val']
     except KeyError:
         switch = None
     
     if mode == 'parallel':
-        x0 = data['init_state_train']
-        loss,_,_,_ = parallel_mode(model,u,y_ref,x0,switch,params_opti)    
+        x0_train = data['init_state_train']
+        x0_val = data['init_state_val']
+        
+        loss_train,_,_,_ = parallel_mode(model,u_train,y_ref_train,x0_train,
+                                         switch_train,params_opti) 
+        
+        loss_val,_,_,_ = parallel_mode(model,u_val,y_ref_val,x0_val,
+                                       switch_val,params_opti)
+        
     elif mode == 'static':
-        loss,_,_ = static_mode(model,u,y_ref,params_opti)   
+        loss_train,_,_ = static_mode(model,u,y_ref,params_opti)   
     elif mode == 'series':
         x0 = data['init_state_train']
-        loss,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
+        loss_train,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
     
-    opti.minimize(loss)
+    
+    # LM Optimizer
+   
+    grad = cs.gradient(loss_train,opti_vars_vec)
+    hess = cs.mtimes(grad,grad.T)
+    nlp = cs.Function('loss_train',[*list(params_opti.values())],
+                         [loss_train,grad,hess])
+    nlp_val = cs.Function('loss_val',[*list(params_opti.values())],
+                         [loss_val])
         
-    # Solver options
-    if p_opts is None:
-        p_opts = {"expand":False}
-    if s_opts is None:
-        s_opts = {"max_iter": 3000, "print_level":2}
+    theta = model.Parameters.copy()
 
-    # Create Solver
-    opti.solver("ipopt",p_opts, s_opts)
+    lam = 1
+    step = 0.01
     
-    # Set initial values of Opti Variables as current Model Parameters
-    for key in params_opti:
-        opti.set_initial(params_opti[key], model.Parameters[key])
+    nlp_val_hist = np.inf
     
-    
-    # Solve NLP, if solver does not converge, use last solution from opti.debug
-    try: 
-        sol = opti.solve()
-    except:
-        sol = opti.debug
+    for i in range(0,max_iter):
+
+        nlp_train,nlp_grad,nlp_hess = nlp(*list(theta.values()))
+        nlp_v = nlp_val(*list(theta.values()))
         
-    values = OptimValues_to_dict(params_opti,sol)
-    
-    return values
+        print('Iteration: '+str(i) + '   loss_train: ' + str(nlp_train) + \
+              '   loss_val: ' + str(nlp_v))
+            
+        F = nlp_train
+        G = nlp_grad
+        H = nlp_hess  
+        
+        improvement = False
+        
+        while improvement is False:
+            
+            d_theta = -step*cs.mtimes(cs.inv(H+lam*np.eye(H.shape[0])),G)*F
+            
+            # new params
+            theta_new =  AddParameterUpdate(theta,d_theta)
+            
+            # evaluate loss
+            nlp_f,_,_ = nlp(*list(theta_new.values()))
+            
+            if nlp_f<F:
+                improvement = True
+                theta = theta_new
+                lam = max(lam/10,1e-07)
+            else:
+                lam = min(lam*10,1e07)
+                
+        nlp_v = nlp_val(*list(theta.values()))
+        
+        if nlp_v < nlp_val_hist:
+            nlp_val_hist = nlp_v
+        else:
+            print('Validation loss increased. Stopping optimization.')
+            break
+            
+    return theta,nlp_train,nlp_v
 
 def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
       
@@ -529,3 +536,33 @@ def series_parallel_mode(model,u,y_ref,x_ref,x0,params=None):
     return loss,x,y 
 
 
+def AddParameterUpdate(parameter_dict,update):
+    '''
+    Adds an increment to model parameters
+
+    Parameters
+    ----------
+    update : array like, vector
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.       
+    '''                    
+
+    # Create empty dictionary
+    Parameters_new = {}
+            
+    c = 0
+    
+    for param in parameter_dict.keys():
+        dim0 = parameter_dict[param].shape[0]
+        dim1 = parameter_dict[param].shape[1]
+        
+        Parameters_new[param] = parameter_dict[param] + \
+            update[c:c+dim0*dim1].reshape((dim0,dim1))
+                    
+        c = c + dim0*dim1
+        
+        
+    return Parameters_new

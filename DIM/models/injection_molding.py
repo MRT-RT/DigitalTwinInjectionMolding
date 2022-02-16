@@ -41,7 +41,7 @@ class QualityModel():
         self.subsystems = subsystems
         self.switching_instances = []
         self.name = name
-        # self.FrozenParameters = frozen_params
+        self.FrozenParameters = []
         
         dim_c = []
         dim_out = []
