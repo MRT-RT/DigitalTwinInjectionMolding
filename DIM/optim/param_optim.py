@@ -110,14 +110,10 @@ def ModelTraining(model,data,initializations=10, BFR=False,
     
     for i in range(0,initializations):
         
-        # initialize model to make sure given initial parameters are assigned
-        model.ParameterInitialization()
-        
-        # Estimate Parameters on training data
-        new_params,loss_train,loss_val = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
-       
+        res = TrainingProcedure(model, data, p_opts, s_opts, mode)
+               
         # save parameters and performance in list
-        results.append([loss_train,loss_val,model.name,new_params])
+        results.append(res)
            
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params'])
@@ -146,7 +142,7 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
-    pool = multiprocessing.Pool(10)
+    pool = multiprocessing.Pool(4)
     results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params'])
