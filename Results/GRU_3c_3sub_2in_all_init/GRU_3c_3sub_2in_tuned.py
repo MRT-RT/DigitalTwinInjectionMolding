@@ -27,7 +27,7 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 def Fit_GRU(counter,initial_params=None):
 
     charges = list(range(1,275))
-    dim_c = 2
+    dim_c = 3
     
     split = 'all'
     # split = 'part'
