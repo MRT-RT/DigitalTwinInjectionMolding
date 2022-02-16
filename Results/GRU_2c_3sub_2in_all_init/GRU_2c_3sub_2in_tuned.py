@@ -26,7 +26,7 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 def Fit_GRU(counter,initial_params=None):
 
-    charges = list(range(1,2))
+    charges = list(range(1,275))
     dim_c = 2
     
     split = 'all'
@@ -67,7 +67,7 @@ def Fit_GRU(counter,initial_params=None):
    
     s_opts = {"max_iter": 100}
     
-    results_GRU = ParallelModelTraining(quality_model,data,initializations=1, BFR=False, 
+    results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
@@ -84,7 +84,7 @@ res_sorted = res.sort_values('loss_val')
 
 initial_params = [res_sorted.iloc[i]['params'] for i in range(0,10)]
 
-for i in range(0,10):
+for i in range(0,1):
     
     Fit_GRU(i,initial_params[i])
     
@@ -93,17 +93,16 @@ for i in range(0,10):
     
 #     print('Process started..')
     
-#     res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
+#     res = pkl.load(open('GRU_Durchmesser_innen_c0_init.pkl','rb'))
 #     res_sorted = res.sort_values('loss_val')
+    
+#     initial_params = [res_sorted.iloc[i]['params'] for i in range(0,10)]
 
-#     initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-#                       res_sorted.iloc[2]['params']]
-
-#     initial_params = [res_sorted.iloc[0]['params']]    
+#     # initial_params = [res_sorted.iloc[0]['params']]    
     
 #     multiprocessing.freeze_support()
     
-#     pool = multiprocessing.Pool()
+#     pool = multiprocessing.Pool(5)
     
-#     result = pool.starmap(Fit_GRU, zip([2] ,initial_params)) 
+#     result = pool.starmap(Fit_GRU, zip(list(range(0,10)) ,initial_params)) 
 
