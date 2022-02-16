@@ -65,16 +65,14 @@ def Fit_GRU(counter,initial_params=None):
                                   name='q_model')
     
     
-    s_opts = {"hessian_approximation": 'limited-memory',"max_iter": 1000,
-              "print_level":5}
-    # s_opts = None
+    s_opts = {"max_iter": 500}
     
     results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned_full.pkl','wb'))
     
     print('Charge '+str(counter)+' finished.')
     
@@ -82,37 +80,18 @@ def Fit_GRU(counter,initial_params=None):
 
 
 
-# if __name__ == '__main__':
-#     multiprocessing.freeze_support()
-#     GRU_init = Fit_GRU(0)
+if __name__ == '__main__':
     
+    print('Process started..')
+    
+    res = pkl.load(open('GRU_Durchmesser_innen_c0_init.pkl','rb'))
+    res_sorted = res.sort_values('loss_val')
 
-
-res = pkl.load(open('GRU_Durchmesser_innen_c0_init.pkl','rb'))
-res_sorted = res.sort_values('loss_val')
-
-initial_params = [res_sorted.iloc[i]['params'] for i in range(0,10)]
-
-for i in range(0,1):
+    initial_params = [res_sorted.iloc[i]['params'] for i in range(0,10)]
+   
+    multiprocessing.freeze_support()
     
-    Fit_GRU(i,initial_params[i])
+    pool = multiprocessing.Pool(4)
     
- 
-# if __name__ == '__main__':
-    
-#     print('Process started..')
-    
-#     res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
-#     res_sorted = res.sort_values('loss_val')
-
-#     initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-#                       res_sorted.iloc[2]['params']]
-
-#     initial_params = [res_sorted.iloc[0]['params']]    
-    
-#     multiprocessing.freeze_support()
-    
-#     pool = multiprocessing.Pool()
-    
-#     result = pool.starmap(Fit_GRU, zip([2] ,initial_params)) 
+    result = pool.starmap(Fit_GRU, zip(list(range(0,10)) ,initial_params)) 
 
