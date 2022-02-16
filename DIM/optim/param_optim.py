@@ -410,7 +410,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
         H = nlp_hess  
         
         improvement = False
-        
+
         while improvement is False:
             
             d_theta = -step*cs.mtimes(cs.inv(H+lam*np.eye(H.shape[0])),G)*F
@@ -425,11 +425,15 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
             if nlp_f<F:
                 improvement = True
                 theta = theta_new.copy()
-                lam = max(lam/10,1e-07)
+                lam = max(lam/10,1e-10)
             else:
-                lam = min(lam*10,1e07)
                 
-
+                if lam == 1e10:
+                    print('Keine Verbesserung möglich, breche Optimierung ab!')
+                    break
+                    
+                lam = min(lam*10,1e10)
+                 
         
         if nlp_v < nlp_val_hist:
             nlp_val_hist = nlp_v
