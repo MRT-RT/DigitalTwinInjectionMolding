@@ -117,7 +117,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         new_params,loss_train,loss_val = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
        
         # save parameters and performance in list
-        results.append([loss_train,loss_val,model.name,model.Parameters])
+        results.append([loss_train,loss_val,model.name,new_params])
            
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params'])
@@ -132,7 +132,7 @@ def TrainingProcedure(model, data, p_opts, s_opts, mode):
     new_params,loss_train,loss_val = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
     
     # save parameters and performance in list
-    result = [loss_train,loss_val,model.name,model.Parameters]
+    result = [loss_train,loss_val,model.name,new_params]
     
     return result
 
@@ -146,7 +146,7 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
-    pool = multiprocessing.Pool(5)
+    pool = multiprocessing.Pool(10)
     results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params'])
@@ -395,7 +395,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
                          [loss_val])
         
     theta = model.Parameters.copy()
-    
+
     lam = 1
     step = 0.01
     
@@ -440,7 +440,6 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
             print('Validation loss increased. Stopping optimization.')
             break
             
-   
     return theta,nlp_train,nlp_v
 
 def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
