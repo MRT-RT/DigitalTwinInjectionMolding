@@ -340,16 +340,11 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     """
     
     max_iter = s_opts['max_iter']
+    step = s_opts['step']
     
     # Create dictionary of all non-frozen parameters to create Opti Variables of 
-    OptiParameters = model.Parameters.copy()
-   
-    for frozen_param in model.FrozenParameters:
-        OptiParameters.pop(frozen_param)
-        
-    
-    params_opti,opti_vars_vec = CreateOptimVariables(OptiParameters)
-    
+    # OptiParameters = model.Parameters.copy()
+    params_opti,_ = CreateOptimVariables(model.Parameters)      
     
     # Evaluate on model on data
     u_train = data['u_train']
@@ -380,51 +375,64 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
         x0 = data['init_state_train']
         loss_train,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
     
+     
+    
+    opti_vars_vec = cs.vcat([params_opti[p].reshape((-1,1)) for p in 
+                             params_opti.keys() if p not in model.FrozenParameters])
     
     # LM Optimizer
-   
     grad = cs.gradient(loss_train,opti_vars_vec)
     hess = cs.mtimes(grad,grad.T)
-    nlp = cs.Function('loss_train',[*list(params_opti.values())],
-                         [loss_train,grad,hess])
-    nlp_val = cs.Function('loss_val',[*list(params_opti.values())],
-                         [loss_val])
-        
-    theta = model.Parameters.copy()
+
+    train = cs.Function('loss_train',[*list(params_opti.values())],
+                         [loss_train,grad,hess],list(params_opti.keys()),
+                         ['F','G','H'])
+    val = cs.Function('loss_val',[*list(params_opti.values())],
+                         [loss_val],list(params_opti.keys()),['F'])
+    
+    
+    # replace frozen parameters in params_opti with numeric model parameters
+    # for p in model.FrozenParameters:
+    #     params_opti[p] = model.Parameters[p]      
 
     lam = 1
-    step = 0.01
+    params = model.Parameters.copy()
     
     nlp_val_hist = np.inf
     
     for i in range(0,max_iter):
 
-        nlp_train,nlp_grad,nlp_hess = nlp(*list(theta.values()))
-        nlp_v = nlp_val(*list(theta.values()))
+        FGH = train(**params)
+        F_val = val(**params)
         
-        print('Iteration: '+str(i) + '   loss_train: ' + str(nlp_train) + \
-              '   loss_val: ' + str(nlp_v))
+        F = FGH['F']
+        G = FGH['G']
+        H = FGH['H']  
+        
+        F_val = F_val['F']
+        
+        print('Iteration: '+str(i) + '   loss_train: ' + str(F) + \
+              '   loss_val: ' + str(F_val) + '   lambda:' + str(lam))
             
-        F = nlp_train
-        G = nlp_grad
-        H = nlp_hess  
+
         
         improvement = False
-
+        
         while improvement is False:
             
             d_theta = -step*cs.mtimes(cs.inv(H+lam*np.eye(H.shape[0])),G)*F
             
             # new params
-            theta_new =  AddParameterUpdate(theta,d_theta)
+            params_new =  AddParameterUpdate(params,d_theta,
+                                            model.FrozenParameters)
             
             # evaluate loss
-            nlp_f,_,_ = nlp(*list(theta_new.values()))
-            nlp_v = nlp_val(*list(theta.values()))
+            f = train(**params_new)['F']
+            v = val(**params_new)['F']
             
-            if nlp_f<F:
+            if f<F:
                 improvement = True
-                theta = theta_new.copy()
+                params = params_new
                 lam = max(lam/10,1e-10)
             else:
                 
@@ -435,11 +443,12 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
                 lam = min(lam*10,1e10)
                  
         
-        if nlp_v < nlp_val_hist:
-            nlp_val_hist = nlp_v
-            theta_save = theta_new.copy()
-        # else:
-        #     print('Validation loss increased. Stopping optimization.')
+        if v < nlp_val_hist:
+            nlp_val_hist = v
+            theta_save = params.copy()
+        else:
+            print('Validation loss increased. Stopping optimization.')
+            break
             
             
     return theta_save,nlp_train,nlp_v
@@ -538,7 +547,7 @@ def series_parallel_mode(model,u,y_ref,x_ref,x0,params=None):
     return loss,x,y 
 
 
-def AddParameterUpdate(parameter_dict,update):
+def AddParameterUpdate(parameter_dict,update,frozen_parameters=[]):
     '''
     Adds an increment to model parameters
 
@@ -553,18 +562,20 @@ def AddParameterUpdate(parameter_dict,update):
     '''                    
 
     # Create empty dictionary
-    Parameters_new = {}
+    Parameters_new = parameter_dict.copy()
             
     c = 0
     
     for param in parameter_dict.keys():
-        dim0 = parameter_dict[param].shape[0]
-        dim1 = parameter_dict[param].shape[1]
         
-        Parameters_new[param] = parameter_dict[param] + \
-            update[c:c+dim0*dim1].reshape((dim0,dim1))
+        if param not in frozen_parameters:
+            dim0 = parameter_dict[param].shape[0]
+            dim1 = parameter_dict[param].shape[1]
+        
+            Parameters_new[param] = parameter_dict[param] + \
+                update[c:c+dim0*dim1].reshape((dim0,dim1))
                     
-        c = c + dim0*dim1
+            c = c + dim0*dim1
         
         
     return Parameters_new

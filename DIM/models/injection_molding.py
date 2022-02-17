@@ -152,7 +152,11 @@ class QualityModel():
             if isinstance(sim,tuple):
                 c.append(sim[0])
                 y.append(sim[1])        
-            
+
+        # inj_params = cs.vcat([params[p].reshape((-1,1)) for p in self.subsystems[0].Parameters.keys()])
+        # grad = cs.gradient(sim[0][-1],inj_params)
+        # fun = cs.Function('fun',list(params.values()),[sim[0][1],grad],list(params.keys()),[])
+        # fun(**self.Parameters)
         # Concatenate list to casadiMX
         y = cs.vcat(y)  
         c = cs.vcat(c)          
