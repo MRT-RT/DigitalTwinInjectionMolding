@@ -109,7 +109,7 @@ if __name__ == '__main__':
    
     multiprocessing.freeze_support()
     
-    pool = multiprocessing.Pool(10)
+    pool = multiprocessing.Pool(8)
     
     result = pool.starmap(Fit_GRU, zip(list(range(0,10)) ,initial_params)) 
 
