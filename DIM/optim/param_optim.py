@@ -116,7 +116,7 @@ def ModelTraining(model,data,initializations=10, BFR=False,
         results.append(res)
            
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
-                        'model','params'])
+                        'model','params_train','params_val'])
     return results
 
 def TrainingProcedure(model, data, p_opts, s_opts, mode):
@@ -125,10 +125,10 @@ def TrainingProcedure(model, data, p_opts, s_opts, mode):
     model.ParameterInitialization()
     
     # Estimate Parameters on training data
-    new_params,loss_train,loss_val = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
+    params_train,params_val,loss_train,loss_val = ModelParameterEstimation(model,data,p_opts,s_opts,mode)
     
     # save parameters and performance in list
-    result = [loss_train,loss_val,model.name,new_params]
+    result = [loss_train,loss_val,model.name,params_train,params_val]
     
     return result
 
@@ -445,13 +445,11 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
         
         if v < nlp_val_hist:
             nlp_val_hist = v
-            theta_save = params.copy()
-        else:
-            print('Validation loss increased. Stopping optimization.')
-            break
+            params_save = params.copy()
+
             
             
-    return theta_save,F,F_val
+    return params,params_save,F,F_val
 
 def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
       
