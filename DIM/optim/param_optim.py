@@ -451,7 +451,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
             break
             
             
-    return theta_save,nlp_train,nlp_v
+    return theta_save,F,F_val
 
 def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
       
