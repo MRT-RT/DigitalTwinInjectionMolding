@@ -65,22 +65,22 @@ class RNN():
             except:
                 pass           
             
-    def SetInitialParameters(self,initial_params):
-        for p_name in self.Function.name_in()[2::]:
-            try:
-                self.InitialParameters[p_name] = initial_params[p_name]
-            except:
-                pass
+    # def SetInitialParameters(self,initial_params):
+    #     for p_name in self.Function.name_in()[2::]:
+    #         try:
+    #             self.InitialParameters[p_name] = initial_params[p_name]
+    #         except:
+    #             pass
             
-    def SetFrozenParameters(self,frozen_params):
-        # print(frozen_params)
-        # print(self.Function.name_in()[2::])
-        print(self.FrozenParameters)
-        for p_name in self.Function.name_in()[2::]:
-            if p_name in frozen_params:
-                # print(p_name)
-                self.FrozenParameters.append(p_name)
-        print(self.FrozenParameters)
+    # def SetFrozenParameters(self,frozen_params):
+    #     # print(frozen_params)
+    #     # print(self.Function.name_in()[2::])
+    #     print(self.FrozenParameters)
+    #     for p_name in self.Function.name_in()[2::]:
+    #         if p_name in frozen_params:
+    #             # print(p_name)
+    #             self.FrozenParameters.append(p_name)
+    #     print(self.FrozenParameters)
 
             
     def OneStepPrediction(self,x0,u0,params=None):

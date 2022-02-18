@@ -91,7 +91,9 @@ class QualityModel():
             
             # Call Initialize function of each subsystem
             subsystem.Initialize()
-                
+            
+        self.ParameterInitialization()
+        
         return None
     
     def Simulation(self,c0,u,params=None,switching_instances=None):
@@ -153,49 +155,49 @@ class QualityModel():
                 c.append(sim[0])
                 y.append(sim[1])        
 
-        # inj_params = cs.vcat([params[p].reshape((-1,1)) for p in self.subsystems[0].Parameters.keys()])
-        # grad = cs.gradient(sim[0][-1],inj_params)
-        # fun = cs.Function('fun',list(params.values()),[sim[0][1],grad],list(params.keys()),[])
-        # fun(**self.Parameters)
+        inj_params = cs.vcat([params[p].reshape((-1,1)) for p in self.subsystems[0].Parameters.keys()])
+        grad = cs.gradient(sim[0][-1],inj_params)
+        fun = cs.Function('fun',list(params.values()),[sim[0][1],grad],list(params.keys()),[])
+        fun(**self.Parameters)
         # Concatenate list to casadiMX
         y = cs.vcat(y)  
         c = cs.vcat(c)          
             
         return c,y  
     
-    # def ParameterInitialization(self):
-        
-        # self.Parameters = {}
-        # self.FrozenParameters = []
-        
-        # for system in self.subsystems:
-            # system.ParameterInitialization()
-            # self.Parameters.update(system.Parameters)                                  # append subsystems parameters
-            # self.FrozenParameters.extend(system.FrozenParameters)
-
-    def SetParameters(self,params):
+    def ParameterInitialization(self):
         
         self.Parameters = {}
-        
-        for system in self.subsystems:
-            system.SetParameters(params)
-            self.Parameters.update(system.Parameters)
-            
-    def SetInitialParameters(self,initial_params):
-        
-        self.InitialParameters = {}
-        
-        for system in self.subsystems:
-            system.SetInitialParameters(initial_params)    
-            self.InitialParameters.update(system.InitialParameters)
-            
-    def SetFrozenParameters(self,frozen_params):
-        
         self.FrozenParameters = []
-
+        
         for system in self.subsystems:
-            system.SetFrozenParameters(frozen_params) 
+            system.ParameterInitialization()
+            self.Parameters.update(system.Parameters)                                  # append subsystems parameters
             self.FrozenParameters.extend(system.FrozenParameters)
+
+    # def SetParameters(self,params):
+        
+    #     self.Parameters = {}
+        
+    #     for system in self.subsystems:
+    #         system.SetParameters(params)
+    #         self.Parameters.update(system.Parameters)
+            
+    # def SetInitialParameters(self,initial_params):
+        
+    #     self.InitialParameters = {}
+        
+    #     for system in self.subsystems:
+    #         system.SetInitialParameters(initial_params)    
+    #         self.InitialParameters.update(system.InitialParameters)
+            
+    # def SetFrozenParameters(self,frozen_params):
+        
+    #     self.FrozenParameters = []
+
+    #     for system in self.subsystems:
+    #         system.SetFrozenParameters(frozen_params) 
+    #         self.FrozenParameters.extend(system.FrozenParameters)
         
             
                 
