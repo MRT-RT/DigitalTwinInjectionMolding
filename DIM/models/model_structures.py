@@ -46,21 +46,43 @@ class RNN():
         for p_name in self.Function.name_in()[2::]:
             new_param_values[p_name] = initialization(self.Function.size_in(p_name))
         
-        self.AssignParameters(new_param_values)
+        self.SetParameters(new_param_values)
 
         # Initialize with specific inital parameters if given
-        if self.InitialParameters is not None:
-            for param in self.InitialParameters.keys():
-                if param in self.Parameters.keys():
-                    self.Parameters[param] = self.InitialParameters[param]
+        self.SetParameters(self.InitialParameters)
+        # if self.InitialParameters is not None:
+        #     for param in self.InitialParameters.keys():
+        #         if param in self.Parameters.keys():
+        #             self.Parameters[param] = self.InitialParameters[param]
+        
+        return None
                     
-    def AssignParameters(self,params):
-        
+                    
+    def SetParameters(self,params):
         for p_name in self.Function.name_in()[2::]:
-            self.Parameters[p_name] = params[p_name]
-    
+            try:
+                self.Parameters[p_name] = params[p_name]
+            except:
+                pass           
+            
+    def SetInitialParameters(self,initial_params):
+        for p_name in self.Function.name_in()[2::]:
+            try:
+                self.InitialParameters[p_name] = initial_params[p_name]
+            except:
+                pass
+            
+    def SetFrozenParameters(self,frozen_params):
+        # print(frozen_params)
+        # print(self.Function.name_in()[2::])
+        print(self.FrozenParameters)
+        for p_name in self.Function.name_in()[2::]:
+            if p_name in frozen_params:
+                # print(p_name)
+                self.FrozenParameters.append(p_name)
+        print(self.FrozenParameters)
 
-        
+            
     def OneStepPrediction(self,x0,u0,params=None):
         '''
         Estimates the next state and output from current state and input
@@ -550,7 +572,7 @@ class GRU(RNN):
     as output
     """
 
-    def __init__(self,dim_u,dim_c,dim_hidden,dim_out,name,initial_params=None, 
+    def __init__(self,dim_u,dim_c,dim_hidden,dim_out,name,initial_params={}, 
                  frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the GRU Architecture

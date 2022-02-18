@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Oct 25 14:44:37 2021
 
-@author: alexa
-"""
 
 import pickle as pkl
 import numpy as np
@@ -24,7 +19,7 @@ from DIM.optim.param_optim import ParallelModelTraining, ModelTraining
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 ''' Data Loading '''  
-charges = list(range(1,275))
+charges = list(range(1,2))
 dim_c = 1
 
 # split = 'all'
@@ -32,8 +27,8 @@ split = 'part'
 
 # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+# path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
 u_inj= ['p_wkz_ist','T_wkz_ist']
 u_press= ['p_wkz_ist','T_wkz_ist']
@@ -61,39 +56,42 @@ quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                               name='q_model')
     
 ''' Optimize injection model '''
-
+quality_model.SetFrozenParameters(list(press_model.Parameters.keys()))
+                                  
+                                  
 # Freeze all other models
-press_model.FrozenParameters = list(press_model.Parameters.keys())
-cool_model.FrozenParameters = list(press_model.Parameters.keys())
+# press_model.SetFrozenParameters(list(press_model.Parameters.keys())
+# cool_model.SetFrozenParameters = list(press_model.Parameters.keys())
 
 # Initialize biases of forget gate
-press_model.InitialParameters =  {'b_z_press':np.ones((1,1))*-(1e100)}
-cool_model.InitialParameters =  {'b_z_cool':np.ones((1,1))*-(1e100)}
+# press_model.SetInitialParameters =  {'b_z_press':np.ones((1,1))*-(1e100)}
+# cool_model.SetInitialParameters =  {'b_z_cool':np.ones((1,1))*-(1e100)}
 
 
-
-s_opts = {"max_iter": 100,'step':0.1}
+# s_opts = {"max_iter": 50,'step':1}
     
-res1 = ModelTraining(quality_model,data,initializations=1, BFR=False, 
-                  p_opts=None, s_opts=s_opts)
+# res1 = ModelTraining(quality_model,data,initializations=1, BFR=False, 
+#                   p_opts=None, s_opts=s_opts)
 
+# ''' Optimize press model ''' 
 
-    results_GRU['Chargen'] = 'c'+str(counter)
+# quality_model.Initializ
+#     results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned_work.pkl','wb'))
+#     pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_tuned_work.pkl','wb'))
     
-    print('Charge '+str(counter)+' finished.')
+#     print('Charge '+str(counter)+' finished.')
     
-    return results_GRU  
+#     return results_GRU  
 
-initial_params = {'b_z_press':np.ones((1,1))*-(1e100),
-                  'b_z_cool':np.ones((1,1))*-(1e100),
-                  'b_r_press':np.ones((1,1))*1e100,
-                  'b_c_press':np.zeros((1,1)),
-                  'b_r_cool':np.zeros((1,1))*1e100,
-                  'b_c_cool':np.zeros((1,1))}
+# initial_params = {'b_z_press':np.ones((1,1))*-(1e100),
+#                   'b_z_cool':np.ones((1,1))*-(1e100),
+#                   'b_r_press':np.ones((1,1))*1e100,
+#                   'b_c_press':np.zeros((1,1)),
+#                   'b_r_cool':np.zeros((1,1))*1e100,
+#                   'b_c_cool':np.zeros((1,1))}
 
-result = Fit_GRU(44,initial_params)
+# result = Fit_GRU(44,initial_params)
 
 
 

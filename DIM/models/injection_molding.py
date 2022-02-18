@@ -163,21 +163,41 @@ class QualityModel():
             
         return c,y  
     
-    def ParameterInitialization(self):
+    # def ParameterInitialization(self):
+        
+        # self.Parameters = {}
+        # self.FrozenParameters = []
+        
+        # for system in self.subsystems:
+            # system.ParameterInitialization()
+            # self.Parameters.update(system.Parameters)                                  # append subsystems parameters
+            # self.FrozenParameters.extend(system.FrozenParameters)
+
+    def SetParameters(self,params):
         
         self.Parameters = {}
+        
+        for system in self.subsystems:
+            system.SetParameters(params)
+            self.Parameters.update(system.Parameters)
+            
+    def SetInitialParameters(self,initial_params):
+        
+        self.InitialParameters = {}
+        
+        for system in self.subsystems:
+            system.SetInitialParameters(initial_params)    
+            self.InitialParameters.update(system.InitialParameters)
+            
+    def SetFrozenParameters(self,frozen_params):
+        
         self.FrozenParameters = []
-        
-        for system in self.subsystems:
-            system.ParameterInitialization()
-            self.Parameters.update(system.Parameters)                                  # append subsystems parameters
-            self.FrozenParameters.extend(system.FrozenParameters)
 
-    def AssignParameters(self,params):
-        self.Parameters = params
-        
         for system in self.subsystems:
-            system.AssignParameters(params)
+            system.SetFrozenParameters(frozen_params) 
+            self.FrozenParameters.extend(system.FrozenParameters)
+        
+            
                 
 
 class LinearSSM():
