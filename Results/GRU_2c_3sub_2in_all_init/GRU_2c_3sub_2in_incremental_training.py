@@ -115,7 +115,7 @@ cool_model.InitialParameters = {p:res2.iloc[0]['params'][p] for p in cool_model.
 quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                               name='q_model')
     
-s_opts = {"max_iter": 50,'step':0.1}
+s_opts = {"max_iter": 100,'step':0.1}
     
 res3 = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                   p_opts=None, s_opts=s_opts)

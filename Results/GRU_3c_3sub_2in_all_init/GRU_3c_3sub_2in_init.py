@@ -24,10 +24,10 @@ from DIM.optim.param_optim import ParallelModelTraining
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
-def Fit_GRU(counter,initial_params=None):
+def Fit_GRU(initial_params=None):
 
     charges = list(range(1,275))
-    dim_c = 3
+    dim_c = 1
     
     # split = 'all'
     split = 'part'
@@ -57,28 +57,25 @@ def Fit_GRU(counter,initial_params=None):
     press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='press')
     cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
     
-    for rnn in [inj_model,press_model,cool_model]:
-        name = rnn.name
-        
-        initial_params = {'b_r_'+name: np.random.uniform(-2,0,(dim_c,1)),
-                          'b_z_'+name: np.random.uniform(-2,0,(dim_c,1)),
-                          'b_c_'+name: np.random.uniform(-2,0,(dim_c,1))}
-        
-        rnn.InitialParameters = initial_params
+    press_model.InitialParameters = {'b_z_press':np.ones((dim_c,1))*-(10)}
+    cool_model.InitialParameters = {'b_z_cool':np.ones((dim_c,1))*-(10)}
+
+    # press_model.InitialParameters = {'b_z_press':np.random.uniform(-10,-1,(dim_c,1))}
+    # cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-10,-1,(dim_c,1))}     
         
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
     
-    s_opts = {"max_iter": 200}
+    s_opts = {"max_iter": 500, "step":0.1}
 
     
     results_GRU = ParallelModelTraining(quality_model,data,initializations=20, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
-    results_GRU['Chargen'] = 'c'+str(counter)
+    # results_GRU['Chargen'] = 'c'+str(counter)
     
-    pkl.dump(results_GRU,open('GRU_Durchmesser_innen_c'+str(counter)+'_init.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_results.pkl','wb'))
     
     print('Charge '+str(counter)+' finished.')
     
@@ -88,7 +85,7 @@ def Fit_GRU(counter,initial_params=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    GRU_init = Fit_GRU(0)
+    GRU_init = Fit_GRU()
  
 
 # res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
