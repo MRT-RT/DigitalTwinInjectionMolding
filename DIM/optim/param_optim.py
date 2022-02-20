@@ -145,7 +145,7 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     pool = multiprocessing.Pool(4)
     results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
-                        'model','params'])
+                        'model','params_train','params_val'])
     
     pool.close() 
     pool.join()      

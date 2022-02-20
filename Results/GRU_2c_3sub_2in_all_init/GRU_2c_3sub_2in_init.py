@@ -57,9 +57,11 @@ def Fit_GRU(counter,initial_params=None):
     press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='press')
     cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
     
-    press_model.InitialParameters = {'b_z_press':np.ones((dim_c,1))*-(1e3)}
-    cool_model.InitialParameters = {'b_z_cool':np.ones((dim_c,1))*-(1e3)}
-        
+    # press_model.InitialParameters = {'b_z_press':np.ones((dim_c,1))*-(1e4)}
+    # cool_model.InitialParameters = {'b_z_cool':np.ones((dim_c,1))*-(1e4)}
+
+    press_model.InitialParameters = {'b_z_press':np.random.uniform(-10,-1,(dim_c,1))}
+    cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-10,-1,(dim_c,1))}        
 
         
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
