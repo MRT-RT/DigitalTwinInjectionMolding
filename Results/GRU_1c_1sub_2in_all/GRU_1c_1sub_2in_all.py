@@ -27,13 +27,13 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 def Fit_GRU(initial_params=None):
 
     charges = list(range(1,275))
-    dim_c = 2
+    dim_c = 3
     
     # split = 'all'
     split = 'part'
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_lab= ['p_wkz_ist','T_wkz_ist']
@@ -51,17 +51,15 @@ def Fit_GRU(initial_params=None):
     data['init_state_val'] = c0_val
     
     
-    inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='inj')
-    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='press')
-    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
+    all_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='all')
     
-    press_model.InitialParameters = {'b_z_press':np.ones((dim_c,1))*-(10)}
-    cool_model.InitialParameters = {'b_z_cool':np.ones((dim_c,1))*-(10)}
+    all_model.InitialParameters = {'b_z_all':np.ones((dim_c,1))*-(10)}
+
 
     # press_model.InitialParameters = {'b_z_press':np.random.uniform(-10,-1,(dim_c,1))}
     # cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-10,-1,(dim_c,1))}     
         
-    quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
+    quality_model = QualityModel(subsystems=[all_model],
                                   name='q_model')
     
     
