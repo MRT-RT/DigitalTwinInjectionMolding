@@ -35,7 +35,6 @@ def Fit_GRU(dim_c,initial_params=None):
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    
     u_lab = [['p_wkz_ist','T_wkz_ist']]
     y_lab = ['Durchmesser_innen']
     
