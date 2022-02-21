@@ -59,12 +59,12 @@ class RNN():
         return None
                     
                     
-    def SetParameters(self,params):
-        for p_name in self.Function.name_in()[2::]:
-            try:
-                self.Parameters[p_name] = params[p_name]
-            except:
-                pass           
+    # def SetParameters(self,params):
+    #     for p_name in self.Function.name_in()[2::]:
+    #         try:
+    #             self.Parameters[p_name] = params[p_name]
+    #         except:
+    #             pass           
             
     # def SetInitialParameters(self,initial_params):
     #     for p_name in self.Function.name_in()[2::]:
