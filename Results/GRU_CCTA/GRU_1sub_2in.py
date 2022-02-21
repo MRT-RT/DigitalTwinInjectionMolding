@@ -35,11 +35,8 @@ def Fit_GRU(dim_c,initial_params=None):
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    u_inj= ['p_wkz_ist','T_wkz_ist']
-    u_press= ['p_wkz_ist','T_wkz_ist']
-    u_cool= ['p_wkz_ist','T_wkz_ist']
     
-    u_lab = [u_inj,u_press,u_cool]
+    u_lab = [['p_wkz_ist','T_wkz_ist']]
     y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
@@ -52,28 +49,21 @@ def Fit_GRU(dim_c,initial_params=None):
     data['init_state_val'] = c0_val
     
     
-    inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='inj')
-    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='press')
-    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
-    
-    press_model.InitialParameters = {'b_z_press':np.random.uniform(-100,-2,(dim_c,1))}
-    cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-100,-2,(dim_c,1))}        
+    one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='inj')
 
-        
-    quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
+    one_model.InitialParameters = {'b_z_one':np.random.uniform(-100,-2,(dim_c,1))}
+    
+    quality_model = QualityModel(subsystems=[one_model],
                                   name='q_model')
     
     
     s_opts = {"max_iter": 200, 'step':0.1}
-    # s_opts = None
     
     results_GRU = ParallelModelTraining(quality_model,data,initializations=10, BFR=False, 
                       p_opts=None, s_opts=s_opts)
         
-    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'.pkl','wb'))
-    
-
-    
+    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_1sub.pkl','wb'))
+  
     return results_GRU  
 
 
@@ -83,35 +73,3 @@ if __name__ == '__main__':
     c2 = Fit_GRU(dim_c=2)
     c3 = Fit_GRU(dim_c=3)
     c4 = Fit_GRU(dim_c=4)
-    
-
-# res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
-# res_sorted = res.sort_values('loss_val')
-
-# initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-#                   res_sorted.iloc[2]['params']]
-# counter = [2,9,0]
-
-# for i in range(0,3):
-    
-# Fit_GRU(counter[i],initial_params[i])
-    
-  
-# if __name__ == '__main__':
-    
-#     print('Process started..')
-    
-#     res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
-#     res_sorted = res.sort_values('loss_val')
-
-#     initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-#                       res_sorted.iloc[2]['params']]
-
-#     initial_params = [res_sorted.iloc[0]['params']]    
-    
-#     multiprocessing.freeze_support()
-    
-#     pool = multiprocessing.Pool()
-    
-#     result = pool.starmap(Fit_GRU, zip([2] ,initial_params)) 
-

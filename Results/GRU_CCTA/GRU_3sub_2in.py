@@ -31,21 +31,16 @@ def Fit_GRU(dim_c,initial_params=None):
     # split = 'all'
     split = 'part'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-<<<<<<< Updated upstream
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
        
-    u_lab = [['p_wkz_ist','T_wkz_ist']]
-=======
-    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    
+   
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
     u_cool= ['p_wkz_ist','T_wkz_ist']
     
     u_lab = [u_inj,u_press,u_cool]
->>>>>>> Stashed changes
     y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
@@ -58,32 +53,24 @@ def Fit_GRU(dim_c,initial_params=None):
     data['init_state_val'] = c0_val
     
     
-    one_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='one')
+    inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='inj')
+    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='press')
+    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
     
-    one_model.InitialParameters = {'b_z_one':np.random.uniform(-100,-2,(dim_c,1))}
+    press_model.InitialParameters = {'b_z_press':np.random.uniform(-100,-2,(dim_c,1))}
+    cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-100,-2,(dim_c,1))}
    
-    quality_model = QualityModel(subsystems=[one_model],
+    quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
-    
-<<<<<<< Updated upstream
     s_opts = {"max_iter": 200, 'step':0.1}
-=======
-    s_opts = {"max_iter": 100, 'step':0.1}
-    # s_opts = None
->>>>>>> Stashed changes
-    
-    results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
-                      p_opts=None, s_opts=s_opts)
-        
-<<<<<<< Updated upstream
-    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_1sub.pkl','wb'))
-=======
-    # pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'.pkl','wb'))
->>>>>>> Stashed changes
-    
 
     
+    results_GRU = ModelTraining(quality_model,data,initializations=10, BFR=False, 
+                      p_opts=None, s_opts=s_opts)
+        
+    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub.pkl','wb'))
+  
     return results_GRU  
 
 
@@ -93,35 +80,3 @@ if __name__ == '__main__':
     c2 = Fit_GRU(dim_c=2)
     c3 = Fit_GRU(dim_c=3)
     c4 = Fit_GRU(dim_c=4)
-    
-
-# res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
-# res_sorted = res.sort_values('loss_val')
-
-# initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-#                   res_sorted.iloc[2]['params']]
-# counter = [2,9,0]
-
-# for i in range(0,3):
-    
-# Fit_GRU(counter[i],initial_params[i])
-    
-  
-# if __name__ == '__main__':
-    
-#     print('Process started..')
-    
-#     res = pkl.load(open('GRU_Durchmesser_innen_c2.pkl','rb'))
-#     res_sorted = res.sort_values('loss_val')
-
-#     initial_params = [res_sorted.iloc[0]['params'],res_sorted.iloc[1]['params'],
-#                       res_sorted.iloc[2]['params']]
-
-#     initial_params = [res_sorted.iloc[0]['params']]    
-    
-#     multiprocessing.freeze_support()
-    
-#     pool = multiprocessing.Pool()
-    
-#     result = pool.starmap(Fit_GRU, zip([2] ,initial_params)) 
-
