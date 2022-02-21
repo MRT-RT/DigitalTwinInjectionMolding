@@ -20,7 +20,7 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ParallelModelTraining
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
@@ -66,8 +66,8 @@ def Fit_GRU(dim_c,initial_params=None):
     s_opts = {"max_iter": 200, 'step':0.1}
 
     
-    results_GRU = ModelTraining(quality_model,data,initializations=10, BFR=False, 
-                      p_opts=None, s_opts=s_opts)
+    results_GRU = ParallelModelTraining(quality_model,data,initializations=20, BFR=False, 
+                      p_opts=None, s_opts=s_opts,mode='parallel',n_pool=10)
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub.pkl','wb'))
   
