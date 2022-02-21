@@ -437,7 +437,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
             elif lam == 1e10:
                 print('Keine Verbesserung möglich, breche Optimierung ab!')
                 break
-                    
+            else:                    
                 lam = min(lam*10,1e10)
                  
         
