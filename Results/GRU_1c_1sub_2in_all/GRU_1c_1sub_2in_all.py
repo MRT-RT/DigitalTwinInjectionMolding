@@ -27,13 +27,13 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 def Fit_GRU(initial_params=None):
 
     charges = list(range(1,275))
-    dim_c = 2
+    dim_c = 3
     
     # split = 'all'
     split = 'part'
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     u_lab= ['p_wkz_ist','T_wkz_ist']
@@ -51,7 +51,7 @@ def Fit_GRU(initial_params=None):
     data['init_state_val'] = c0_val
     
     
-    all_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=10,name='all')
+    all_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='all')
     
     all_model.InitialParameters = {'b_z_all':np.ones((dim_c,1))*-(10)}
 
@@ -66,7 +66,7 @@ def Fit_GRU(initial_params=None):
     s_opts = {"max_iter": 500, "step":0.1}
 
     
-    results_GRU = ParallelModelTraining(quality_model,data,initializations=20, BFR=False, 
+    results_GRU = ParallelModelTraining(quality_model,data,initializations=10, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     # results_GRU['Chargen'] = 'c'+str(counter)
