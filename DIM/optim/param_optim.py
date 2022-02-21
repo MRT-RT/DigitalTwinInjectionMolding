@@ -21,7 +21,7 @@ import pandas as pd
 import pickle as pkl
 
 
-from DIM.optim.DiscreteBoundedPSO import DiscreteBoundedPSO
+# from DIM.optim.DiscreteBoundedPSO import DiscreteBoundedPSO
 from .common import OptimValues_to_dict,BestFitRate
 
 import multiprocessing
@@ -152,165 +152,165 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     
     return results 
 
-def HyperParameterPSO(model,data,param_bounds,n_particles,options,
-                      initializations=10,p_opts=None,s_opts=None):
-    """
-    Binary PSO for optimization of Hyper Parameters such as number of layers, 
-    number of neurons in hidden layer, dimension of state, etc
+# def HyperParameterPSO(model,data,param_bounds,n_particles,options,
+#                       initializations=10,p_opts=None,s_opts=None):
+#     """
+#     Binary PSO for optimization of Hyper Parameters such as number of layers, 
+#     number of neurons in hidden layer, dimension of state, etc
 
-    Parameters
-    ----------
-    model : model
-        A model whose hyperparameters to be optimized are attributes of this
-        object and whose model equations are implemented as a casadi function.
-    data : dict
-        A dictionary with training and validation data, see ModelTraining()
-        for more information
-    param_bounds : dict
-        A dictionary with structure {'name_of_attribute': [lower_bound,upper_bound]}
-    n_particles : int
-        Number of particles to use
-    options : dict
-        options for the PSO, see documentation of toolbox.
-    initializations : int, optional
-        Number of times the nonlinear optimization problem is solved for 
-        each particle. The default is 10.
-    p_opts : dict, optional
-        options to give to the optimizer, see Casadi documentation. The 
-        default is None.
-    s_opts : dict, optional
-        options to give to the optimizer, see Casadi documentation. The 
-        default is None.
+#     Parameters
+#     ----------
+#     model : model
+#         A model whose hyperparameters to be optimized are attributes of this
+#         object and whose model equations are implemented as a casadi function.
+#     data : dict
+#         A dictionary with training and validation data, see ModelTraining()
+#         for more information
+#     param_bounds : dict
+#         A dictionary with structure {'name_of_attribute': [lower_bound,upper_bound]}
+#     n_particles : int
+#         Number of particles to use
+#     options : dict
+#         options for the PSO, see documentation of toolbox.
+#     initializations : int, optional
+#         Number of times the nonlinear optimization problem is solved for 
+#         each particle. The default is 10.
+#     p_opts : dict, optional
+#         options to give to the optimizer, see Casadi documentation. The 
+#         default is None.
+#     s_opts : dict, optional
+#         options to give to the optimizer, see Casadi documentation. The 
+#         default is None.
 
-    Returns
-    -------
-    hist, Pandas Dataframe
-        Returns Pandas dataframe with the loss associated with each particle 
-        in the first column and the corresponding hyperparameters in the 
-        second column
+#     Returns
+#     -------
+#     hist, Pandas Dataframe
+#         Returns Pandas dataframe with the loss associated with each particle 
+#         in the first column and the corresponding hyperparameters in the 
+#         second column
 
-    """
+#     """
     
-    path = 'temp/PSO_param/'
+#     path = 'temp/PSO_param/'
     
-    # Formulate Particle Swarm Optimization Problem
-    dimensions_discrete = len(param_bounds.keys())
-    lb = []
-    ub = []
+#     # Formulate Particle Swarm Optimization Problem
+#     dimensions_discrete = len(param_bounds.keys())
+#     lb = []
+#     ub = []
     
-    for param in param_bounds.keys():
+#     for param in param_bounds.keys():
         
-        lb.append(param_bounds[param][0])
-        ub.append(param_bounds[param][1])
+#         lb.append(param_bounds[param][0])
+#         ub.append(param_bounds[param][1])
     
-    bounds= (lb,ub)
+#     bounds= (lb,ub)
     
-    # Define PSO Problem
-    PSO_problem = DiscreteBoundedPSO(n_particles, dimensions_discrete, 
-                                     options, bounds)
+#     # Define PSO Problem
+#     PSO_problem = DiscreteBoundedPSO(n_particles, dimensions_discrete, 
+#                                      options, bounds)
 
-    # Make a directory and file for intermediate results 
-    try:
-        os.makedirs(path+model.name)
+#     # Make a directory and file for intermediate results 
+#     try:
+#         os.makedirs(path+model.name)
     
-        for key in param_bounds.keys():
-            param_bounds[key] = np.arange(param_bounds[key][0],
-                                          param_bounds[key][1]+1,
-                                          dtype = int)
+#         for key in param_bounds.keys():
+#             param_bounds[key] = np.arange(param_bounds[key][0],
+#                                           param_bounds[key][1]+1,
+#                                           dtype = int)
         
-        index = pd.MultiIndex.from_product(param_bounds.values(),
-                                           names=param_bounds.keys())
+#         index = pd.MultiIndex.from_product(param_bounds.values(),
+#                                            names=param_bounds.keys())
         
-        hist = pd.DataFrame(index = index, columns=['cost','model_params'])    
+#         hist = pd.DataFrame(index = index, columns=['cost','model_params'])    
         
-        pkl.dump(hist, open(path + model.name +'/' + 'HyperParamPSO_hist.pkl','wb'))
+#         pkl.dump(hist, open(path + model.name +'/' + 'HyperParamPSO_hist.pkl','wb'))
     
-    except:
-        print('Found data, PSO continues...')
+#     except:
+#         print('Found data, PSO continues...')
         
-    # Define arguments to be passed to vost function
-    cost_func_kwargs = {'model': model,
-                        'param_bounds': param_bounds,
-                        'n_particles': n_particles,
-                        'dimensions_discrete': dimensions_discrete,
-                        'initializations':initializations,
-                        'p_opts': p_opts,
-                        's_opts': s_opts,
-                        'path':path}
+#     # Define arguments to be passed to vost function
+#     cost_func_kwargs = {'model': model,
+#                         'param_bounds': param_bounds,
+#                         'n_particles': n_particles,
+#                         'dimensions_discrete': dimensions_discrete,
+#                         'initializations':initializations,
+#                         'p_opts': p_opts,
+#                         's_opts': s_opts,
+#                         'path':path}
     
-    # Create Cost function
-    def PSO_cost_function(swarm_position,**kwargs):
+#     # Create Cost function
+#     def PSO_cost_function(swarm_position,**kwargs):
         
-        # Load training history to avoid calculating stuff muliple times
-        hist = pkl.load(open(path+ model.name +'/' +
-                             'HyperParamPSO_hist.pkl','rb'))
+#         # Load training history to avoid calculating stuff muliple times
+#         hist = pkl.load(open(path+ model.name +'/' +
+#                              'HyperParamPSO_hist.pkl','rb'))
             
        
-        # Initialize empty array for costs
-        cost = np.zeros((n_particles,1))
+#         # Initialize empty array for costs
+#         cost = np.zeros((n_particles,1))
     
-        for particle in range(0,n_particles):
+#         for particle in range(0,n_particles):
             
-            # Check if results for particle already exist in hist
-            idx = tuple(swarm_position[particle].tolist())
+#             # Check if results for particle already exist in hist
+#             idx = tuple(swarm_position[particle].tolist())
             
-            if (math.isnan(hist.loc[idx,'cost']) and
-            math.isnan(hist.loc[idx,'model_params'])):
+#             if (math.isnan(hist.loc[idx,'cost']) and
+#             math.isnan(hist.loc[idx,'model_params'])):
                 
-                # Adjust model parameters according to particle
-                for p in range(0,dimensions_discrete):  
-                    setattr(model,list(param_bounds.keys())[p],
-                            swarm_position[particle,p])
+#                 # Adjust model parameters according to particle
+#                 for p in range(0,dimensions_discrete):  
+#                     setattr(model,list(param_bounds.keys())[p],
+#                             swarm_position[particle,p])
                 
-                model.Initialize()
+#                 model.Initialize()
                 
-                # Estimate parameters
-                results = ModelTraining(model,data,initializations, 
-                                        BFR=False, p_opts=p_opts, 
-                                        s_opts=s_opts)
+#                 # Estimate parameters
+#                 results = ModelTraining(model,data,initializations, 
+#                                         BFR=False, p_opts=p_opts, 
+#                                         s_opts=s_opts)
                 
-                # Save all results of this particle in a file somewhere so that
-                # the nonlinear optimization does not have to be done again
+#                 # Save all results of this particle in a file somewhere so that
+#                 # the nonlinear optimization does not have to be done again
                 
-                pkl.dump(results, open(path + model.name +'/' + 'particle' + 
-                                       str(swarm_position[particle]) + '.pkl',
-                                       'wb'))
+#                 pkl.dump(results, open(path + model.name +'/' + 'particle' + 
+#                                        str(swarm_position[particle]) + '.pkl',
+#                                        'wb'))
                 
-                # calculate best performance over all initializations
-                cost[particle] = results.loss_val.min()
+#                 # calculate best performance over all initializations
+#                 cost[particle] = results.loss_val.min()
                 
-                # Save new data to dictionary for future iterations
-                hist.loc[idx,'cost'] = cost[particle]
+#                 # Save new data to dictionary for future iterations
+#                 hist.loc[idx,'cost'] = cost[particle]
                 
-                # Save model parameters corresponding to best performance
-                idx_min = results['loss_val'].idxmin()
-                hist.loc[idx,'model_params'] = \
-                [results.loc[idx_min,'params']]
+#                 # Save model parameters corresponding to best performance
+#                 idx_min = results['loss_val'].idxmin()
+#                 hist.loc[idx,'model_params'] = \
+#                 [results.loc[idx_min,'params']]
                 
-                # Save DataFrame to File
-                pkl.dump(hist, open(path + model.name +'/' +
-                                    'HyperParamPSO_hist.pkl','wb'))
+#                 # Save DataFrame to File
+#                 pkl.dump(hist, open(path + model.name +'/' +
+#                                     'HyperParamPSO_hist.pkl','wb'))
                 
-            else:
-                cost[particle] = hist.loc[idx].cost.item()
+#             else:
+#                 cost[particle] = hist.loc[idx].cost.item()
                 
         
         
         
-        cost = cost.reshape((n_particles,))
-        return cost
+#         cost = cost.reshape((n_particles,))
+#         return cost
     
     
-    # Solve PSO Optimization Problem
-    PSO_problem.optimize(PSO_cost_function, iters=100, n_processes=None,**cost_func_kwargs)
+#     # Solve PSO Optimization Problem
+#     PSO_problem.optimize(PSO_cost_function, iters=100, n_processes=None,**cost_func_kwargs)
     
-    # Load intermediate results
-    hist = pkl.load(open(path + model.name +'/' + 'HyperParamPSO_hist.pkl','rb'))
+#     # Load intermediate results
+#     hist = pkl.load(open(path + model.name +'/' + 'HyperParamPSO_hist.pkl','rb'))
     
-    # Delete file with intermediate results
-    # os.remove(path + model.name +'/' + 'HyperParamPSO_hist.pkl')
+#     # Delete file with intermediate results
+#     # os.remove(path + model.name +'/' + 'HyperParamPSO_hist.pkl')
     
-    return hist
+#     return hist
 
 def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel'):
     """
@@ -434,11 +434,9 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
                 improvement = True
                 params = params_new
                 lam = max(lam/10,1e-10)
-            else:
-                
-                if lam == 1e10:
-                    print('Keine Verbesserung möglich, breche Optimierung ab!')
-                    break
+            elif lam == 1e10:
+                print('Keine Verbesserung möglich, breche Optimierung ab!')
+                break
                     
                 lam = min(lam*10,1e10)
                  

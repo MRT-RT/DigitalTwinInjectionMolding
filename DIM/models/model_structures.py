@@ -8,6 +8,7 @@ import casadi as cs
 import matplotlib.pyplot as plt
 import numpy as np
 from DIM.optim.common import RK4
+from scipy.stats import ortho_group
 from .initializations import XavierInitialization, RandomInitialization, HeInitialization
 
 # from miscellaneous import *
@@ -376,9 +377,9 @@ class MLP():
         
         new_param_values = {}
         for p_name in self.Function.name_in()[2::]:
-            new_param_values[p_name] = initialization(self.Function.size_in(p_name))
+            self.Parameters[p_name] = initialization(self.Function.size_in(p_name))
         
-        self.AssignParameters(new_param_values)
+        # self.AssignParameters(new_param_values)
 
         # Initialize with specific inital parameters if given
         if self.InitialParameters is not None:
@@ -1119,3 +1120,151 @@ class SecondOrderSystem():
         y = cs.hcat(y).T
        
         return x,y
+
+class LSS(RNN):
+    """
+    Implementation of a linear state space model with a nonlinear output layer
+    """
+
+    def __init__(self,dim_u,dim_c,dim_hidden,dim_out,name,initial_params={}, 
+                 frozen_params = [], init_proc='random',A_eig=[]):
+        """
+        Initialization procedure of the GRU Architecture
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_c : int
+            Dimension of the cell-state, i.e. the internal state of the GRU,
+            e.g. dim_c = 2 if cell-state is a 2x1 vector
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if output network is supposed to have 10 neurons in hidden layer.           
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        name : str
+            Name of the model, e.g. name = 'QualityModel'.
+
+        Returns
+        -------
+        None.
+
+        """        
+        self.dim_u = dim_u
+        self.dim_c = dim_c
+        self.dim_hidden = dim_hidden
+        self.dim_out = dim_out
+        self.A_eig = A_eig
+        self.name = name
+        
+        self.InitialParameters = initial_params
+        self.FrozenParameters = frozen_params
+        self.InitializationProcedure = init_proc
+        
+        self.Initialize()  
+ 
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """          
+        dim_u = self.dim_u
+        dim_c = self.dim_c
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out
+        name = self.name      
+        
+        u = cs.MX.sym('u',dim_u,1)
+        c = cs.MX.sym('c',dim_c,1)
+ 
+ 
+        # Parameters
+        # Recurrent part
+        A = cs.MX.sym('A_r_'+name,dim_c,dim_c)
+        B = cs.MX.sym('B_z_'+name,dim_c,dim_u)
+
+    
+        # MLP part
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_c)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)    
+        
+        W_y = cs.MX.sym('W_y_'+name,dim_out,dim_hidden)
+        b_y = cs.MX.sym('b_y_'+name,dim_out,1)  
+        
+        
+        # Equations
+        c_new = cs.mtimes(A,c) + cs.mtimes(B,u)
+        h_new = cs.tanh(cs.mtimes(W_h,c_new)+b_h)
+        y_new = cs.mtimes(W_y,h_new)+b_y    
+    
+        
+        # Casadi Function
+        input = [c,u,A,B,W_h,b_h,W_y,b_y]
+        input_names = ['c','u','A_'+name,'B_'+name,'W_h_'+name,'b_h_'+name,
+                        'W_y_'+name,'b_y_'+name]
+        
+        output = [c_new,y_new]
+        output_names = ['c_new','y_new']
+    
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+
+        return None
+
+    def ParameterInitialization(self):
+        '''
+        Routine for parameter initialization. Takes input_names from the Casadi-
+        Function defining the model equations self.Function and defines a 
+        dictionary with input_names as keys. According to the initialization
+        procedure defined in self.InitializationProcedure each key contains 
+        a numpy array of appropriate shape
+
+        Returns
+        -------
+        None.
+
+        '''
+                
+        # Initialization procedure
+        if self.InitializationProcedure == 'random':
+            initialization = RandomInitialization
+        elif self.InitializationProcedure == 'xavier':
+            initialization = XavierInitialization
+        elif self.InitializationProcedure == 'he':
+            initialization = HeInitialization      
+        
+        # Define all parameters in a dictionary and initialize them 
+        self.Parameters = {}
+        
+        new_param_values = {}
+        for p_name in self.Function.name_in()[2::]:
+            self.Parameters[p_name] = initialization(self.Function.size_in(p_name))
+        
+        # Initialize A-matrix such that resulting system is stable
+        A_key = self.Function.name_in()[2]
+        
+        if len(self.A_eig) == 0:
+            self.A_eig =  np.random.uniform(-1,1,(self.dim_c))
+        
+        if self.dim_c>1:
+            Q = ortho_group.rvs(dim=self.dim_c)
+            self.Parameters[A_key] = Q.T.dot(np.diag(self.A_eig).dot(Q))
+        elif self.dim_c==1:
+            self.Parameters[A_key] = self.A_eig.reshape((self.dim_c,self.dim_c))
+        
+        # Initialize with specific inital parameters if given
+        if self.InitialParameters is not None:
+            for param in self.InitialParameters.keys():
+                if param in self.Parameters.keys():
+                    self.Parameters[param] = self.InitialParameters[param]
+        
+        return None
