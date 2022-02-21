@@ -43,18 +43,18 @@ class RNN():
         # Define all parameters in a dictionary and initialize them 
         self.Parameters = {}
         
-        new_param_values = {}
+        # new_param_values = {}
         for p_name in self.Function.name_in()[2::]:
-            new_param_values[p_name] = initialization(self.Function.size_in(p_name))
+            self.Parameters[p_name] = initialization(self.Function.size_in(p_name))
         
-        self.SetParameters(new_param_values)
+        # self.SetParameters(new_param_values)
 
         # Initialize with specific inital parameters if given
-        self.SetParameters(self.InitialParameters)
-        # if self.InitialParameters is not None:
-        #     for param in self.InitialParameters.keys():
-        #         if param in self.Parameters.keys():
-        #             self.Parameters[param] = self.InitialParameters[param]
+        # self.SetParameters(self.InitialParameters)
+        if self.InitialParameters is not None:
+            for param in self.InitialParameters.keys():
+                if param in self.Parameters.keys():
+                    self.Parameters[param] = self.InitialParameters[param]
         
         return None
                     
