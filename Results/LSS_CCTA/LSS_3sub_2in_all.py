@@ -20,13 +20,13 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 # from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 from DIM.models.model_structures import LSS
 from DIM.models.injection_molding import QualityModel
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ParallelModelTraining
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
 def Fit_LSS(dim_c,initial_params=None):
 
-    charges = list(range(1,275))
+    charges = list(range(1,2))
     
     # split = 'all'
     split = 'part'
@@ -68,7 +68,7 @@ def Fit_LSS(dim_c,initial_params=None):
     s_opts = {"max_iter": 100, "step":1}
 
     
-    results = ModelTraining(quality_model,data,initializations=1, BFR=False, 
+    results = ParallelModelTraining(quality_model,data,initializations=2, BFR=False, 
                       p_opts=None, s_opts=s_opts)
     
     # results_GRU['Chargen'] = 'c'+str(counter)
