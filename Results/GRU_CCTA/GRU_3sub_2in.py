@@ -20,7 +20,7 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
-from DIM.optim.param_optim import ParallelModelTraining
+from DIM.optim.param_optim import ModelTraining
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
@@ -28,8 +28,8 @@ def Fit_GRU(dim_c,initial_params=None):
 
     charges = list(range(1,275))
     
-    # split = 'all'
-    split = 'part'
+    split = 'all'
+    # split = 'part'
     
     path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
@@ -57,12 +57,12 @@ def Fit_GRU(dim_c,initial_params=None):
     press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,dim_out=1,name='press')
     cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,dim_out=1,name='cool')
     
-    # inj_model.InitialParameters = initial_params
-    # press_model.InitialParameters = initial_params 
-    # cool_model.InitialParameters = initial_params 
+    inj_model.InitialParameters = initial_params
+    press_model.InitialParameters = initial_params 
+    cool_model.InitialParameters = initial_params 
     
-    press_model.InitialParameters ={'b_z_press':np.random.uniform(-100,-2,(dim_c,1))}
-    cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-100,-2,(dim_c,1))}
+    # press_model.InitialParameters ={'b_z_press':np.random.uniform(-100,-2,(dim_c,1))}
+    # cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-100,-2,(dim_c,1))}
     
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
@@ -70,24 +70,24 @@ def Fit_GRU(dim_c,initial_params=None):
     s_opts = {"max_iter": 200, 'step':0.1}
 
     
-    results_GRU = ParallelModelTraining(quality_model,data,initializations=10, BFR=False, 
-                      p_opts=None, s_opts=s_opts,mode='parallel',n_pool=10)
+    results_GRU = ModelTraining(quality_model,data,initializations=10, BFR=False, 
+                      p_opts=None, s_opts=s_opts,mode='parallel')
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
   
     return results_GRU  
 
-c1_part = pkl.load(open('GRU_c1_3sub.pkl','rb'))
-c1_all = Fit_GRU(dim_c=1,initial_params=c1_part.loc[4]['params_val'])
+# c1_part = pkl.load(open('GRU_c1_3sub.pkl','rb'))
+# c1_all = Fit_GRU(dim_c=1,initial_params=c1_part.loc[4]['params_val'])
 
-c2_part = pkl.load(open('GRU_c2_3sub.pkl','rb'))
-c2_all = Fit_GRU(dim_c=2,initial_params=c2_part.loc[0]['params_val'])
+# c2_part = pkl.load(open('GRU_c2_3sub.pkl','rb'))
+# c2_all = Fit_GRU(dim_c=2,initial_params=c2_part.loc[0]['params_val'])
 
-c3_part = pkl.load(open('GRU_c3_3sub.pkl','rb'))
-c3_all = Fit_GRU(dim_c=3,initial_params=c1_part.loc[4]['params_val'])
+# c3_part = pkl.load(open('GRU_c3_3sub.pkl','rb'))
+# c3_all = Fit_GRU(dim_c=3,initial_params=c3_part.loc[0]['params_val'])
 
 c4_part = pkl.load(open('GRU_c4_3sub.pkl','rb'))
-c4_all = Fit_GRU(dim_c=3,initial_params=c1_part.loc[4]['params_val'])
+c4_all = Fit_GRU(dim_c=4,initial_params=c4_part.loc[4]['params_val'])
 
 # if __name__ == '__main__':
     # multiprocessing.freeze_support()
