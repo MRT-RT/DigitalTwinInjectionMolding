@@ -535,6 +535,27 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
         
     # Create Solver
     opti.solver("ipopt",p_opts, s_opts)
+        
+    class intermediate_results():
+        def __init__(self):
+            self.F_val = np.inf
+            self.params_val = {}
+            
+        def callback(self,i):
+            params_val_new = OptimValues_to_dict(params_opti,opti.debug)
+            
+            F_val_new = loss_val(*list(params_val_new.values()))
+
+            if F_val_new < self.F_val:
+                self.F_val = F_val_new
+                self.params_val = params_val_new
+                print('Validation loss: ' + str(self.F_val))
+    
+    val_results = intermediate_results()
+
+    # Callback
+    opti.callback(val_results.callback)
+    
     
     # Set initial values of Opti Variables as current Model Parameters
     for key in params_opti:
@@ -548,10 +569,14 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
         
     params = OptimValues_to_dict(params_opti,sol)
     F_train = sol.value(opti.f)        
-    F_val = loss_val(*list(params.values()))
-            
-    return params,None,F_train,F_val
 
+    params_val = val_results.params_val
+    
+            
+    return params,params_val,F_train,F_val
+
+
+    
 def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
       
     loss = 0
