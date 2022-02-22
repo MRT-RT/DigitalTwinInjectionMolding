@@ -18,7 +18,7 @@ import seaborn as sns
 from DIM.models.model_structures import Static_MLP
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.common import BestFitRate
-from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadStaticData
+from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadSetpointData
 
 from DIM.optim.param_optim import static_mode
 
@@ -35,7 +35,7 @@ def Eval_MLP(dim_hidden):
     
     data_train,data_val,cycles_train_label,cycles_val_label,\
         charge_train_label,charge_val_label = \
-            LoadStaticData(path,charges,split,targets)
+            LoadSetpointData(path,charges,split,targets)
     
     # print(len(cycles_val_label),len(charge_val_label))
     
@@ -57,7 +57,12 @@ def Eval_MLP(dim_hidden):
     
     # Load best model
     res = pkl.load(open('MLP_Durchmesser_innen_dimhidden'+str(dim_hidden)+'.pkl','rb'))   
-    params = res.loc[res['loss_val'].idxmin()][['params']][0]
+    
+    for i in range(0,len(res)):
+        res.at[i, 'loss_val']= float(res.loc[i]['loss_val'])
+    
+    res['loss_val'] = pd.to_numeric(res['loss_val'])
+    params = res.loc[res['loss_val'].idxmin()][['params_train']][0]
     
     
     # Initialize model structures

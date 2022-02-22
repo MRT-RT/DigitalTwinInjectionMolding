@@ -56,8 +56,13 @@ def Eval_MLP(dim_hidden):
     data['y_val'] = [data_val[targets].values]
     
     # Load best model
-    res = pkl.load(open('MLP_Durchmesser_innen_dimhidden'+str(dim_hidden)+'.pkl','rb'))   
-    params = res.loc[res['loss_val'].idxmin()][['params']][0]
+    res = pkl.load(open('MLP_Durchmesser_innen_dimhidden'+str(dim_hidden)+'.pkl','rb'))
+    
+    for i in range(0,len(res)):
+        res.at[i, 'loss_val']= float(res.loc[i]['loss_val'])
+    
+    res['loss_val'] = pd.to_numeric(res['loss_val'])
+    params = res.loc[res['loss_val'].idxmin()][['params_train']][0]
     
     
     # Initialize model structures
@@ -108,7 +113,7 @@ def Eval_MLP(dim_hidden):
     return results_train, results_val, data, model
 
 
-for c in range(1,7):
+for c in range(7,11):
     results_train, results_val, data, quality_model = Eval_MLP(c)
 
     pkl.dump(results_train,open('results_train_c'+str(c)+'.pkl','wb')) 
