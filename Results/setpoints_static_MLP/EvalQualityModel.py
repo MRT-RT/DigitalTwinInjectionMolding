@@ -4,6 +4,11 @@ Created on Wed Dec 15 16:45:55 2021
 
 @author: alexa
 """
+
+import sys
+sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
+sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
+
 import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,15 +23,21 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 from DIM.optim.param_optim import static_mode
 
 
-def Eval_MLP(charges,dim_hidden):
+def Eval_MLP(dim_hidden):
     
+    charges = list(range(1,275))
     targets = ['Durchmesser_innen']
     
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    split = 'all'
+    
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     data_train,data_val,cycles_train_label,cycles_val_label,\
         charge_train_label,charge_val_label = \
-            LoadStaticData(path,charges,targets)
+            LoadStaticData(path,charges,split,targets)
+    
+    # print(len(cycles_val_label),len(charge_val_label))
     
     # Normalize Data
     data_max = data_train.max()
@@ -86,6 +97,8 @@ def Eval_MLP(charges,dim_hidden):
     cycles_val_label = np.array(cycles_val_label).reshape((-1,))
     charge_val_label = np.array(charge_val_label).reshape((-1,1))
     
+    # print(y_true.shape,y_val.shape,e_val.shape,charge_val_label.shape,cycles_val_label.shape)
+    
     results_val = pd.DataFrame(data=np.hstack([y_true,y_val,e_val,
                                   charge_val_label]),
                                 index = cycles_val_label,
@@ -95,10 +108,8 @@ def Eval_MLP(charges,dim_hidden):
     return results_train, results_val, data, model
 
 
-charges = list(range(1,275))
-
-for c in range(1,12):
-    results_train, results_val, data, quality_model = Eval_MLP(charges,c)
+for c in range(1,11):
+    results_train, results_val, data, quality_model = Eval_MLP(c)
 
     pkl.dump(results_train,open('results_train_c'+str(c)+'.pkl','wb')) 
     pkl.dump(results_val,open('results_val_c'+str(c)+'.pkl','wb')) 
