@@ -25,16 +25,16 @@ charges = list(range(1,275))
 split = 'all'
 # targets = ['Durchmesser_innen','Durchmesser_außen','Stegbreite_Gelenk','Gewicht',
 #            'Stegbreite_Gelenk','Breite_Lasche']
-# targets = ['Durchmesser_innen']
-targets = ['Gewicht']
+targets = ['Durchmesser_innen']
+# targets = ['Gewicht']
 # targets = ['Stegbreite_Gelenk']
 # targets = ['Breite_Lasche']
 # targets = ['Rundheit_außen']
 
 
-# path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 # path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
 data_train,data_val,_,_,_,_  = LoadSetpointData(path,charges,split,targets)
 
