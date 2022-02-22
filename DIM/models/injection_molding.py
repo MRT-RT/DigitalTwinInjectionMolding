@@ -155,10 +155,10 @@ class QualityModel():
                 c.append(sim[0])
                 y.append(sim[1])        
 
-        inj_params = cs.vcat([params[p].reshape((-1,1)) for p in self.subsystems[0].Parameters.keys()])
-        grad = cs.gradient(sim[0][-1],inj_params)
-        fun = cs.Function('fun',list(params.values()),[sim[0][-1],grad],list(params.keys()),[])
-        fun(**self.Parameters)
+        # inj_params = cs.vcat([params[p].reshape((-1,1)) for p in self.subsystems[0].Parameters.keys()])
+        # grad = cs.gradient(sim[0][-1],inj_params)
+        # fun = cs.Function('fun',list(params.values()),[sim[0][-1],grad],list(params.keys()),[])
+        # fun(**self.Parameters)
         # Concatenate list to casadiMX
         y = cs.vcat(y)  
         c = cs.vcat(c)          
@@ -175,13 +175,13 @@ class QualityModel():
             self.Parameters.update(system.Parameters)                                  # append subsystems parameters
             self.FrozenParameters.extend(system.FrozenParameters)
 
-    # def SetParameters(self,params):
+    def SetParameters(self,params):
         
-    #     self.Parameters = {}
+        self.Parameters = {}
         
-    #     for system in self.subsystems:
-    #         system.SetParameters(params)
-    #         self.Parameters.update(system.Parameters)
+        for system in self.subsystems:
+            system.SetParameters(params)
+            self.Parameters.update(system.Parameters)
             
     # def SetInitialParameters(self,initial_params):
         
