@@ -77,8 +77,8 @@ def Fit_GRU(dim_c,initial_params=None):
 c2_part = pkl.load(open('GRU_c2_3sub.pkl','rb'))
 c2_all = Fit_GRU(dim_c=2,initial_params=c2_part.loc[0]['params_val'])
 
-# c1_part = pkl.load(open('GRU_c1_3sub.pkl','rb'))
-# c1_all = Fit_GRU(dim_c=1,initial_params=c1_part.loc[4]['params_val'])
+c1_part = pkl.load(open('GRU_c1_3sub.pkl','rb'))
+c1_all = Fit_GRU(dim_c=1,initial_params=c1_part.loc[4]['params_val'])
 
 # if __name__ == '__main__':
 #     multiprocessing.freeze_support()
