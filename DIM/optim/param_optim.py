@@ -571,6 +571,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     F_train = sol.value(opti.f)        
 
     params_val = val_results.params_val
+    F_val = val_results.F_val
     
             
     return params,params_val,F_train,F_val
