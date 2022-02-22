@@ -31,8 +31,8 @@ def Fit_MLP(dim_hidden):
     split = 'all'
     
     
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     data_train,data_val,cycles_train_label,cycles_val_label,\
         charge_train_label,charge_val_label = \
@@ -61,7 +61,7 @@ def Fit_MLP(dim_hidden):
     s_opts = {"max_iter": 200, 'step':0.1}
     
     result = ParallelModelTraining(model,data,initializations=10,p_opts=None,
-                                   s_opts=s_opts,mode='static',n_pool=2)
+                                   s_opts=s_opts,mode='static',n_pool=4)
 
     result['dim_hidden'] = dim_hidden
     

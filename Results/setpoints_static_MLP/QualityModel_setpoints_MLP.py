@@ -16,7 +16,7 @@ sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMol
 
 from DIM.miscellaneous.PreProcessing import LoadSetpointData
 from DIM.models.model_structures import Static_MLP
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ParallelModelTraining
 
 import multiprocessing
 
@@ -29,12 +29,15 @@ def Fit_MLP(dim_hidden):
     charges = list(range(1,275))
     targets = ['Durchmesser_innen']
     
+    split = 'all'
+    
+    
     path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
     data_train,data_val,cycles_train_label,cycles_val_label,\
         charge_train_label,charge_val_label = \
-            LoadSetpointData(path,charges,targets)
+            LoadSetpointData(path,charges,split,targets)
     
     # Normalize Data
     data_max = data_train.max()
@@ -56,7 +59,10 @@ def Fit_MLP(dim_hidden):
     model = Static_MLP(dim_u=8, dim_out=1, dim_hidden=dim_hidden,name='MLP',
                        init_proc='xavier')
     
-    result = ModelTraining(model,data,initializations=10,p_opts=None,s_opts=None,mode='static')
+    s_opts = {"max_iter": 200, 'step':0.1}
+    
+    result = ParallelModelTraining(model,data,initializations=10,p_opts=None,
+                                   s_opts=s_opts,mode='static',n_pool=4)
 
     result['dim_hidden'] = dim_hidden
     
@@ -65,17 +71,19 @@ def Fit_MLP(dim_hidden):
     return result
 
 
-# res = Fit_MLP(10)
-
+    
 if __name__ == '__main__':
     
-    print('Process started..')
-    
-    multiprocessing.freeze_support()
-    
-    pool = multiprocessing.Pool()
-    
-    result = pool.map(Fit_MLP, list(range(1,12))) 
+     h1 = Fit_MLP(dim_hidden=1)
+     h2 = Fit_MLP(dim_hidden=2)
+     h3 = Fit_MLP(dim_hidden=3)
+     h4 = Fit_MLP(dim_hidden=4)
+     h5 = Fit_MLP(dim_hidden=5)   
+     h6 = Fit_MLP(dim_hidden=6)     
+     h7 = Fit_MLP(dim_hidden=7)
+     h8 = Fit_MLP(dim_hidden=8)
+     h9 = Fit_MLP(dim_hidden=9)
+     h10 = Fit_MLP(dim_hidden=10)
     
 
 
