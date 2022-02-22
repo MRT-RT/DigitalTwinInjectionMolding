@@ -42,36 +42,36 @@ def ControlInput(ref_trajectories,opti_vars,k):
 
     return control   
     
-# def CreateOptimVariables(opti, Parameters):
-#     '''
-#     Beschreibung der Funktion
+def CreateOptimVariables(opti, Parameters):
+    '''
+    Beschreibung der Funktion
 
-#     Parameters
-#     ----------
-#     opti : Dict
-#         DESCRIPTION.
-#     Parameters : TYPE
-#         DESCRIPTION.
+    Parameters
+    ----------
+    opti : Dict
+        DESCRIPTION.
+    Parameters : TYPE
+        DESCRIPTION.
 
-#     Returns
-#     -------
-#     opti_vars : TYPE
-#         DESCRIPTION.
+    Returns
+    -------
+    opti_vars : TYPE
+        DESCRIPTION.
 
-#     '''
+    '''
         
-#     # Create empty dictionary
-#     opti_vars = {}
+    # Create empty dictionary
+    opti_vars = {}
     
-#     for param in Parameters.keys():
-#         dim0 = Parameters[param].shape[0]
-#         dim1 = Parameters[param].shape[1]
+    for param in Parameters.keys():
+        dim0 = Parameters[param].shape[0]
+        dim1 = Parameters[param].shape[1]
         
-#         opti_vars[param] = opti.variable(dim0,dim1)
+        opti_vars[param] = opti.variable(dim0,dim1)
     
-#     return opti_vars
+    return opti_vars
 
-def CreateOptimVariables(Parameters):
+def CreateSymbolicVariables(Parameters):
     '''
     Beschreibung der Funktion
 
@@ -99,7 +99,7 @@ def CreateOptimVariables(Parameters):
         opti_vars[param] = cs.MX.sym(param,dim0,dim1)
         opti_vars_vec.append(opti_vars[param].reshape((-1,1)))
         
-    return opti_vars, cs.vcat(opti_vars_vec)
+    return opti_vars
 
 
 def ModelTraining(model,data,initializations=10, BFR=False, 
@@ -312,7 +312,7 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     
 #     return hist
 
-def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel'):
+def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel'):
     """
     
 
@@ -344,7 +344,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
     
     # Create dictionary of all non-frozen parameters to create Opti Variables of 
     # OptiParameters = model.Parameters.copy()
-    params_opti,_ = CreateOptimVariables(model.Parameters)      
+    params_opti = CreateSymbolicVariables(model.Parameters)      
     
     # Evaluate on model on data
     u_train = data['u_train']
@@ -450,6 +450,107 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
             
             
     return params,params_save,F,F_val
+
+
+
+def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel'):
+    """
+    
+
+    Parameters
+    ----------
+    model : model
+        A model whose hyperparameters to be optimized are attributes of this
+        object and whose model equations are implemented as a casadi function.
+    data : dict
+        A dictionary with training and validation data, see ModelTraining()
+        for more information
+    p_opts : dict, optional
+        options to give to the optimizer, see Casadi documentation. The 
+        default is None.
+    s_opts : dict, optional
+        options to give to the optimizer, see Casadi documentation. The 
+        default is None.
+
+    Returns
+    -------
+    values : dict
+        dictionary with either the optimal parameters or if the solver did not
+        converge the last parameter estimate
+
+    """
+    # Create Instance of the Optimization Problem
+    opti = cs.Opti()
+    
+    # Create dictionary of all non-frozen parameters to create Opti Variables of 
+    OptiParameters = model.Parameters.copy()
+    
+    for frozen_param in model.FrozenParameters:
+        OptiParameters.pop(frozen_param)
+        
+    
+    params_opti = CreateOptimVariables(opti, OptiParameters)   
+    
+    # Evaluate on model on data
+    u_train = data['u_train']
+    y_ref_train = data['y_train']
+
+    u_val = data['u_val']
+    y_ref_val = data['y_val']
+    
+    try:
+        switch_train =  data['switch_train']
+        switch_val =  data['switch_val']
+    except KeyError:
+        switch = None
+    
+    if mode == 'parallel':
+        x0_train = data['init_state_train']
+        x0_val = data['init_state_val']
+        
+        loss_train,_,_,_ = parallel_mode(model,u_train,y_ref_train,x0_train,
+                                         switch_train,params_opti) 
+        
+        loss_val,_,_,_ = parallel_mode(model,u_val,y_ref_val,x0_val,
+                                       switch_val,params_opti)
+        
+    elif mode == 'static':
+        loss_train,_,_ = static_mode(model,u_train,y_ref_train,params_opti)   
+        loss_val,_,_ = static_mode(model,u_val,y_ref_val,params_opti) 
+                
+    elif mode == 'series':
+        x0 = data['init_state_train']
+        loss_train,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
+    
+    loss_val = cs.Function('loss_val',[*list(params_opti.values())],
+                         [loss_val],list(params_opti.keys()),['F'])
+     
+    opti.minimize(loss_train)
+
+    # Solver options
+    if p_opts is None:
+        p_opts = {"expand":False}
+    if s_opts is None:
+        s_opts = {"max_iter": 1000, "print_level":1}
+        
+    # Create Solver
+    opti.solver("ipopt",p_opts, s_opts)
+    
+    # Set initial values of Opti Variables as current Model Parameters
+    for key in params_opti:
+        opti.set_initial(params_opti[key], model.Parameters[key])
+
+    # Solve NLP, if solver does not converge, use last solution from opti.debug
+    try: 
+        sol = opti.solve()
+    except:
+        sol = opti.debug
+        
+    params = OptimValues_to_dict(params_opti,sol)
+    F_train = sol.value(opti.f)        
+    F_val = loss_val(*list(params.values()))
+            
+    return params,None,F_train,F_val
 
 def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
       
