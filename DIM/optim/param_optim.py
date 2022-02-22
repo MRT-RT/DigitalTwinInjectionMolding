@@ -370,7 +370,9 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
                                        switch_val,params_opti)
         
     elif mode == 'static':
-        loss_train,_,_ = static_mode(model,u,y_ref,params_opti)   
+        loss_train,_,_ = static_mode(model,u_train,y_ref_train,params_opti)   
+        loss_val,_,_ = static_mode(model,u_val,y_ref_val,params_opti) 
+                
     elif mode == 'series':
         x0 = data['init_state_train']
         loss_train,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
