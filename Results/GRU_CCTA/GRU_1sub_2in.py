@@ -58,7 +58,7 @@ def Fit_GRU(dim_c,initial_params=None):
     
     s_opts = {"max_iter": 200, 'step':0.1}
     
-    results_GRU = ParallelModelTraining(quality_model,data,initializations=20, BFR=False, 
+    results_GRU = ParallelModelTraining(quality_model,data,initializations=10, BFR=False, 
                       p_opts=None, s_opts=s_opts,mode='parallel',n_pool=10)
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_1sub.pkl','wb'))
@@ -68,7 +68,7 @@ def Fit_GRU(dim_c,initial_params=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    c1 = Fit_GRU(dim_c=1)
-    c2 = Fit_GRU(dim_c=2)
+    # c1 = Fit_GRU(dim_c=1)
+    # c2 = Fit_GRU(dim_c=2)
     c3 = Fit_GRU(dim_c=3)
     c4 = Fit_GRU(dim_c=4)
