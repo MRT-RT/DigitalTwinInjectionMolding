@@ -70,11 +70,15 @@ def Fit_GRU(dim_c,initial_params=None):
     results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                       p_opts=None, s_opts=s_opts,mode='parallel')
         
-    # pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
   
     return results_GRU  
 
-c2_all = Fit_GRU(dim_c=2,c2_part.loc[0]['params_val'])
+c2_part = pkl.load(open('GRU_c2_3sub.pkl','rb'))
+c2_all = Fit_GRU(dim_c=2,initial_params=c2_part.loc[0]['params_val'])
+
+c1_part = pkl.load(open('GRU_c1_3sub.pkl','rb'))
+c1_all = Fit_GRU(dim_c=1,initial_params=c1_part.loc[4]['params_val'])
 
 # if __name__ == '__main__':
 #     multiprocessing.freeze_support()
