@@ -26,7 +26,7 @@ def Eval_GRU_on_Val(dim_c):
 
 
     # Load best model
-    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub.pkl','rb'))
+    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
        
     # params = res.loc[res['loss_val'].idxmin()][['params']][0]
     params = res.loc[0]['params_val']
