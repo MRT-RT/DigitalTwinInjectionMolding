@@ -67,33 +67,31 @@ def Fit_GRU(dim_c,initial_params=None):
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
-    s_opts = {"max_iter": 100, 'step':0.1}
+    s_opts = {"max_iter": 200, 'step':0.1}
 
     
     results_GRU = ParallelModelTraining(quality_model,data,initializations=10, BFR=False, 
                       p_opts=None, s_opts=s_opts,mode='parallel',n_pool=10)
         
-<<<<<<< Updated upstream
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
   
     return results_GRU  
 
+c1_part = pkl.load(open('GRU_c1_3sub.pkl','rb'))
+c1_all = Fit_GRU(dim_c=1,initial_params=c1_part.loc[4]['params_val'])
+
 c2_part = pkl.load(open('GRU_c2_3sub.pkl','rb'))
 c2_all = Fit_GRU(dim_c=2,initial_params=c2_part.loc[0]['params_val'])
 
-c1_part = pkl.load(open('GRU_c1_3sub.pkl','rb'))
-c1_all = Fit_GRU(dim_c=1,initial_params=c1_part.loc[4]['params_val'])
-=======
-    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub.pkl','wb'))
-  
-    return results_GRU  
+c3_part = pkl.load(open('GRU_c3_3sub.pkl','rb'))
+c3_all = Fit_GRU(dim_c=3,initial_params=c1_part.loc[4]['params_val'])
 
-# c2_all = Fit_GRU(dim_c=2,c2_part.loc[0]['params_val'])
->>>>>>> Stashed changes
+c4_part = pkl.load(open('GRU_c4_3sub.pkl','rb'))
+c4_all = Fit_GRU(dim_c=3,initial_params=c1_part.loc[4]['params_val'])
 
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
+# if __name__ == '__main__':
+    # multiprocessing.freeze_support()
     # c1 = Fit_GRU(dim_c=1)
     # c2 = Fit_GRU(dim_c=2)
-    c3 = Fit_GRU(dim_c=3)
-    c4 = Fit_GRU(dim_c=4)
+    # c3 = Fit_GRU(dim_c=3)
+    # c4 = Fit_GRU(dim_c=4)
