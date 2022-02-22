@@ -32,9 +32,9 @@ targets = ['Durchmesser_innen']
 # targets = ['Rundheit_außen']
 
 
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+# path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 # path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
 data_train,data_val,_,_,_,_  = LoadSetpointData(path,charges,split,targets)
 
