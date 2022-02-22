@@ -133,7 +133,7 @@ def TrainingProcedure(model, data, p_opts, s_opts, mode):
     return result
 
 def ParallelModelTraining(model,data,initializations=10, BFR=False, 
-                  p_opts=None, s_opts=None,mode='parallel'):
+                  p_opts=None, s_opts=None,mode='parallel',n_pool=5):
     
      
     data = [copy.deepcopy(data) for i in range(0,initializations)]
@@ -142,7 +142,7 @@ def ParallelModelTraining(model,data,initializations=10, BFR=False,
     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
-    pool = multiprocessing.Pool(4)
+    pool = multiprocessing.Pool(n_pool)
     results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params_train','params_val'])
@@ -437,7 +437,7 @@ def ModelParameterEstimation(model,data,p_opts=None,s_opts=None,mode='parallel')
             elif lam == 1e10:
                 print('Keine Verbesserung möglich, breche Optimierung ab!')
                 break
-                    
+            else:                    
                 lam = min(lam*10,1e10)
                  
         
