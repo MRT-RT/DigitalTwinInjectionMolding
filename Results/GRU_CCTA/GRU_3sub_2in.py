@@ -20,7 +20,7 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ParallelModelTraining
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
@@ -61,17 +61,17 @@ def Fit_GRU(dim_c,initial_params=None):
     press_model.InitialParameters = initial_params 
     cool_model.InitialParameters = initial_params 
     
-    # press_model.InitialParameters ={'b_z_press':np.random.uniform(-100,-2,(dim_c,1))}
-    # cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-100,-2,(dim_c,1))}
+    press_model.InitialParameters ={'b_z_press':np.random.uniform(-10,-4,(dim_c,1))}
+    cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-10,-4,(dim_c,1))}
     
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
-    s_opts = {"max_iter": 300, 'hessian_approximation':'limited-memory'}
+    s_opts = {"max_iter": 1000, 'hessian_approximation':'limited-memory'}
 
     
-    results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
-                      p_opts=None, s_opts=s_opts,mode='parallel')
+    results_GRU = ParallelModelTraining(quality_model,data,initializations=20, BFR=False, 
+                      p_opts=None, s_opts=s_opts,mode='parallel',n_pool=10)
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
   
@@ -86,12 +86,19 @@ def Fit_GRU(dim_c,initial_params=None):
 # c3_part = pkl.load(open('GRU_c3_3sub.pkl','rb'))
 # c3_all = Fit_GRU(dim_c=3,initial_params=c3_part.loc[0]['params_val'])
 
-c4_part = pkl.load(open('GRU_c4_3sub.pkl','rb'))
-c4_all = Fit_GRU(dim_c=4,initial_params=c4_part.loc[4]['params_val'])
+# c4_part = pkl.load(open('GRU_c4_3sub.pkl','rb'))
+# c4_all = Fit_GRU(dim_c=4,initial_params=c4_part.loc[4]['params_val'])
 
-# if __name__ == '__main__':
-    # multiprocessing.freeze_support()
-    # c1 = Fit_GRU(dim_c=1)
-    # c2 = Fit_GRU(dim_c=2)
-    # c3 = Fit_GRU(dim_c=3)
-    # c4 = Fit_GRU(dim_c=4)
+if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    c1 = Fit_GRU(dim_c=1)
+    c2 = Fit_GRU(dim_c=2)
+    c3 = Fit_GRU(dim_c=3)
+    c4 = Fit_GRU(dim_c=4)
+    c5 = Fit_GRU(dim_c=5)
+    c6 = Fit_GRU(dim_c=6)
+    c7 = Fit_GRU(dim_c=7)
+    c8 = Fit_GRU(dim_c=8)
+    c9 = Fit_GRU(dim_c=9)
+    c10 = Fit_GRU(dim_c=10)
+    
