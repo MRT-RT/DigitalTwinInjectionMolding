@@ -67,10 +67,10 @@ def Fit_GRU(dim_c,initial_params=None):
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
-    s_opts = {"max_iter": 200, 'step':0.1}
+    s_opts = {"max_iter": 300, 'hessian_approximation':'limited-memory'}
 
     
-    results_GRU = ModelTraining(quality_model,data,initializations=10, BFR=False, 
+    results_GRU = ModelTraining(quality_model,data,initializations=1, BFR=False, 
                       p_opts=None, s_opts=s_opts,mode='parallel')
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
