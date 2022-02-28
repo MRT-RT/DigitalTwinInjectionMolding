@@ -61,8 +61,8 @@ def Fit_GRU(dim_c,initial_params=None):
     press_model.InitialParameters = initial_params 
     cool_model.InitialParameters = initial_params 
     
-    press_model.InitialParameters ={'b_z_press':np.random.uniform(-10,-4,(dim_c,1))}
-    cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-10,-4,(dim_c,1))}
+    press_model.InitialParameters ={'b_z_press':np.random.uniform(-20,-10,(dim_c,1))}
+    cool_model.InitialParameters = {'b_z_cool':np.random.uniform(-20,-10,(dim_c,1))}
     
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
@@ -94,11 +94,11 @@ if __name__ == '__main__':
     c1 = Fit_GRU(dim_c=1)
     c2 = Fit_GRU(dim_c=2)
     c3 = Fit_GRU(dim_c=3)
-    c4 = Fit_GRU(dim_c=4)
-    c5 = Fit_GRU(dim_c=5)
-    c6 = Fit_GRU(dim_c=6)
-    c7 = Fit_GRU(dim_c=7)
-    c8 = Fit_GRU(dim_c=8)
-    c9 = Fit_GRU(dim_c=9)
-    c10 = Fit_GRU(dim_c=10)
+    # c4 = Fit_GRU(dim_c=4)
+    # c5 = Fit_GRU(dim_c=5)
+    # c6 = Fit_GRU(dim_c=6)
+    # c7 = Fit_GRU(dim_c=7)
+    # c8 = Fit_GRU(dim_c=8)
+    # c9 = Fit_GRU(dim_c=9)
+    # c10 = Fit_GRU(dim_c=10)
     
