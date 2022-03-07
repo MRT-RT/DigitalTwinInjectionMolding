@@ -29,7 +29,7 @@ def Eval_GRU_on_Val(dim_c):
     res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
        
     # params = res.loc[res['loss_val'].idxmin()][['params']][0]
-    params = res.loc[7]['params_val']
+    params = res.loc[1]['params_val']
 
     charges = list(range(1,275))
     
@@ -105,7 +105,7 @@ def Eval_GRU_on_Val(dim_c):
 
 
 
-results_train, results_val, data, quality_model = Eval_GRU_on_Val(dim_c=3)
+results_train, results_val, data, quality_model = Eval_GRU_on_Val(dim_c=4)
 
 
 

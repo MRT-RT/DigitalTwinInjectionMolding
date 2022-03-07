@@ -71,7 +71,7 @@ def Fit_GRU(dim_c,initial_params=None):
 
     
     results_GRU = ParallelModelTraining(quality_model,data,initializations=20, BFR=False, 
-                      p_opts=None, s_opts=s_opts,mode='parallel',n_pool=10)
+                      p_opts=None, s_opts=s_opts,mode='parallel',n_pool=7)
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
   
@@ -94,9 +94,9 @@ if __name__ == '__main__':
     # c1 = Fit_GRU(dim_c=1)
     # c2 = Fit_GRU(dim_c=2)
     # c3 = Fit_GRU(dim_c=3)
-    c4 = Fit_GRU(dim_c=4)
-    c5 = Fit_GRU(dim_c=5)
-    c6 = Fit_GRU(dim_c=6)
+    # c4 = Fit_GRU(dim_c=4)
+    # c5 = Fit_GRU(dim_c=5)
+    # c6 = Fit_GRU(dim_c=6)
     c7 = Fit_GRU(dim_c=7)
     c8 = Fit_GRU(dim_c=8)
     c9 = Fit_GRU(dim_c=9)
