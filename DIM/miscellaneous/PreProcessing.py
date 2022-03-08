@@ -327,15 +327,16 @@ def split_charges_to_trainval_data(path,charges,split):
     charge_val_label = []
     
     for charge in charges:
+               
         cycles = data[data['Charge']==charge].index.values
 
         if split == 'part':
-            cyc_t = [*cycles[0:2],*cycles[-2:]]
-            cyc_v = [cycles[2],cycles[-4]]
+            cyc_t = list(set([*cycles[0:2],*cycles[-2:]]))
+            cyc_v = list(set([cycles[2],cycles[-4]]))
             
         elif split == 'all':
-            cyc_t = [*cycles[0:2],*cycles[3:-4],*cycles[-3:]]
-            cyc_v = [cycles[2],cycles[-4]]
+            cyc_t = list(set([*cycles[0:2],*cycles[3:-4],*cycles[-3:]]))
+            cyc_v = list(set([cycles[2],cycles[-4]]))
 
         cycles_train_label.extend(cyc_t)
         cycles_val_label.extend(cyc_v)
@@ -424,7 +425,7 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab):
     return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
     
 
-def LoadStaticData(path,charges, split, targets):
+def LoadFeatureData(path,charges, split, targets):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
     split_charges_to_trainval_data(path,charges,split)    
@@ -488,7 +489,11 @@ def LoadStaticData(path,charges, split, targets):
             data.loc[c] = f
         # print(c)
     
-    return data_train,data_val,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label
+    
+    data_train['charge'] = charge_train_label
+    data_val['charge'] = charge_val_label
+    
+    return data_train,data_val
 
 def LoadSetpointData(path,charges, split, targets):
     
@@ -508,5 +513,7 @@ def LoadSetpointData(path,charges, split, targets):
     data_train = doe_plan.loc[cycles_train_label][setpoints]
     data_val = doe_plan.loc[cycles_val_label][setpoints]
     
+    data_train['charge'] = charge_train_label
+    data_val['charge'] = charge_val_label
     
-    return data_train,data_val,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
+    return data_train,data_val  
