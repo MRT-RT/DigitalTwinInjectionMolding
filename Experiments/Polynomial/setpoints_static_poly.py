@@ -25,18 +25,18 @@ charges = list(range(1,275))
 split = 'all'
 # targets = ['Durchmesser_innen','Durchmesser_außen','Stegbreite_Gelenk','Gewicht',
 #            'Stegbreite_Gelenk','Breite_Lasche']
-targets = ['Durchmesser_innen']
+targets = ['Durchmesser_innen','Gewicht']
 # targets = ['Gewicht']
 # targets = ['Stegbreite_Gelenk']
 # targets = ['Breite_Lasche']
 # targets = ['Rundheit_außen']
 
 
-# path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 # path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
-data_train,data_val,_,_,_,_  = LoadSetpointData(path,charges,split,targets)
+data_train,data_val  = LoadSetpointData(path,charges,split,targets)
 
 # data = data_train.append(data_val)
 
@@ -46,64 +46,64 @@ inputs = [col for col in data_train.columns if col not in targets]
 # print(LinModel.score(data_val[inputs],data_val[targets]))
 
 
-for i in range(1,11):
-    # Polynomial Model
-    poly = PolynomialFeatures(i)
-    X_poly_train = poly.fit_transform(data_train[inputs])
-    X_poly_val = poly.transform(data_val[inputs])
+# for i in range(1,11):
+#     # Polynomial Model
+#     poly = PolynomialFeatures(i)
+#     X_poly_train = poly.fit_transform(data_train[inputs])
+#     X_poly_val = poly.transform(data_val[inputs])
     
     
-    PolyModel = LinearRegression()
-    PolyModel.fit(X_poly_train,data_train[targets])
+#     PolyModel = LinearRegression()
+#     PolyModel.fit(X_poly_train,data_train[targets])
     
-    print(PolyModel.score(X_poly_val,data_val[targets]))
+#     print(PolyModel.score(X_poly_val,data_val[targets]))
     
 
-# Linear Model Feaure Selection
-# lin_reg = pd.DataFrame(columns=['BFR','feature_added'])
+# # Linear Model Feaure Selection
+lin_reg = pd.DataFrame(columns=['BFR','feature_added'])
 
-# for num_feat in range(1,9):
-#     LinModel = LinearRegression()
-#     if num_feat<8:
-#         sfs = SequentialFeatureSelector(LinModel, n_features_to_select=num_feat,cv=100)
-#         sfs.fit(data_train[inputs], data_train[targets])
-#         inputs_step = [inputs[i] for i in sfs.get_support(indices=True)]
-#     else:
-#         inputs_step = inputs
+for num_feat in range(1,9):
+    LinModel = LinearRegression()
+    if num_feat<8:
+        sfs = SequentialFeatureSelector(LinModel, n_features_to_select=num_feat,cv=50)
+        sfs.fit(data_train[inputs], data_train[targets])
+        inputs_step = [inputs[i] for i in sfs.get_support(indices=True)]
+    else:
+        inputs_step = inputs
         
-#     LinModel.fit(data_train[inputs_step],data_train[targets])
+    LinModel.fit(data_train[inputs_step],data_train[targets])
     
-#     R2 = LinModel.score(data_val[inputs_step],data_val[targets])
+    R2 = LinModel.score(data_val[inputs_step],data_val[targets])
 
-#     if num_feat>1:
-#         # print(list(lin_reg['feature_added']))
-#         new_feat = [feat for feat in inputs_step if feat not in list(lin_reg['feature_added'])][0]
-#         # print(new_feat)
-#     else:
-#         new_feat = inputs_step[0]
+    if num_feat>1:
+        # print(list(lin_reg['feature_added']))
+        new_feat = [feat for feat in inputs_step if feat not in list(lin_reg['feature_added'])][0]
+        # print(new_feat)
+    else:
+        new_feat = inputs_step[0]
         
         
-#     lin_reg=lin_reg.append({'BFR':R2,'feature_added':new_feat},ignore_index=True)
+    lin_reg=lin_reg.append({'BFR':R2,'feature_added':new_feat},ignore_index=True)
 
 
-# fig, ax = plt.subplots()
-# sns.barplot(x="feature_added", y="BFR", data=lin_reg,ax=ax)
-# ax.set_title(targets)
+fig, ax = plt.subplots()
+sns.barplot(x="feature_added", y="BFR", data=lin_reg,ax=ax)
+ax.set_title(targets)
 
 # Polynomial Model feature selection
-# pol_reg = pd.DataFrame(columns=['BFR','feature_added'])
+pol_reg = pd.DataFrame(columns=['BFR','feature_added'])
 
-# poly = PolynomialFeatures(2)
-# X_poly_train = poly.fit_transform(data_train[inputs])
-# X_poly_val = poly.transform(data_val[inputs])
+poly = PolynomialFeatures(2)
+X_poly_train = poly.fit_transform(data_train[inputs])
+X_poly_val = poly.transform(data_val[inputs])
 
-# inputs_poly = poly.get_feature_names(inputs)
+inputs_poly = poly.get_feature_names(inputs)
 
-# data_train_poly = pd.DataFrame(data=X_poly_train,columns=[inputs_poly],index=data_train.index)
-# data_train_poly[targets] = data_train[targets]
+data_train_poly = pd.DataFrame(data=X_poly_train,columns=[inputs_poly],index=data_train.index)
+data_train_poly[targets] = data_train[targets]
 
-# data_val_poly = pd.DataFrame(data=X_poly_val,columns=[inputs_poly],index=data_val.index)
-# data_val_poly[targets] = data_val[targets]
+data_val_poly = pd.DataFrame(data=X_poly_val,columns=[inputs_poly],index=data_val.index)
+data_val_poly[targets] = data_val[targets]
 
 # for num_feat in range(1,9):
 
