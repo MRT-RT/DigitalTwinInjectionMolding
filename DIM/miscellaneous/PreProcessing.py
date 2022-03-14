@@ -156,50 +156,51 @@ def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
     return df
     
 
-def arrange_data_for_qual_ident(cycles,x_lab,q_lab):
+# def arrange_data_for_qual_ident(cycles,x_lab,q_lab):
     
-    x = []
-    q = []
-    switch = []
+#     x = []
+#     q = []
+#     switch = []
     
-    for cycle in cycles:
-        # Find switching instances
-        # Assumption: First switch is were pressure is maximal
-        t1 = cycle['p_inj_ist'].idxmax()
-        idx_t1 = np.argmin(abs(cycle.index.values-t1))
+#     for cycle in cycles:
+#         # Find switching instances
+#         # Assumption: First switch is were pressure is maximal
+#         t1 = cycle['p_inj_ist'].idxmax()
+#         idx_t1 = np.argmin(abs(cycle.index.values-t1))
         
-        # Second switch results from 
-        t2 = t1 + cycle.loc[0]['t_press1_soll'] + cycle.loc[0]['t_press2_soll']
+#         # Second switch results from 
+#         t2 = t1 + cycle.loc[0]['t_press1_soll'] + cycle.loc[0]['t_press2_soll']
         
-        # find index closest to calculated switching instances
-        idx_t2 = np.argmin(abs(cycle.index.values-t2))
-        t2 = cycle.index.values[idx_t2]
+#         # find index closest to calculated switching instances
+#         idx_t2 = np.argmin(abs(cycle.index.values-t2))
+#         t2 = cycle.index.values[idx_t2]
         
-        # Read desired data from dataframe
-        temp = cycle[x_lab].values                                              # can contain NaN at the end
-        nana = np.isnan(temp).any(axis=1)                                       # find NaN
+#         # Read desired data from dataframe
+#         temp = cycle[x_lab].values                                              # can contain NaN at the end
+#         nana = np.isnan(temp).any(axis=1)                                       # find NaN
         
-        x.append(temp[~nana,:])
-        q.append(cycle.loc[0,q_lab].values)
-        switch.append([idx_t1,idx_t2])
+#         x.append(temp[~nana,:])
+#         q.append(cycle.loc[0,q_lab].values)
+#         switch.append([idx_t1,idx_t2])
    
-    # inject = {}
-    # press = {}
-    # cool = {}
+#     # inject = {}
+#     # press = {}
+#     # cool = {}
     
-    # inject['u'] = df.loc[0:t_um1][u_inj].values[0:-1,:]
-    # inject['x'] = df.loc[0:t_um1][x].values[1::,:]
-    # inject['x_init'] = df.loc[0][x].values
+#     # inject['u'] = df.loc[0:t_um1][u_inj].values[0:-1,:]
+#     # inject['x'] = df.loc[0:t_um1][x].values[1::,:]
+#     # inject['x_init'] = df.loc[0][x].values
     
-    # press['u'] = df.loc[t_um1:t_um2][u_press].values[0:-1,:]
-    # press['x'] = df.loc[t_um1:t_um2][x].values[1::,:]
-    # press['x_init'] = df.loc[t_um1][x].values
+#     # press['u'] = df.loc[t_um1:t_um2][u_press].values[0:-1,:]
+#     # press['x'] = df.loc[t_um1:t_um2][x].values[1::,:]
+#     # press['x_init'] = df.loc[t_um1][x].values
 
-    # cool['u'] = df.loc[t_um2::][u_cool].values[0:-1,:]
-    # cool['x'] = df.loc[t_um2::][x].values[1::,:]
-    # cool['x_init'] = df.loc[t_um2][x].values    
+#     # cool['u'] = df.loc[t_um2::][u_cool].values[0:-1,:]
+#     # cool['x'] = df.loc[t_um2::][x].values[1::,:]
+#     # cool['x_init'] = df.loc[t_um2][x].values    
     
-    return x,q,switch
+#     return x,q,switch
+
 def find_switches(cycle):
     '''
     
@@ -234,8 +235,11 @@ def find_switches(cycle):
 def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
     
     u = []
+    x_init = []
     y = []
     switch = []
+    
+
     
     for cycle in cycles:
         
@@ -266,37 +270,49 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
             
             y.append(cycle.loc[0,y_lab].values)
             
+            # Read desired data from dataframe
+            if len(u_lab)==1:
+                u_all = cycle[u_all_lab].values
+                u.append([u_all])
+                switch.append([None])
+                
+            elif len(u_lab)==3:
+    
+                u_inj = cycle.loc[0:t1][u_inj_lab].values                                         # can contain NaN at the end
+                u_press = cycle.loc[t1:t2][u_press_lab].values  
+                u_cool = cycle.loc[t2:t3][u_cool_lab].values  
+    
+                u.append([u_inj,u_press,u_cool])
+                switch.append([cycle.index.get_loc(t1),cycle.index.get_loc(t2)])
+                
+        
         elif mode == 'process':
-            print('This needs to be implemented properly!')
-            # nan_cycle = np.isnan(cycle).any(axis=1)
-            # cycle = cycle.loc[~nan_cycle]
             
-            # y.append(cycle.loc[1:idx_t3+1,y_lab].values)    
+            nan_cycle = np.isnan(cycle[u_all_lab+y_lab]).any(axis=1)
+            cycle = cycle.loc[~nan_cycle]
         
-        # Read desired data from dataframe
-        if len(u_lab)==1:
-            u_all = cycle[u_all_lab].values
-            u.append([u_all])
-            switch.append([None])
-            
-        elif len(u_lab)==3:
-            # u_inj = cycle[u_inj_lab].values                                         # can contain NaN at the end
-            # u_press = cycle[u_press_lab].values  
-            # u_cool = cycle[u_cool_lab].values  
-
-
-            # u_inj = u_inj[0:idx_t1,::]
-            # u_press = u_press[idx_t1:idx_t2,::]
-            # u_cool = u_cool[idx_t2:idx_t3,::]
-
-            u_inj = cycle.loc[0:t1][u_inj_lab].values                                         # can contain NaN at the end
-            u_press = cycle.loc[t1:t2][u_press_lab].values  
-            u_cool = cycle.loc[t2:t3][u_cool_lab].values  
-
-            u.append([u_inj,u_press,u_cool])
-            switch.append([cycle.index.get_loc(t1),cycle.index.get_loc(t2)])
+            # Read desired data from dataframe
+            if len(u_lab)==1:
+                u_all = cycle[u_all_lab].values
+                u.append([u_all])
+                switch.append([None])
+                
+            elif len(u_lab)==3:
+    
+                u_inj = cycle.loc[0:t1][u_inj_lab].values[0:-1]                                         # can contain NaN at the end
+                u_press = cycle.loc[t1:t2][u_press_lab].values[0:-1]  
+                u_cool = cycle.loc[t2:t3][u_cool_lab].values[0:-1]  
+    
+                y_inj = cycle.loc[0:t1][y_lab].values[1::]                                         # can contain NaN at the end
+                y_press = cycle.loc[t1:t2][y_lab].values[1::]  
+                y_cool = cycle.loc[t2:t3][y_lab].values[1::]      
+    
+                u.append([u_inj,u_press,u_cool])
+                y.append(np.vstack([y_inj,y_press,y_cool]))
+                x_init.append(cycle.loc[0][y_lab].values.reshape(-1,1))
+                switch.append([cycle.index.get_loc(t1),cycle.index.get_loc(t2)])
         
-    return u,y,switch
+    return u,y,x_init,switch
 
 
 
@@ -363,7 +379,7 @@ def split_charges_to_trainval_data(path,charges,split):
     return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
 
     
-def LoadDynamicData(path,charges,split,y_lab,u_lab):
+def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
     split_charges_to_trainval_data(path,charges,split)
@@ -387,7 +403,7 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab):
         u_cool_lab = u_lab[2]
         
         u_lab_all = u_lab[0] + list(set(u_lab[1])-set(u_lab[0]))
-        u_lab_all = u_lab_all + list(set(u_lab_all)-set(u_lab[2]))
+        u_lab_all = u_lab_all + list(set(u_lab[2])-set(u_lab_all))
         
     elif len(u_lab)==1:
         u_lab_all = u_lab[0]
@@ -396,29 +412,43 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab):
                          elements with input labels!''')
 
     # Normalize with respect to first cycle    
-    mean_y = cycles_train[0][y_lab].mean()
+    # mean_y = cycles_train[0][y_lab].mean()                                    # This normalization was formerly used for quality models
     
-    mean_u = cycles_train[0][u_lab_all].mean()
 
     min_u = cycles_train[0][u_lab_all].min()
     max_u = cycles_train[0][u_lab_all].max()
+    
+    min_y = cycles_train[0][y_lab].min()
+    max_y = cycles_train[0][y_lab].max()
 
-
+    min_u[max_u-min_u==0]=0                                                     # if signal is constant, set minimum to 0 to avoid division by zero    
+    min_y[max_y-min_y==0]=0
+    
+    print('p_inj_soll at switch point is set to 700 manually!')
+    
     for cycle in cycles_train+cycles_val:
+        
+        t1,_,_ = find_switches(cycle)
+        cycle.loc[t1]['p_inj_soll']=700.00
+        
         cycle[u_lab_all] = (cycle[u_lab_all]-min_u)/(max_u-min_u)
-        cycle[y_lab] = cycle[y_lab]-mean_y+1
+        cycle[y_lab] = (cycle[y_lab]-min_y)/(max_y-min_y)
+        
+        # cycle[y_lab] = cycle[y_lab]-mean_y+1ArithmeticError                   # This normalization was formerly used for quality models
     
-    x_train,q_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
-                                        u_lab,'quality')
+    u_train,y_train,x_init_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
+                                        u_lab,mode)
     
-    x_val,q_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
-                                        u_lab,'quality')
+    u_val,y_val,x_init_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
+                                        u_lab,mode)
     
-    data = {'u_train': x_train,
-            'y_train': q_train,
+    data = {'u_train': u_train,
+            'y_train': y_train,
+            'init_state_train': x_init_train,
             'switch_train': switch_train,
-            'u_val': x_val,
-            'y_val': q_val,
+            'u_val': u_val,
+            'y_val': y_val,
+            'init_state_val': x_init_val,
             'switch_val': switch_val}
     
     

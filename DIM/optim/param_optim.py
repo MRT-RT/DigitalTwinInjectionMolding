@@ -584,6 +584,7 @@ def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
     y = []
     x = []
     e = []
+    
     # Loop over all batches 
     for i in range(0,len(u)):   
         
@@ -601,15 +602,17 @@ def parallel_mode(model,u,y_ref,x0,switch=None,params=None):
             y.append(pred[1])
         else:
             y.append(pred)
+            
         # Calculate simulation error            
         # Check for the case, where only last value is available
         
         if y_ref[i].shape[0]==1:
+
             y[-1]=y[-1][-1,:]
             e.append(y_ref[i] - y[-1])
             loss = loss + cs.sumsqr(e[-1])
     
-        else:
+        else :
             e.append(y_ref[i] - y[-1])
             loss = loss + cs.sumsqr(e[-1])
     
