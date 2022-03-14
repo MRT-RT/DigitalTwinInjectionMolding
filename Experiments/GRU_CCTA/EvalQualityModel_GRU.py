@@ -24,7 +24,6 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 
 def Eval_GRU_on_Val(dim_c):
 
-
     # Load best model
     res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
        
