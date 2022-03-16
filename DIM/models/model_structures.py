@@ -387,10 +387,12 @@ class MLP():
                 if param in self.Parameters.keys():
                     self.Parameters[param] = self.InitialParameters[param]
                     
-    def AssignParameters(self,params):
-        
+    def SetParameters(self,params):
         for p_name in self.Function.name_in()[2::]:
-            self.Parameters[p_name] = params[p_name]
+            try:
+                self.Parameters[p_name] = params[p_name]
+            except:
+                pass           
 
 class Static_MLP():
     """
