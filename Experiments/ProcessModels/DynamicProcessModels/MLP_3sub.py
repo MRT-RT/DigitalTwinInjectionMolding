@@ -28,13 +28,13 @@ from DIM.optim.param_optim import ParallelModelTraining
 
 def Fit_MLP(dim_hidden,initial_params=None):
 
-    # charges = list(range(1,275))    
-    charges = list(range(1,5))    
+    charges = list(range(1,275))    
+ 
     split = 'process'
     mode = 'process'
 
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
     u_inj= ['v_inj_soll']
     u_press= ['p_inj_soll']
@@ -57,7 +57,7 @@ def Fit_MLP(dim_hidden,initial_params=None):
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
 
     results_MLP =  ParallelModelTraining(process_model,data,initializations=20, 
-                    BFR=False, p_opts=None, s_opts=s_opts,mode='parallel',n_pool=5)
+                    BFR=False, p_opts=None, s_opts=s_opts,mode='parallel',n_pool=1)
     
     pkl.dump(results_MLP,open('MLP_h'+str(dim_hidden)+'_3sub.pkl','wb'))
 
@@ -69,13 +69,13 @@ def Fit_MLP(dim_hidden,initial_params=None):
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     h1 = Fit_MLP(dim_hidden=1)
-    # h2 = Fit_MLP(dim_hidden=2)
-    # h3 = Fit_MLP(dim_hidden=3)
-    # h4 = Fit_MLP(dim_hidden=4)
-    # h5 = Fit_MLP(dim_hidden=5)
-    # h6 = Fit_MLP(dim_hidden=6)
-    # h7 = Fit_MLP(dim_hidden=7)
-    # h8 = Fit_MLP(dim_hidden=8)
-    # h9 = Fit_MLP(dim_hidden=9)
-    # h10 = Fit_MLP(dim_hidden=10)
+    h2 = Fit_MLP(dim_hidden=2)
+    h3 = Fit_MLP(dim_hidden=3)
+    h4 = Fit_MLP(dim_hidden=4)
+    h5 = Fit_MLP(dim_hidden=5)
+    h6 = Fit_MLP(dim_hidden=6)
+    h7 = Fit_MLP(dim_hidden=7)
+    h8 = Fit_MLP(dim_hidden=8)
+    h9 = Fit_MLP(dim_hidden=9)
+    h10 = Fit_MLP(dim_hidden=10)
 
