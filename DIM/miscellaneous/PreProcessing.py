@@ -353,6 +353,10 @@ def split_charges_to_trainval_data(path,charges,split):
         elif split == 'all':
             cyc_t = list(set([*cycles[0:2],*cycles[3:-4],*cycles[-3:]]))
             cyc_v = list(set([cycles[2],cycles[-4]]))
+        
+        elif split == 'process':
+            cyc_t = list(set([*cycles[-3:-1]]))
+            cyc_v = list(set([cycles[-1]]))
 
         cycles_train_label.extend(cyc_t)
         cycles_val_label.extend(cyc_v)
