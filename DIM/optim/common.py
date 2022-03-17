@@ -51,7 +51,12 @@ def RK4(f_cont,input,dt):
     return x_new
 
 def BestFitRate(y_target,y_est):
-    BFR = 1-sum((y_target-y_est)**2) / sum((y_target-np.mean(y_target))**2) 
+    
+    e_pred = np.linalg.norm(y_target-y_est,axis=1)
+    e_mean = np.linalg.norm(y_target-np.mean(y_target),axis=1)
+    
+    
+    BFR = 1-sum(e_pred**2) / sum(e_mean**2) 
     
     BFR = BFR*100
     
