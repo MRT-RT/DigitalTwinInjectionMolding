@@ -22,7 +22,7 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 from DIM.models.model_structures import MLP
 from DIM.models.injection_molding import ProcessModel
 from DIM.optim.param_optim import parallel_mode
-from DIM.optim.param_optim import ParallelModelTraining
+from DIM.optim.param_optim import ModelTraining
 
 
 
@@ -56,8 +56,8 @@ def Fit_MLP(dim_hidden,initial_params=None):
 
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
 
-    results_MLP =  ParallelModelTraining(process_model,data,initializations=20, 
-                    BFR=False, p_opts=None, s_opts=s_opts,mode='parallel',n_pool=1)
+    results_MLP =  ModelTraining(process_model,data,initializations=20, 
+                    BFR=False, p_opts=None, s_opts=s_opts,mode='parallel')
     
     pkl.dump(results_MLP,open('MLP_h'+str(dim_hidden)+'_3sub.pkl','wb'))
 
