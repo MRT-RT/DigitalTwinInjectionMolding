@@ -416,9 +416,8 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
                          elements with input labels!''')
 
     # Normalize with respect to first cycle    
-    # mean_y = cycles_train[0][y_lab].mean()                                    # This normalization was formerly used for quality models
+    mean_y = cycles_train[0][y_lab].mean()                                    # This normalization was formerly used for quality models
     
-
     min_u = cycles_train[0][u_lab_all].min()
     max_u = cycles_train[0][u_lab_all].max()
     
@@ -435,8 +434,15 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
         t1,_,_ = find_switches(cycle)
         cycle.loc[t1]['p_inj_soll']=700.00
         
+        
         cycle[u_lab_all] = (cycle[u_lab_all]-min_u)/(max_u-min_u)
-        cycle[y_lab] = (cycle[y_lab]-min_y)/(max_y-min_y)
+        
+        if mode == 'quality':
+            cycle[y_lab] = (cycle[y_lab]-mean_y)+1
+        elif mode == 'process':
+            cycle[y_lab] = (cycle[y_lab]-min_y)/(max_y-min_y)
+        
+        
         
         # cycle[y_lab] = cycle[y_lab]-mean_y+1ArithmeticError                   # This normalization was formerly used for quality models
     
