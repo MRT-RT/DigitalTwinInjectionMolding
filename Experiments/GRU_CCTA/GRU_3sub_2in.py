@@ -30,6 +30,7 @@ def Fit_GRU(dim_c,initial_params=None):
     
     split = 'all'
     # split = 'part'
+    mode='quality'
     
     path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
@@ -44,7 +45,7 @@ def Fit_GRU(dim_c,initial_params=None):
     y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
-    LoadDynamicData(path,charges,split,y_lab,u_lab)
+    LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data['u_train']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data['u_val']))]    
@@ -71,7 +72,7 @@ def Fit_GRU(dim_c,initial_params=None):
 
     
     results_GRU = ParallelModelTraining(quality_model,data,initializations=20, BFR=False, 
-                      p_opts=None, s_opts=s_opts,mode='parallel',n_pool=5)
+                      p_opts=None, s_opts=s_opts,mode='parallel',n_pool=4)
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
   
@@ -97,8 +98,8 @@ if __name__ == '__main__':
     # c4 = Fit_GRU(dim_c=4)
     # c5 = Fit_GRU(dim_c=5)
     # c6 = Fit_GRU(dim_c=6)
-    c7 = Fit_GRU(dim_c=7)
-    c8 = Fit_GRU(dim_c=8)
-    c9 = Fit_GRU(dim_c=9)
+    # c7 = Fit_GRU(dim_c=7)
+    # c8 = Fit_GRU(dim_c=8)
+    # c9 = Fit_GRU(dim_c=9)
     c10 = Fit_GRU(dim_c=10)
     
