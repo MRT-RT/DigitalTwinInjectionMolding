@@ -28,7 +28,7 @@ def Eval_GRU_on_Val(dim_c):
     res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
        
     # params = res.loc[res['loss_val'].idxmin()][['params']][0]
-    params = res.loc[5]['params_val']
+    params = res.loc[10]['params_val']
 
     charges = list(range(1,275))
     
@@ -36,9 +36,9 @@ def Eval_GRU_on_Val(dim_c):
     split = 'all'
     # split = 'part'
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
        
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
@@ -89,7 +89,6 @@ def Eval_GRU_on_Val(dim_c):
     _,e_val,_,y_val = parallel_mode(quality_model,data['u_val'],data['y_val'],
                               data['init_state_val'],data['switch_val'])
     
-    
     y_true = np.array(data['y_val']).reshape((-1,1))
     y_val = np.array(y_val).reshape((-1,1))
     e_val = np.array(e_val).reshape((-1,1))
@@ -106,8 +105,6 @@ def Eval_GRU_on_Val(dim_c):
 
 
 results_train, results_val, data, quality_model = Eval_GRU_on_Val(dim_c=9)
-
-
 
 # pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
 # pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 
