@@ -22,7 +22,7 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 from DIM.models.model_structures import MLP
 from DIM.models.injection_molding import ProcessModel
 from DIM.optim.param_optim import parallel_mode
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ParallelModelTraining
 
 
 
@@ -33,9 +33,10 @@ def Fit_MLP(dim_hidden,initial_params=None):
     split = 'process'
     mode = 'process'
 
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    
     u_inj= ['v_inj_soll']
     u_press= ['p_inj_soll']
     u_cool= []
@@ -56,8 +57,9 @@ def Fit_MLP(dim_hidden,initial_params=None):
 
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
 
-    results_MLP =  ModelTraining(process_model,data,initializations=20, 
-                    BFR=False, p_opts=None, s_opts=s_opts,mode='parallel')
+    results_MLP =  ParallelModelTraining(process_model,data,initializations=20, 
+                    BFR=False, p_opts=None, s_opts=s_opts,mode='parallel',
+                    n_pool=8)
     
     pkl.dump(results_MLP,open('MLP_h'+str(dim_hidden)+'_3sub.pkl','wb'))
 
@@ -68,8 +70,9 @@ def Fit_MLP(dim_hidden,initial_params=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    h1 = Fit_MLP(dim_hidden=1)
-    h2 = Fit_MLP(dim_hidden=2)
+    # h1 = Fit_MLP(dim_hidden=1)
+    # h2 = Fit_MLP(dim_hidden=2)
+    h10 = Fit_MLP(dim_hidden=10)
     h3 = Fit_MLP(dim_hidden=3)
     h4 = Fit_MLP(dim_hidden=4)
     h5 = Fit_MLP(dim_hidden=5)
