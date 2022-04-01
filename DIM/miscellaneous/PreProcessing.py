@@ -237,9 +237,8 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
     u = []
     x_init = []
     y = []
+    data = []
     switch = []
-    
-
     
     for cycle in cycles:
         
@@ -298,21 +297,36 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
                 switch.append([None])
                 
             elif len(u_lab)==3:
+                # In this version input and output data was shifted to each other
+                # u_inj = cycle.loc[0:t1][u_inj_lab].values[0:-1]                         # can contain NaN at the end
+                # u_press = cycle.loc[t1:t2][u_press_lab].values[0:-1]  
+                # u_cool = cycle.loc[t2:t3][u_cool_lab].values[0:-1]  
     
-                u_inj = cycle.loc[0:t1][u_inj_lab].values[0:-1]                                         # can contain NaN at the end
-                u_press = cycle.loc[t1:t2][u_press_lab].values[0:-1]  
-                u_cool = cycle.loc[t2:t3][u_cool_lab].values[0:-1]  
+                # y_inj = cycle.loc[0:t1][y_lab].values[1::]                              # can contain NaN at the end
+                # y_press = cycle.loc[t1:t2][y_lab].values[1::]  
+                # y_cool = cycle.loc[t2:t3][y_lab].values[1::]      
+                
+                
+                # u_inj = cycle.loc[0:t1][u_inj_lab].values                                 # can contain NaN at the end
+                # u_press = cycle.loc[t1:t2][u_press_lab].values  
+                # u_cool = cycle.loc[t2:t3][u_cool_lab].values  
     
-                y_inj = cycle.loc[0:t1][y_lab].values[1::]                                         # can contain NaN at the end
-                y_press = cycle.loc[t1:t2][y_lab].values[1::]  
-                y_cool = cycle.loc[t2:t3][y_lab].values[1::]      
+                # y_inj = cycle.loc[0:t1][y_lab].values                                     # can contain NaN at the end
+                # y_press = cycle.loc[t1:t2][y_lab].values  
+                # y_cool = cycle.loc[t2:t3][y_lab].values      
     
-                u.append([u_inj,u_press,u_cool])
-                y.append(np.vstack([y_inj,y_press,y_cool]))
+                # u.append([u_inj,u_press,u_cool])
+                # y.append(np.vstack([y_inj,y_press,y_cool]))
+                
+                data.append(cycle)
                 x_init.append(cycle.loc[0][y_lab].values.reshape(-1,1))
-                switch.append([cycle.index.get_loc(t1),cycle.index.get_loc(t2)])
+                switch.append([t1,t2])
+                # switch.append([cycle.index.get_loc(t1),cycle.index.get_loc(t2)])
+                
+                
+                
         
-    return u,y,x_init,switch
+    return data,x_init,switch
 
 
 
@@ -446,24 +460,21 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
         
         # cycle[y_lab] = cycle[y_lab]-mean_y+1ArithmeticError                   # This normalization was formerly used for quality models
     
-    u_train,y_train,x_init_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
+    data_train,x_init_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
                                         u_lab,mode)
     
-    u_val,y_val,x_init_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
+    data_val,x_init_val,switch_val = arrange_data_for_ident(cycles_val,y_lab,
                                         u_lab,mode)
     
-    data = {'u_train': u_train,
-            'y_train': y_train,
-            'init_state_train': x_init_train,
-            'switch_train': switch_train,
-            'u_val': u_val,
-            'y_val': y_val,
-            'init_state_val': x_init_val,
-            'switch_val': switch_val}
+    data_train = {'data': data_train,
+                'init_state': x_init_train,
+                'switch': switch_train}
     
+    data_val = {'data': data_val,
+                'init_state': x_init_val,
+                'switch': switch_val}
     
-    return data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label  
-    
+    return data_train,data_val
 
 def LoadFeatureData(path,charges, split, targets):
     
