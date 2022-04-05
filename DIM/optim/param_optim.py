@@ -512,10 +512,10 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
         # x0_train = data['init_state_train']
         # x0_val = data['init_state_val']
         
-        loss_train,_,_,_ = parallel_mode(model,u_train,y_ref_train,x0_train,
+        loss_train,_,_ = parallel_mode(model,u_train,y_ref_train,x0_train,
                                          switch_train,params_opti) 
         
-        loss_val,_,_,_ = parallel_mode(model,u_val,y_ref_val,x0_val,
+        loss_val,_,_ = parallel_mode(model,u_val,y_ref_val,x0_val,
                                        switch_val,params_opti)
         
     elif mode == 'static':
@@ -533,8 +533,8 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
         #     x_ref_train = None
         #     x_ref_val = None
         
-        loss_train,_,_ = series_parallel_mode(model,data_train,params_opti)
-        loss_val,_,_ = series_parallel_mode(model,data_val,params_opti)
+        loss_train,_ = series_parallel_mode(model,data_train,params_opti)
+        loss_val,_ = series_parallel_mode(model,data_val,params_opti)
     
     loss_val = cs.Function('loss_val',[*list(params_opti.values())],
                          [loss_val],list(params_opti.keys()),['F'])
