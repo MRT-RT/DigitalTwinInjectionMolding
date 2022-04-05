@@ -61,7 +61,7 @@ def Fit_MLP(dim_hidden,initial_params=None):
 
     results_MLP =  ModelTraining(process_model,data_train,data_val,
                            initializations=20, BFR=False, p_opts=None, 
-                           s_opts=s_opts,mode='parallel', n_pool=8)
+                           s_opts=s_opts,mode='parallel')
     
     pkl.dump(results_MLP,open('MLP_h'+str(dim_hidden)+'_3sub.pkl','wb'))
 

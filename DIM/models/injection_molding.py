@@ -41,10 +41,14 @@ class ProcessModel():
         self.FrozenParameters = []
         
         dim_out = []
+        u_label = []
+        y_label = []
+
         
         for subsystem in self.subsystems:
-            # dim_c.append(subsystem.dim_c)
             dim_out.append(subsystem.dim_out)
+            u_label.extend(subsystem.u_label)
+            y_label.extend(subsystem.y_label)
             
             object.__setattr__(self, 'dim_u'+'_'+subsystem.name, 
                                 subsystem.dim_u)
@@ -55,8 +59,10 @@ class ProcessModel():
         if sum(dim_out)/len(dim_out)==dim_out[0]:
             self.dim_out = dim_out[0]
         else:
-            raise ValueError('Cell state of all subsystems needs to be equal')
-            
+            raise ValueError('State dimension of all subsystems needs to be equal')
+        self.u_label = list(set(u_label))
+        self.y_label = list(set(y_label))
+        
         self.Initialize()
         
         
@@ -92,7 +98,7 @@ class ProcessModel():
         
         return None
     
-    def Simulation(self,x0,u,params=None,switching_instances=None):
+    def Simulation(self,x0,u,params=None,switching_instances=None,**kwargs):
         """
         Simulates the quality model for a given input trajectory u and an initial
         hidden state (cell state of RNN) 
