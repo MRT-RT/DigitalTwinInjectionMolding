@@ -27,7 +27,7 @@ from DIM.optim.param_optim import ParallelModelTraining
 
 def Fit_MLP(dim_hidden,initial_params=None):
 
-    charges = list(range(1,3))    
+    charges = list(range(1,275))    
  
     split = 'process'
     mode = 'process'
@@ -97,6 +97,7 @@ def Fit_MLP(dim_hidden,initial_params=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
+    h50 = Fit_MLP(dim_hidden=50)
     h5 = Fit_MLP(dim_hidden=5)
     h10 = Fit_MLP(dim_hidden=10)
     h15 = Fit_MLP(dim_hidden=15)
