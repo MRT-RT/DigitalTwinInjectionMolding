@@ -27,7 +27,7 @@ from DIM.optim.param_optim import ParallelModelTraining
 
 def Fit_MLP(dim_hidden,initial_params=None):
 
-    charges = list(range(1,275))    
+    charges = list(range(1,3))    
  
     split = 'process'
     mode = 'process'
@@ -82,11 +82,11 @@ def Fit_MLP(dim_hidden,initial_params=None):
     # press_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,name='press')
     # cool_model = MLP(dim_u=0,dim_out=5,dim_hidden=dim_hidden,name='cool')
 
-    s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
+    # s_opts = {"max_iter": 3000, 'hessian_approximation':'limited-memory'}
 
     results_inj =  ParallelModelTraining(inj_model,data_inj_train,data_inj_val,
                            initializations=20,BFR=False, p_opts=None, 
-                           s_opts=s_opts,mode='series',n_pool=2)
+                           s_opts=None,mode='series',n_pool=2)
     
     pkl.dump(results_inj,open('MLP_inj_h'+str(dim_hidden)+'.pkl','wb'))
 
