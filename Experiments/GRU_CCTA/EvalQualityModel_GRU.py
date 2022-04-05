@@ -24,21 +24,21 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 
 def Eval_GRU_on_Val(dim_c):
 
-
     # Load best model
     res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
        
     # params = res.loc[res['loss_val'].idxmin()][['params']][0]
-    params = res.loc[9]['params_val']
+    params = res.loc[10]['params_val']
 
     charges = list(range(1,275))
     
+    mode='quality'
     split = 'all'
     # split = 'part'
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
        
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
@@ -49,7 +49,7 @@ def Eval_GRU_on_Val(dim_c):
     y_lab = ['Durchmesser_innen']
     
     data,cycles_train_label,cycles_val_label,charge_train_label,charge_val_label = \
-    LoadDynamicData(path,charges,split,y_lab,u_lab)
+    LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data['u_train']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data['u_val']))]    
@@ -89,7 +89,6 @@ def Eval_GRU_on_Val(dim_c):
     _,e_val,_,y_val = parallel_mode(quality_model,data['u_val'],data['y_val'],
                               data['init_state_val'],data['switch_val'])
     
-    
     y_true = np.array(data['y_val']).reshape((-1,1))
     y_val = np.array(y_val).reshape((-1,1))
     e_val = np.array(e_val).reshape((-1,1))
@@ -105,9 +104,7 @@ def Eval_GRU_on_Val(dim_c):
 
 
 
-results_train, results_val, data, quality_model = Eval_GRU_on_Val(dim_c=6)
-
-
+results_train, results_val, data, quality_model = Eval_GRU_on_Val(dim_c=9)
 
 # pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
 # pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 

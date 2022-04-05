@@ -18,7 +18,7 @@ import seaborn as sns
 from DIM.models.model_structures import Static_MLP
 from DIM.models.injection_molding import QualityModel
 from DIM.optim.common import BestFitRate
-from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadStaticData
+from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadFeatureData
 
 from DIM.optim.param_optim import static_mode
 
@@ -33,9 +33,7 @@ def Eval_MLP(dim_hidden):
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    data_train,data_val,cycles_train_label,cycles_val_label,\
-        charge_train_label,charge_val_label = \
-            LoadStaticData(path,charges,split,targets)
+    data_train,data_val = LoadFeatureData(path,charges,split,targets)
     
     # print(len(cycles_val_label),len(charge_val_label))
     
@@ -81,13 +79,12 @@ def Eval_MLP(dim_hidden):
     y_true = np.array(data['y_train']).reshape((-1,1))
     y_train = np.array(y_train).reshape((-1,1))
     e_train = np.array(e_train).reshape((-1,1))
-    cycles_train_label = np.array(cycles_train_label).reshape((-1,))
-    charge_train_label = np.array(charge_train_label).reshape((-1,1))  
+    cycles_train_label = data_train.index.values.reshape((-1,))
+    # charge_train_label = np.array(charge_train_label).reshape((-1,1))  
     
-    results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train,
-                                  charge_train_label]),
+    results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
                                 index = cycles_train_label,
-                            columns=['y_true','y_est','e','charge'])
+                            columns=['y_true','y_est','e'])
     
     # Evaluate model on validation data
     y_val = []
@@ -99,24 +96,34 @@ def Eval_MLP(dim_hidden):
     y_true = np.array(data['y_val']).reshape((-1,1))
     y_val = np.array(y_val).reshape((-1,1))
     e_val = np.array(e_val).reshape((-1,1))
-    cycles_val_label = np.array(cycles_val_label).reshape((-1,))
-    charge_val_label = np.array(charge_val_label).reshape((-1,1))
+    cycles_val_label = data_val.index.values.reshape((-1,))
+    # charge_val_label = np.array(charge_val_label).reshape((-1,1))
     
     # print(y_true.shape,y_val.shape,e_val.shape,charge_val_label.shape,cycles_val_label.shape)
     
-    results_val = pd.DataFrame(data=np.hstack([y_true,y_val,e_val,
-                                  charge_val_label]),
+    results_val = pd.DataFrame(data=np.hstack([y_true,y_val,e_val]),
                                 index = cycles_val_label,
-                            columns=['y_true','y_est','e','charge'])
+                            columns=['y_true','y_est','e'])
 
 
     return results_train, results_val, data, model
 
+results_train, results_val, data, quality_model = Eval_MLP(10)
 
-for c in range(7,11):
-    results_train, results_val, data, quality_model = Eval_MLP(c)
 
-    pkl.dump(results_train,open('results_train_c'+str(c)+'.pkl','wb')) 
-    pkl.dump(results_val,open('results_val_c'+str(c)+'.pkl','wb')) 
-    pkl.dump(quality_model,open('quality_model_c'+str(c)+'.pkl','wb'))
-    pkl.dump(data,open('data_c'+str(c)+'.pkl','wb'))
+fig,ax = plt.subplots()
+sns.stripplot(x=results_val.index,y=results_val['y_true'],color='gray',size=8)
+sns.stripplot(x=results_val.index,y=results_val['y_est'],color='seagreen',size=8)
+plt.xlim([1,30])
+
+plt.xticks([])
+plt.xlabel(None)
+plt.yticks([])
+plt.ylabel(None)
+# for c in range(7,11):
+#     results_train, results_val, data, quality_model = Eval_MLP(c)
+
+#     pkl.dump(results_train,open('results_train_c'+str(c)+'.pkl','wb')) 
+#     pkl.dump(results_val,open('results_val_c'+str(c)+'.pkl','wb')) 
+#     pkl.dump(quality_model,open('quality_model_c'+str(c)+'.pkl','wb'))
+#     pkl.dump(data,open('data_c'+str(c)+'.pkl','wb'))

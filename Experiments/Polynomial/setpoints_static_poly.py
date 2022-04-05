@@ -36,36 +36,64 @@ targets = ['Durchmesser_innen']
 # path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
-data_train,data_val,_,_,_,_  = LoadSetpointData(path,charges,split,targets)
+data_train,data_val  = LoadSetpointData(path,charges,split,targets)
 
 # data = data_train.append(data_val)
 
 inputs = [col for col in data_train.columns if col not in targets]
 
+# Polynomial Model
+poly = PolynomialFeatures(10)
+X_poly_train = poly.fit_transform(data_train[inputs])
+X_poly_val = poly.transform(data_val[inputs])
+
+
+PolyModel = LinearRegression()
+PolyModel.fit(X_poly_train,data_train[targets])
+y=PolyModel.predict(X_poly_val)
+print(PolyModel.score(X_poly_val,data_val[targets]))
+
+data_val['y_est'] = y
+
+
+sns.stripplot(x=data_val.index,y=data_val['Durchmesser_innen'],color='gray',size=8)
+sns.stripplot(x=data_val.index,y=data_val['y_est'],color='royalblue',size=8)
+plt.xlim([1,30])
+
+plt.xticks([])
+plt.xlabel(None)
+plt.yticks([])
+plt.ylabel(None)
+
+
+
+
+
 # LinModel.fit(data_train[inputs],data_train[targets])
 # print(LinModel.score(data_val[inputs],data_val[targets]))
 
 
-for i in range(1,11):
-    # Polynomial Model
-    poly = PolynomialFeatures(i)
-    X_poly_train = poly.fit_transform(data_train[inputs])
-    X_poly_val = poly.transform(data_val[inputs])
+# for i in range(1,11):
+#     # Polynomial Model
+#     poly = PolynomialFeatures(i)
+#     X_poly_train = poly.fit_transform(data_train[inputs])
+#     X_poly_val = poly.transform(data_val[inputs])
     
     
-    PolyModel = LinearRegression()
-    PolyModel.fit(X_poly_train,data_train[targets])
+#     PolyModel = LinearRegression()
+#     PolyModel.fit(X_poly_train,data_train[targets])
     
-    print(PolyModel.score(X_poly_val,data_val[targets]))
+#     print(PolyModel.score(X_poly_val,data_val[targets]))
     
 
-# Linear Model Feaure Selection
+
+# # Linear Model Feaure Selection
 # lin_reg = pd.DataFrame(columns=['BFR','feature_added'])
 
 # for num_feat in range(1,9):
 #     LinModel = LinearRegression()
 #     if num_feat<8:
-#         sfs = SequentialFeatureSelector(LinModel, n_features_to_select=num_feat,cv=100)
+#         sfs = SequentialFeatureSelector(LinModel, n_features_to_select=num_feat,cv=50)
 #         sfs.fit(data_train[inputs], data_train[targets])
 #         inputs_step = [inputs[i] for i in sfs.get_support(indices=True)]
 #     else:
@@ -90,7 +118,7 @@ for i in range(1,11):
 # sns.barplot(x="feature_added", y="BFR", data=lin_reg,ax=ax)
 # ax.set_title(targets)
 
-# Polynomial Model feature selection
+# # Polynomial Model feature selection
 # pol_reg = pd.DataFrame(columns=['BFR','feature_added'])
 
 # poly = PolynomialFeatures(2)

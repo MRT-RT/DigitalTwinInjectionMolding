@@ -201,7 +201,7 @@ class MLP():
     Implementation of a single-layered Feedforward Neural Network.
     """
 
-    def __init__(self,dim_u,dim_out,dim_hidden,name,initial_params=None, 
+    def __init__(self,dim_u,dim_out,dim_hidden,u_label,y_label,name,initial_params=None, 
                  frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the Feedforward Neural Network Architecture
@@ -216,6 +216,7 @@ class MLP():
         dim_hidden : int
             Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
             if NN is supposed to have 10 neurons in hidden layer.
+        u_label : 
         name : str
             Name of the model, e.g. name = 'InjectionPhaseModel'.
 
@@ -227,6 +228,9 @@ class MLP():
         self.dim_u = dim_u
         self.dim_hidden = dim_hidden
         self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
         self.name = name
         
         self.InitialParameters = initial_params
@@ -387,10 +391,12 @@ class MLP():
                 if param in self.Parameters.keys():
                     self.Parameters[param] = self.InitialParameters[param]
                     
-    def AssignParameters(self,params):
-        
+    def SetParameters(self,params):
         for p_name in self.Function.name_in()[2::]:
-            self.Parameters[p_name] = params[p_name]
+            try:
+                self.Parameters[p_name] = params[p_name]
+            except:
+                pass           
 
 class Static_MLP():
     """
