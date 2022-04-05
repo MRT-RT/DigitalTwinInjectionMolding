@@ -496,43 +496,17 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
     params_opti = CreateOptimVariables(opti, OptiParameters)   
     
     # Evaluate on model on data
-    # u_train = data['u_train']
-    # y_ref_train = data['y_train']
-
-    # u_val = data['u_val']
-    # y_ref_val = data['y_val']
-    
-    # try:
-    #     switch_train =  data['switch_train']
-    #     switch_val =  data['switch_val']
-    # except KeyError:
-    #     switch = None
     
     if mode == 'parallel':
-        # x0_train = data['init_state_train']
-        # x0_val = data['init_state_val']
         
-        loss_train,_,_ = parallel_mode(model,u_train,y_ref_train,x0_train,
-                                         switch_train,params_opti) 
-        
-        loss_val,_,_ = parallel_mode(model,u_val,y_ref_val,x0_val,
-                                       switch_val,params_opti)
+        loss_train,_,_ = parallel_mode(model,data_train,params_opti)
+        loss_val,_,_ = parallel_mode(model,data_val,params_opti)
         
     elif mode == 'static':
         loss_train,_,_ = static_mode(model,u_train,y_ref_train,params_opti)   
         loss_val,_,_ = static_mode(model,u_val,y_ref_val,params_opti) 
                 
-    elif mode == 'series':
-        # x0_train = data['init_state_train']
-        # x0_val = data['init_state_val']
-        
-        # try:
-        #     x_ref_train =  data['x_ref_train']
-        #     x_ref_val =  data['x_ref_val']
-        # except KeyError:
-        #     x_ref_train = None
-        #     x_ref_val = None
-        
+    elif mode == 'series':      
         loss_train,_ = series_parallel_mode(model,data_train,params_opti)
         loss_val,_ = series_parallel_mode(model,data_val,params_opti)
     
@@ -604,14 +578,21 @@ def parallel_mode(model,data,params=None):
         
         io_data = data['data'][i]
         x0 = data['init_state'][i]
-        switch = data['switch'][i]
+        try:
+            switch = data['switch'][i]
+            switch = [io_data.index.get_loc(s) for s in switch]
+            print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
+        except KeyError:
+            switch = None
+        
+        kwargs = {'switching_instances':switch}
         
         y_ref = io_data[model.y_label].values
         
-        u = io_data.iloc[0:-1][model.u_label].values.reshape((-1,1))
+        u = io_data.iloc[0:-1][model.u_label].values
 
         # Simulate Model
-        pred = model.Simulation(x0,u,params)
+        pred = model.Simulation(x0,u,params,**kwargs)
         
         if isinstance(pred, tuple):           
             x_est= pred[0]
