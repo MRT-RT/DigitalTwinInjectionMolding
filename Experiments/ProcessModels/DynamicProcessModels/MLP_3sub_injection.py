@@ -29,8 +29,8 @@ charges = list(range(1,3))
 split = 'process'
 mode = 'process'
 
-# # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 # # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
 u_inj= ['v_inj_soll']
@@ -70,12 +70,12 @@ inj_model.Parameters = params_opt
 # Worst batch
 cyc = 1
 
-# _,_,_,y_val = parallel_mode(inj_model,[data_inj['u_val'][cyc]],[data_inj['y_val'][cyc]],
-#                           [data_inj['init_state_val'][cyc]],[data_inj['switch_val'][cyc]])
+_,_,_,y_val = parallel_mode(inj_model,[data_inj['u_val'][cyc]],[data_inj['y_val'][cyc]],
+                          [data_inj['init_state_val'][cyc]],[data_inj['switch_val'][cyc]])
 
-_,_,y_val = series_parallel_mode(inj_model,[data_inj['u_val'][cyc]],None,
-                                   [data_inj['y_val'][cyc]],
-                                   [data_inj['init_state_val'][cyc]])
+# _,_,y_val = series_parallel_mode(inj_model,[data_inj['u_val'][cyc]],None,
+#                                    [data_inj['y_val'][cyc]],
+#                                    [data_inj['init_state_val'][cyc]])
 
 
 plt.figure()

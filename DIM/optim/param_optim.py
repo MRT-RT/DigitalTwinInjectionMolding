@@ -133,18 +133,20 @@ def TrainingProcedure(model, data_train, data_val, p_opts, s_opts, mode):
     
     return result
 
-def ParallelModelTraining(model,data,initializations=10, BFR=False, 
-                  p_opts=None, s_opts=None,mode='parallel',n_pool=5):
+def ParallelModelTraining(model,data_train,data_val,initializations=10,
+                          BFR=False, p_opts=None, s_opts=None,mode='parallel',
+                          n_pool=5):
     
      
-    data = [copy.deepcopy(data) for i in range(0,initializations)]
+    data_train = [copy.deepcopy(data_train) for i in range(0,initializations)]
+    data_val = [copy.deepcopy(data_val) for i in range(0,initializations)]
     model = [copy.deepcopy(model) for i in range(0,initializations)]
     p_opts = [copy.deepcopy(p_opts) for i in range(0,initializations)]
     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
     pool = multiprocessing.Pool(n_pool)
-    results = pool.starmap(TrainingProcedure, zip(model, data, p_opts, s_opts, mode))        
+    results = pool.starmap(TrainingProcedure, zip(model, data_train, data_val, p_opts, s_opts, mode))        
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params_train','params_val'])
     
