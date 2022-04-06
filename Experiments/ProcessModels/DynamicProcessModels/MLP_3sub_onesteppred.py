@@ -86,7 +86,7 @@ def Fit_MLP(dim_hidden,initial_params=None):
 
     results_inj =  ParallelModelTraining(inj_model,data_inj_train,data_inj_val,
                            initializations=20,BFR=False, p_opts=None, 
-                           s_opts=None,mode='series',n_pool=10)
+                           s_opts=None,mode='series',n_pool=5)
     
     pkl.dump(results_inj,open('MLP_inj_h'+str(dim_hidden)+'_onestep_pred.pkl','wb'))
 
@@ -97,8 +97,8 @@ def Fit_MLP(dim_hidden,initial_params=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    h5 = Fit_MLP(dim_hidden=5)
-    h10 = Fit_MLP(dim_hidden=10)
+    # h5 = Fit_MLP(dim_hidden=5)
+    # h10 = Fit_MLP(dim_hidden=10)
     h15 = Fit_MLP(dim_hidden=15)
     h20 = Fit_MLP(dim_hidden=20)
     h25 = Fit_MLP(dim_hidden=25)
