@@ -452,7 +452,7 @@ def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel
 
             
             
-    return params,params_save,F,F_val
+    return params,params_save,float(F),float(F_val)
 
 
 
@@ -562,7 +562,7 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
     F_val = val_results.F_val
     
             
-    return params,params_val,F_train,F_val
+    return params,params_val,float(F_train),float(F_val)
 
 
     
@@ -603,15 +603,15 @@ def parallel_mode(model,data,params=None):
         # Calculate simulation error            
         # Check for the case, where only last value is available
         
-        if y_ref[i].shape[0]==1:
+        if y_ref.shape[0]==1:           # MUST BE UPDATED TO WORK WITH QUALITY DATA
 
             y_est=y_est[-1,:]
             e= y_ref - y_est
             loss = loss + cs.sumsqr(e[-1])
     
         else :
-            e = y_ref - y_est[-1]
-            loss = loss + cs.sumsqr(e[-1])
+            e = y_ref - y_est
+            loss = loss + cs.sumsqr(e)
             
         if params is None:
             y_est = np.array(y_est)

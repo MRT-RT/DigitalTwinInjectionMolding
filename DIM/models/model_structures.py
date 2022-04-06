@@ -328,7 +328,7 @@ class MLP():
                               
         return x1
 
-    def Simulation(self,x0,u,params=None):
+    def Simulation(self,x0,u,params=None,**kwargs):
         '''
         A iterative application of the OneStepPrediction in order to perform a
         simulation for a whole input trajectory

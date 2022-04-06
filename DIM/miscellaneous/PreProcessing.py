@@ -468,11 +468,15 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
     
     data_train = {'data': data_train,
                 'init_state': x_init_train,
-                'switch': switch_train}
+                'switch': switch_train,
+                'cycle_num':charge_train_label,
+                'charge_num':cycles_train_label}
     
     data_val = {'data': data_val,
                 'init_state': x_init_val,
-                'switch': switch_val}
+                'switch': switch_val,
+                'cycle_num':charge_val_label,
+                'charge_num':cycles_val_label}
     
     return data_train,data_val
 
