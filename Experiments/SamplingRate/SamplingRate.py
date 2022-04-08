@@ -14,21 +14,29 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from scipy.fft import fft, fftfreq, ifft
+from scipy.signal.windows import flattop, hann, hamming
 
-
-from scipy.signal import butter, lfilter, freqz
+from scipy.signal import butter, lfilter, freqz, filtfilt
 import matplotlib.pyplot as plt
 
 
 def butter_lowpass(cutoff, fs, order=5):
     return butter(order, cutoff, fs=fs, btype='low', analog=False)
 
+
 def butter_lowpass_filter(data, cutoff, fs, order=5):
     b, a = butter_lowpass(cutoff, fs, order=order)
     y = lfilter(b, a, data)
     return y
 
+def zero_phase_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = filtfilt(b, a, data)
+    return y
 
+# fir filter  100 koeff
+# iir filter
+# nullphasenfilter filtfilt
 
 
 c1 = pkl.load(open('E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/cycle1.pkl','rb'))
@@ -46,54 +54,85 @@ data = pkl.load(open(path+file,'rb'))
 x = data['meas'].values
 
 #  Remove the mean to get rid of the DC component
-# x = x-np.mean(x)
+x = x-np.mean(x)
+data['meas_centered'] = x
 
-# No windowing needed, because a transient signal that fits entirely into the
-# time record is measured
 
+# Calculate some quantities
 N = len(x)
 dt = data.index[1]-data.index[0]
 fs = 1/dt
 
-cutoff = fs/2
+# No windowing needed, because a transient signal that fits entirely into the
+# time record is measured
+window_hann = hann(N,sym=True)
+window_hamming = hamming(N,sym=True)
+window_flat = flattop(N,sym=True)
 
-x_filt = butter_lowpass_filter(x,25,fs)
-data['meas_filt'] = x_filt
+x_window = x*window_hamming
+
+
 
 # x=x_filt
 
-X = fft(x)/N                                                                    # Spectrum
+X = fft(x_window)/N                                                                    # Spectrum
 df = fftfreq(N,dt)                                                              # Frequency resolution
 
 X_A = abs(X)                                                                    # Amplitude Spectrum
 X_dB = 20*np.log10(X_A)                                                         # Amplitude Spectrum in dB
-P = X*np.conjugate(X)/N
+P = (X*np.conjugate(X)/N).real
 
-X_red = X*N
+bin_25 = 205
 
-bin_cutoff = 410
 
-X_red[bin_cutoff:N//2]=0
-X_red[N//2:N-bin_cutoff+1]=0
 
-df[bin_cutoff]
-df[N-bin_cutoff]
+# plt.figure()
+fig,ax = plt.subplots(2,1)
 
-x_reconstruct = ifft(X_red).real
+ax[0].plot(df[1:N//2],X_dB[1:N//2],'x')
+ax[1].plot(df[1:N//2],P[1:N//2],'x')
+
+ax[0].set_xlim(0,25)
+ax[1].set_xlim(0,25)
+
+ax[0].set_title('Amplitude Sepctrum (dB)')
+ax[1].set_title('Power Spectrum')
+
+ax[1].set_xlabel('Hz')
+print('Ratio of Amplitudes under 25 Hz: ' + str( sum(X_A[1:bin_25])/sum(X_A[1:N//2])) )
+print('Ratio of Power under 25 Hz: ' + str( sum(P[1:bin_25])/sum(P[1:N//2])) )
+
+# cutoff = fs/2
+
+''' Filter Signal with zero phase filter and cut off frequency 25 Hz'''
+
+x_filt = zero_phase_filter(data=x,cutoff=25,fs=fs,order=16)
+data['meas_filt'] = x_filt
 
 plt.close('all')
 
 plt.figure()
-plt.plot(data['meas']) 
+plt.plot(data['meas_centered']) 
 plt.plot(data['meas_filt'])
-plt.plot(c1['p_inj_ist'])
+# plt.plot(c1['p_inj_ist'])
 
-plt.figure()
-plt.plot(df[1:N//2],X_dB[1:N//2],'x')
+
+
+
+X_red = X*N
+
+
+
+X_red[0]=0
+X_red[bin_25:N//2]=0
+X_red[N//2:N-bin_25+1]=0
+
+# df[bin_cutoff]
+# df[N-bin_cutoff]
+
+x_reconstruct = ifft(X_red).real
 
 plt.figure()
 plt.plot(x)
+plt.plot(x_window)
 plt.plot(x_reconstruct)
-
-
-
