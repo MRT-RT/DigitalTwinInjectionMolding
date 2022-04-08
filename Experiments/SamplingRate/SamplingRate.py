@@ -48,7 +48,6 @@ path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
 file = 'cycle821.pkl'
 file = 'cycle828.pkl'
 
-
 data = pkl.load(open(path+file,'rb'))
 
 x = data['meas'].values
@@ -63,17 +62,13 @@ N = len(x)
 dt = data.index[1]-data.index[0]
 fs = 1/dt
 
-# No windowing needed, because a transient signal that fits entirely into the
-# time record is measured
+# Apply a windows as not the full cycle is measured
 window_hann = hann(N,sym=True)
 window_hamming = hamming(N,sym=True)
 window_flat = flattop(N,sym=True)
 
 x_window = x*window_hamming
 
-
-
-# x=x_filt
 
 X = fft(x_window)/N                                                                    # Spectrum
 df = fftfreq(N,dt)                                                              # Frequency resolution
@@ -105,7 +100,6 @@ print('Ratio of Power under 25 Hz: ' + str( sum(P[1:bin_25])/sum(P[1:N//2])) )
 # cutoff = fs/2
 
 ''' Filter Signal with zero phase filter and cut off frequency 25 Hz'''
-
 x_filt = zero_phase_filter(data=x,cutoff=25,fs=fs,order=16)
 data['meas_filt'] = x_filt
 
@@ -114,21 +108,18 @@ plt.close('all')
 plt.figure()
 plt.plot(data['meas_centered']) 
 plt.plot(data['meas_filt'])
-# plt.plot(c1['p_inj_ist'])
+
+# Reconstruction seems to be reasonable good
 
 
-
+''' Delete coefficients associated with fequencies above 25 Hz and apply inverse
+fft '''
 
 X_red = X*N
-
-
 
 X_red[0]=0
 X_red[bin_25:N//2]=0
 X_red[N//2:N-bin_25+1]=0
-
-# df[bin_cutoff]
-# df[N-bin_cutoff]
 
 x_reconstruct = ifft(X_red).real
 
