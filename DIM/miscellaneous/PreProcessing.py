@@ -124,6 +124,110 @@ def hdf5_to_pd_dataframe(file,save_path=None):
             continue
     
     return None
+
+
+def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
+    '''
+    
+
+    Parameters
+    ----------
+    file : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    df : TYPE
+        DESCRIPTION.
+
+    '''
+    # print(file)
+    for cycle in file.keys():
+        
+        try:
+            # monitoring charts 1-3
+            f3103I = file[cycle]['f3103I_Value']['block0_values'][:,[0,1]]
+            f3203I = file[cycle]['f3203I_Value']['block0_values'][:,[0,1]]
+            f3303I = file[cycle]['f3303I_Value']['block0_values'][:,[0,1]]
+            f3403I = file[cycle]['f3403I_Value']['block0_values'][:,[0,1]]
+            f3503I = file[cycle]['f3503I_Value']['block0_values'][:,[0,1]]  
+            f3603I = file[cycle]['f3603I_Value']['block0_values'][:,[0,1]]  
+            f3703I = file[cycle]['f3703I_Value']['block0_values'][:,[0,1]]  
+            f3803I = file[cycle]['f3803I_Value']['block0_values'][:,[0,1]]  
+            timestamp1 = np.vstack([f3103I[:,[0]],f3203I[:,[0]],f3303I[:,[0]],
+                                   f3403I[:,[0]],f3503I[:,[0]],f3603I[:,[0]],                               
+                                   f3703I[:,[0]],f3803I[:,[0]]]) 
+            
+            MonChart1_8 = np.vstack((f3103I,f3203I,f3303I,f3403I,f3503I,f3603I,
+                                     f3703I,f3803I)) 
+
+                         
+            df = pd.DataFrame(data=MonChart1_8[:,[1]],
+            index = timestamp1[:,0], columns = ['meas'])
+                       
+            # now add scalar values
+            
+            Q_inj_soll = file[cycle]['Q305_Value']['block0_values'][:]
+            Q_inj_soll = pd.Series(np.repeat(Q_inj_soll,len(df)))
+            df=df.assign(Q_inj_soll = Q_inj_soll.values)
+            
+            T_zyl1_ist = file[cycle]['T801I_Value']['block0_values'][:]
+            T_zyl1_ist = pd.Series(np.repeat(T_zyl1_ist,len(df)))
+            df=df.assign(T_zyl1_ist = T_zyl1_ist.values)     
+            
+            T_zyl2_ist = file[cycle]['T802I_Value']['block0_values'][:]
+            T_zyl2_ist = pd.Series(np.repeat(T_zyl2_ist,len(df)))
+            df=df.assign(T_zyl2_ist = T_zyl2_ist.values)   
+            
+            T_zyl3_ist = file[cycle]['T803I_Value']['block0_values'][:]
+            T_zyl3_ist = pd.Series(np.repeat(T_zyl3_ist,len(df)))
+            df=df.assign(T_zyl3_ist = T_zyl3_ist.values)   
+            
+            T_zyl4_ist = file[cycle]['T804I_Value']['block0_values'][:]
+            T_zyl4_ist = pd.Series(np.repeat(T_zyl4_ist,len(df)))
+            df=df.assign(T_zyl4_ist = T_zyl4_ist.values)   
+            
+            T_zyl5_ist = file[cycle]['T805I_Value']['block0_values'][:]
+            T_zyl5_ist = pd.Series(np.repeat(T_zyl5_ist,len(df)))
+            df=df.assign(T_zyl5_ist = T_zyl5_ist.values)   
+            
+            V_um_ist = file[cycle]['V4065_Value']['block0_values'][:]
+            df['V_um_ist']=np.nan
+            df.loc[0]['V_um_ist'] = V_um_ist
+    
+            p_um_ist = file[cycle]['p4072_Value']['block0_values'][:]
+            df['p_um_ist']=np.nan
+            df.loc[0]['p_um_ist'] = p_um_ist
+
+            # p_inj_max_ist = file[cycle]['p4055_Value']['block0_values'][:]
+            # df['p_inj_max_ist']=np.nan
+            # df.loc[0]['p_inj_max_ist'] = p_inj_max_ist
+      
+            t_dos_ist = file[cycle]['t4015_Value']['block0_values'][:]
+            df['t_dos_ist']=np.nan
+            df.loc[0]['t_dos_ist'] = t_dos_ist
+            
+            t_inj_ist = file[cycle]['t4018_Value']['block0_values'][:]
+            df['t_inj_ist']=np.nan
+            df.loc[0]['t_inj_ist'] = t_inj_ist
+
+            t_press1_soll = file[cycle]['t312_Value']['block0_values'][:]
+            df['t_press1_soll']=np.nan
+            df.loc[0]['t_press1_soll'] = t_press1_soll
+
+            t_press2_soll = file[cycle]['t313_Value']['block0_values'][:]
+            df['t_press2_soll']=np.nan
+            df.loc[0]['t_press2_soll'] = t_press2_soll            
+            
+            cycle_num = file[cycle]['f071_Value']['block0_values'][0,0]
+            df['cycle_num']=np.nan
+            df.loc[0]['cycle_num'] = cycle_num
+            
+            pkl.dump(df,open(save_path+'cycle'+str(cycle_num)+'.pkl','wb'))
+        except:
+            continue
+    
+    return None
         
 
 def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
