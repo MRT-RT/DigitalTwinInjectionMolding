@@ -32,10 +32,10 @@ inputs = ['Düsentemperatur',  'Werkzeugtemperatur',  'Einspritzgeschwindigkeit'
  'Umschaltpunkt','Nachdruckhöhe','Nachdruckzeit','Staudruck','Kühlzeit']
 
 targets = ['T_wkz_0', 'T_wkz_max', 't_Twkz_max', 'T_wkz_int', 'p_wkz_max',
-       'p_wkz_int', 'p_wkz_res', 't_pwkz_max']
+        'p_wkz_int', 'p_wkz_res', 't_pwkz_max']
 
-targets = ['T_wkz_max','p_wkz_max',
-       't_pwkz_max']
+# targets = ['T_wkz_max','p_wkz_max',
+#         't_pwkz_max']
 
 # targets = ['Gewicht']
 # targets = ['Stegbreite_Gelenk']
@@ -43,9 +43,9 @@ targets = ['T_wkz_max','p_wkz_max',
 # targets = ['Rundheit_außen']
 
 
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+# path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 # path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
 data_train_set,data_val_set  = LoadSetpointData(path,charges,split,[])
 data_train_feat,data_val_feat  = LoadFeatureData(path,charges,split,[])
