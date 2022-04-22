@@ -81,11 +81,26 @@ bin_25 = 205
 
 
 
+
+
+
+print('Ratio of Amplitudes under 25 Hz: ' + str( sum(X_A[1:bin_25])/sum(X_A[1:N//2])) )
+print('Ratio of Power under 25 Hz: ' + str( sum(P[1:bin_25])/sum(P[1:N//2])) )
+
+amplitude_ratio = [sum(X_A[1:bin_i])/sum(X_A[1:N//2]) for bin_i in range(0,N//2)]
+power_ratio = [sum(P[1:bin_i])/sum(P[1:N//2]) for bin_i in range(0,N//2)]
+
+
 # plt.figure()
 fig,ax = plt.subplots(2,1)
+ax21 = ax[0].twinx()
+ax22 = ax[1].twinx()
 
 ax[0].plot(df[1:N//2],X_dB[1:N//2],'x')
+ax21.plot(df[1:N//2],amplitude_ratio[1:N//2],'r')
+
 ax[1].plot(df[1:N//2],P[1:N//2],'x')
+ax22.plot(df[1:N//2],amplitude_ratio[1:N//2],'r')
 
 ax[0].set_xlim(0,25)
 ax[1].set_xlim(0,25)
@@ -94,8 +109,8 @@ ax[0].set_title('Amplitude Sepctrum (dB)')
 ax[1].set_title('Power Spectrum')
 
 ax[1].set_xlabel('Hz')
-print('Ratio of Amplitudes under 25 Hz: ' + str( sum(X_A[1:bin_25])/sum(X_A[1:N//2])) )
-print('Ratio of Power under 25 Hz: ' + str( sum(P[1:bin_25])/sum(P[1:N//2])) )
+
+
 
 # cutoff = fs/2
 
@@ -103,7 +118,7 @@ print('Ratio of Power under 25 Hz: ' + str( sum(P[1:bin_25])/sum(P[1:N//2])) )
 x_filt = zero_phase_filter(data=x,cutoff=25,fs=fs,order=16)
 data['meas_filt'] = x_filt
 
-plt.close('all')
+# plt.close('all')
 
 plt.figure()
 plt.plot(data['meas_centered']) 
