@@ -371,22 +371,19 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
             nan_cycle = np.isnan(cycle[u_all_lab]).any(axis=1)
             cycle = cycle.loc[~nan_cycle]
             
-            y.append(cycle.loc[0,y_lab].values)
+            # y.append(cycle.loc[0,y_lab].values)
             
             # Read desired data from dataframe
             if len(u_lab)==1:
-                u_all = cycle[u_all_lab].values
-                u.append([u_all])
+                data.append(cycle)                
+                x_init.append([None])
                 switch.append([None])
                 
             elif len(u_lab)==3:
-    
-                u_inj = cycle.loc[0:t1][u_inj_lab].values                                         # can contain NaN at the end
-                u_press = cycle.loc[t1:t2][u_press_lab].values  
-                u_cool = cycle.loc[t2:t3][u_cool_lab].values  
-    
-                u.append([u_inj,u_press,u_cool])
-                switch.append([cycle.index.get_loc(t1),cycle.index.get_loc(t2)])
+                   
+                data.append(cycle)
+                x_init.append([None])
+                switch.append([t1,t2])
                 
         
         elif mode == 'process':
