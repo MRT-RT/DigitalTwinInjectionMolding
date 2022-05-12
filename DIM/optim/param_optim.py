@@ -122,6 +122,7 @@ def ModelTraining(model,data_train,data_val,initializations=10, BFR=False,
 def TrainingProcedure(model, data_train, data_val, p_opts, s_opts, mode):
     
     # initialize model to make sure given initial parameters are assigned
+    
     model.ParameterInitialization()
     
     # Estimate Parameters on training data
@@ -499,12 +500,12 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
     
     if mode == 'parallel':
         
-        loss_train,_,_ = parallel_mode(model,data_train,params_opti)
-        loss_val,_,_ = parallel_mode(model,data_val,params_opti)
+        loss_train,_ = parallel_mode(model,data_train,params_opti)
+        loss_val,_ = parallel_mode(model,data_val,params_opti)
         
     elif mode == 'static':
-        loss_train,_,_ = static_mode(model,u_train,y_ref_train,params_opti)   
-        loss_val,_,_ = static_mode(model,u_val,y_ref_val,params_opti) 
+        loss_train,_ = static_mode(model,u_train,y_ref_train,params_opti)   
+        loss_val,_ = static_mode(model,u_val,y_ref_val,params_opti) 
                 
     elif mode == 'series':      
         loss_train,_ = series_parallel_mode(model,data_train,params_opti)

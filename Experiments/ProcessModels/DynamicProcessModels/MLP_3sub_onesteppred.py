@@ -23,7 +23,16 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 from DIM.models.model_structures import MLP
 from DIM.models.injection_molding import ProcessModel
 from DIM.optim.param_optim import parallel_mode, series_parallel_mode
-from DIM.optim.param_optim import ParallelModelTraining
+from DIM.optim.param_optim import ModelTraining
+
+
+'''
+
+Train distinct models for injection, pressure and cooling phase as one step
+predictors.
+
+'''
+
 
 def Fit_MLP(dim_hidden,initial_params=None):
 
@@ -79,31 +88,43 @@ def Fit_MLP(dim_hidden,initial_params=None):
     inj_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,u_label=u_inj,
                     y_label=y_lab,name='inj')
     
-    # press_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,name='press')
-    # cool_model = MLP(dim_u=0,dim_out=5,dim_hidden=dim_hidden,name='cool')
+    press_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,u_label=u_press,
+                    y_label=y_lab, name='press')
+    
+    cool_model = MLP(dim_u=0,dim_out=5,dim_hidden=dim_hidden,u_label=u_cool,
+                    y_label=y_lab,name='cool')
 
     # s_opts = {"max_iter": 3000, 'hessian_approximation':'limited-memory'}
 
-    results_inj =  ParallelModelTraining(inj_model,data_inj_train,data_inj_val,
-                           initializations=20,BFR=False, p_opts=None, 
-                           s_opts=None,mode='series',n_pool=2)
+    # results_inj =  ParallelModelTraining(inj_model,data_inj_train,data_inj_val,
+    #                        initializations=20,BFR=False, p_opts=None, 
+    #                        s_opts=None,mode='series',n_pool=2)
     
-    pkl.dump(results_inj,open('MLP_inj_h'+str(dim_hidden)+'_onestep_pred.pkl','wb'))
+    results_press =  ModelTraining(press_model,data_press_train,data_press_val,
+                           initializations=20,BFR=False, p_opts=None, 
+                           s_opts=None,mode='series')
 
+    results_cool =  ModelTraining(cool_model,data_cool_train,data_cool_val,
+                           initializations=20,BFR=False, p_opts=None, 
+                           s_opts=None,mode='series')
+    
+    pkl.dump(results_press,open('MLP_press_h'+str(dim_hidden)+'_onestep_pred.pkl','wb'))
+    pkl.dump(results_cool,open('MLP_cool_h'+str(dim_hidden)+'_onestep_pred.pkl','wb'))
 
-    return results_inj
+    return results_press,results_cool
 
 # h10 = Fit_MLP(dim_hidden=10)
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    # h5 = Fit_MLP(dim_hidden=5)
-    # h10 = Fit_MLP(dim_hidden=10)
-    # h15 = Fit_MLP(dim_hidden=15)
+    h5_press,h5_cool = Fit_MLP(dim_hidden=5)
+    h10_press,h10_cool = Fit_MLP(dim_hidden=10)
+    h15_press,h15_cool = Fit_MLP(dim_hidden=15)
+    
     # h20 = Fit_MLP(dim_hidden=20)
     # h25 = Fit_MLP(dim_hidden=25)
-    h30 = Fit_MLP(dim_hidden=30)
-    h35 = Fit_MLP(dim_hidden=35)
-    h40 = Fit_MLP(dim_hidden=40)
-    h50 = Fit_MLP(dim_hidden=50)
+    # h30 = Fit_MLP(dim_hidden=30)
+    # h35 = Fit_MLP(dim_hidden=35)
+    # h40 = Fit_MLP(dim_hidden=40)
+    # h50 = Fit_MLP(dim_hidden=50)
 
