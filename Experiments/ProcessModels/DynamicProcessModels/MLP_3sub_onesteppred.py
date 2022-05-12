@@ -25,6 +25,15 @@ from DIM.models.injection_molding import ProcessModel
 from DIM.optim.param_optim import parallel_mode, series_parallel_mode
 from DIM.optim.param_optim import ParallelModelTraining
 
+
+'''
+
+Train distinct models for injection, pressure and cooling phase as one step
+predictors.
+
+'''
+
+
 def Fit_MLP(dim_hidden,initial_params=None):
 
     charges = list(range(1,275))    
