@@ -23,7 +23,7 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 from DIM.models.model_structures import MLP
 from DIM.models.injection_molding import ProcessModel
 from DIM.optim.param_optim import parallel_mode, series_parallel_mode
-from DIM.optim.param_optim import ParallelModelTraining
+from DIM.optim.param_optim import ModelTraining
 
 
 '''
@@ -100,13 +100,13 @@ def Fit_MLP(dim_hidden,initial_params=None):
     #                        initializations=20,BFR=False, p_opts=None, 
     #                        s_opts=None,mode='series',n_pool=2)
     
-    results_press =  ParallelModelTraining(press_model,data_press_train,data_press_val,
+    results_press =  ModelTraining(press_model,data_press_train,data_press_val,
                            initializations=20,BFR=False, p_opts=None, 
-                           s_opts=None,mode='series',n_pool=4)
+                           s_opts=None,mode='series')
 
-    results_cool =  ParallelModelTraining(cool_model,data_cool_train,data_cool_val,
+    results_cool =  ModelTraining(cool_model,data_cool_train,data_cool_val,
                            initializations=20,BFR=False, p_opts=None, 
-                           s_opts=None,mode='series',n_pool=4)
+                           s_opts=None,mode='series')
     
     pkl.dump(results_press,open('MLP_press_h'+str(dim_hidden)+'_onestep_pred.pkl','wb'))
     pkl.dump(results_cool,open('MLP_cool_h'+str(dim_hidden)+'_onestep_pred.pkl','wb'))
