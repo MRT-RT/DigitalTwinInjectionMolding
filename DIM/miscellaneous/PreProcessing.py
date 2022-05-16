@@ -258,6 +258,7 @@ def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
     #Read csv
     df_csv = pd.read_csv(csv_file_path,sep=';',index_col=0)
 
+
     # add measurements from csv to pd dataframe
     for key in df_csv.keys():
         df[key]=np.nan
