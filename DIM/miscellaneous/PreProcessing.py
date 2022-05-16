@@ -149,22 +149,39 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
             f3103I = file[cycle]['f3103I_Value']['block0_values'][:,[0,1]]
             f3203I = file[cycle]['f3203I_Value']['block0_values'][:,[0,1]]
             f3303I = file[cycle]['f3303I_Value']['block0_values'][:,[0,1]]
-            f3403I = file[cycle]['f3403I_Value']['block0_values'][:,[0,1]]
-            f3503I = file[cycle]['f3503I_Value']['block0_values'][:,[0,1]]  
-            f3603I = file[cycle]['f3603I_Value']['block0_values'][:,[0,1]]  
-            f3703I = file[cycle]['f3703I_Value']['block0_values'][:,[0,1]]  
-            f3803I = file[cycle]['f3803I_Value']['block0_values'][:,[0,1]]  
-            timestamp1 = np.vstack([f3103I[:,[0]],f3203I[:,[0]],f3303I[:,[0]],
-                                   f3403I[:,[0]],f3503I[:,[0]],f3603I[:,[0]],                               
-                                   f3703I[:,[0]],f3803I[:,[0]]]) 
             
-            MonChart1_8 = np.vstack((f3103I,f3203I,f3303I,f3403I,f3503I,f3603I,
-                                     f3703I,f3803I)) 
-
+            # monitoring charts 1-3
+            f3113I = file[cycle]['f3113I_Value']['block0_values'][:,[0,1,2,3,4]]
+            f3213I = file[cycle]['f3213I_Value']['block0_values'][:,[0,1,2,3,4]]  
+            f3313I = file[cycle]['f3313I_Value']['block0_values'][:,[0,1,2,3,4]] 
+            
+            # monitoring charts 1-3
+            f3403I = file[cycle]['f3403I_Value']['block0_values'][:,[0,1]]  
+            f3503I = file[cycle]['f3503I_Value']['block0_values'][:,[0,1]]  
+            f3603I = file[cycle]['f3603I_Value']['block0_values'][:,[0,1]] 
+            
+            timestamp1 = np.vstack([f3103I[:,[0]],f3203I[:,[0]],f3303I[:,[0]]])
+            timestamp2 = np.vstack([f3113I[:,[0]],f3213I[:,[0]],f3313I[:,[0]]])
+            timestamp3 = np.vstack([f3403I[:,[0]],f3503I[:,[0]],f3603I[:,[0]]])
+            
+            MonChart1_3 = np.vstack((f3103I,f3203I,f3303I))
+            MeasChart1_3 = np.vstack((f3113I,f3213I,f3313I))
+            MonChart4_6 = np.vstack((f3403I,f3503I,f3603I))
                          
-            df = pd.DataFrame(data=MonChart1_8[:,[1]],
-            index = timestamp1[:,0], columns = ['p_inj_ist'])
                        
+            df1 = pd.DataFrame(data=MonChart1_3[:,[1]],
+            index = timestamp1[:,0], columns = ['Q_Vol_ist'])
+            
+            df2 = pd.DataFrame(data=MeasChart1_3[:,[1,2,3,4]],
+            index = timestamp2[:,0], columns = ['p_wkz_ist','T_wkz_ist','p_inj_soll',
+                                                'p_inj_ist'])
+            
+            df3 = pd.DataFrame(data=MonChart4_6[:,[1]],
+            index = timestamp3[:,0], columns = ['V_Screw_ist'])           
+            
+            df = pd.concat([df1,df2,df3],axis=1)           
+
+
             # now add scalar values
             
             Q_inj_soll = file[cycle]['Q305_Value']['block0_values'][:]
@@ -199,9 +216,9 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
             df['p_um_ist']=np.nan
             df.loc[0]['p_um_ist'] = p_um_ist
 
-            # p_inj_max_ist = file[cycle]['p4055_Value']['block0_values'][:]
-            # df['p_inj_max_ist']=np.nan
-            # df.loc[0]['p_inj_max_ist'] = p_inj_max_ist
+            p_inj_max_ist = file[cycle]['p4055_Value']['block0_values'][:]
+            df['p_inj_max_ist']=np.nan
+            df.loc[0]['p_inj_max_ist'] = p_inj_max_ist
       
             t_dos_ist = file[cycle]['t4015_Value']['block0_values'][:]
             df['t_dos_ist']=np.nan
@@ -224,6 +241,7 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
             df.loc[0]['cycle_num'] = cycle_num
             
             pkl.dump(df,open(save_path+'cycle'+str(cycle_num)+'.pkl','wb'))
+            
         except:
             continue
     

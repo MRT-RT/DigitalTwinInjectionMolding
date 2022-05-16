@@ -1,0 +1,9 @@
+Zyklus 20: WKZ Temp. -5°C (30°C)
+Zyklus 40: löschen (Bauteil weg)
+Zyklus 50: -2°C (33°C)
+Zyklus 80: 0°C (35°C)
+Zyklus 105: löschen (Bauteil weg)
+Zyklus 110: +3°C (38°C)
+Zyklus 111: kurze Unterbrechung
+Zyklus 119: stecken geblieben; gewechselt auf +2°C (37°C)
+Zyklus 136: stecken geblieben; gewechselt auf +0°C (35°C)

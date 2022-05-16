@@ -10,6 +10,7 @@ import os
 
 import sys
 sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
+sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
 
@@ -19,11 +20,13 @@ csv_filename = 'Parameter_Qualitätsgrößen.csv'
         
 # path = '/home/alexander/Downloads/Versuchsplan/' # @work
 # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
+<<<<<<< HEAD
 path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/Deckel/'  # @home
 
 # target_path = 'data/HighFrequencyMeasurements/'
 # target_path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
-target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/Deckel/'
+# target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/Deckel/'
+
 
 # filenames = ['Prozessgrößen_20211005.h5',
 #              'Prozessgrößen_20211006_1.h5',
@@ -31,7 +34,7 @@ target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequ
 #              'Prozessgrößen_20211007.h5',
 #              'Prozessgrößen_20211008.h5']
 
-filenames = ['max_Abtastrate_Deckel.h5']
+filenames = ['Versuchsplan_orig_Strgn.h5']
 
 
 for filename in filenames:
