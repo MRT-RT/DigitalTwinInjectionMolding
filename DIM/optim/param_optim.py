@@ -582,7 +582,7 @@ def parallel_mode(model,data,params=None):
         try:
             switch = data['switch'][i]
             switch = [io_data.index.get_loc(s) for s in switch]
-            print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
+            # print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
         except KeyError:
             switch = None
         
