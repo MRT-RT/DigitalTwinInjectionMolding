@@ -28,12 +28,12 @@ from DIM.optim.param_optim import ParallelModelTraining
 from DIM.optim.common import BestFitRate
 
 
-dim_hidden = 5
+dim_hidden = 20
 
     
 # res = pkl.load(open('MLP_h20-30_sim_2.pkl','rb'))
-res = pkl.load(open('MLP_h5_sim_Hess.pkl','rb'))
-# res = pkl.load(open('MLP_inj_h30_onestep_pred.pkl','rb'))
+# res = pkl.load(open('MLP_h5_sim_Hess.pkl','rb'))
+res = pkl.load(open('MLP_inj_h20_onestep_pred.pkl','rb'))
 
 
 charges = list(range(1,3))    # 275
@@ -94,8 +94,8 @@ inj_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,u_label=u_inj,
 
 # Assign best parameters to model
 # inj_model.Parameters = res['params_val'].loc[dim_hidden]
-inj_model.Parameters = res['params_val'].loc[res['loss_val'].idxmin()]
-
+# inj_model.Parameters = res['params_val'].loc[res['loss_val'].idxmin()]
+inj_model.Parameters = res['params_val'].loc[9]
 # process_model.SetParameters(params)
 
 # Evaluate model on training data

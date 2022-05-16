@@ -19,11 +19,11 @@ csv_filename = 'Parameter_Qualitätsgrößen.csv'
         
 # path = '/home/alexander/Downloads/Versuchsplan/' # @work
 # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'  # @home
+path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/Deckel/'  # @home
 
 # target_path = 'data/HighFrequencyMeasurements/'
 # target_path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
-target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
+target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/Deckel/'
 
 # filenames = ['Prozessgrößen_20211005.h5',
 #              'Prozessgrößen_20211006_1.h5',
@@ -47,5 +47,9 @@ cycle_files = os.listdir(target_path)
     
 #     df = add_csv_to_pd_dataframe('data/Versuchsplan/'+cycle,path+csv_filename)
 
-
-
+# for i in range(416,425):
+#     c = pkl.load(open('cycle'+str(i)+'.pkl','rb'))
+#     diff = c.index.values[1::]-c.index.values[0:-1]
+#     idx_del = np.where(diff<=0.001)
+#     c.drop(index = c416.index[idx_del],inplace=True)
+#     pkl.dump(c,open('cycle'+str(i)+'.pkl','wb'))

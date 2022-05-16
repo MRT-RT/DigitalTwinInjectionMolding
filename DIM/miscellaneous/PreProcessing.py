@@ -163,7 +163,7 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
 
                          
             df = pd.DataFrame(data=MonChart1_8[:,[1]],
-            index = timestamp1[:,0], columns = ['meas'])
+            index = timestamp1[:,0], columns = ['p_inj_ist'])
                        
             # now add scalar values
             
