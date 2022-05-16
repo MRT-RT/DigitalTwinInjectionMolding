@@ -248,7 +248,7 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
     return None
         
 
-def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
+def add_csv_to_pd_dataframe(df_file_path,csv_file_path,weight_csv_file_path):
     
     #Read df
     df = pkl.load(open(df_file_path,'rb'))
@@ -258,7 +258,12 @@ def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
     #Read csv
     df_csv = pd.read_csv(csv_file_path,sep=';',index_col=0)
 
+    ############## ONLY FOR Störgrößen ########################################
 
+    # Read weight csv
+    weight_csv = pd.read_csv(weight_csv_file_path,sep=';',header=None)
+    ###########################################################################
+    
     # add measurements from csv to pd dataframe
     for key in df_csv.keys():
         df[key]=np.nan
@@ -268,6 +273,20 @@ def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
     df['Werkzeugtemperatur'] = df.loc[0]['Werkzeugtemperatur']
     df['Düsentemperatur'] = df.loc[0]['Düsentemperatur']
     df['Einspritzgeschwindigkeit'] = df.loc[0]['Einspritzgeschwindigkeit']
+    
+    df['Nachdruckhöhe'] = np.nan
+    df.loc[0]['Nachdruckhöhe'] = 600.0    
+    
+    df['Nachdruckzeit'] = np.nan
+    df.loc[0]['Nachdruckzeit'] = 4.0
+    
+    df['Staudruck'] = np.nan
+    df.loc[0]['Staudruck'] = 50
+    
+    df['Kühlzeit'] = np.nan
+    df.loc[0]['Kühlzeit'] = 20.0
+
+    df['Gewicht'] = weight_csv.loc[cycle_num-1].values
     
     # and need to be renamed    
     df.rename(columns = {'Werkzeugtemperatur':'T_wkz_soll',
