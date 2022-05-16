@@ -16,16 +16,16 @@ sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
 
 from DIM.miscellaneous.PreProcessing import hdf5_to_pd_dataframe_high_freq, add_csv_to_pd_dataframe
 
-csv_filename = 'Parameter_Qualitätsgrößen.csv'
+csv_filename = 'Messdaten_Verschlusskappe_Versuchsplan_orig_Stgrsn.csv'
         
 # path = '/home/alexander/Downloads/Versuchsplan/' # @work
 # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
-<<<<<<< HEAD
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/Deckel/'  # @home
+
+path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/'  # @home
 
 # target_path = 'data/HighFrequencyMeasurements/'
 # target_path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
-# target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/Deckel/'
+target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/'
 
 
 # filenames = ['Prozessgrößen_20211005.h5',
@@ -34,25 +34,25 @@ path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMea
 #              'Prozessgrößen_20211007.h5',
 #              'Prozessgrößen_20211008.h5']
 
-filenames = ['Versuchsplan_orig_Strgn.h5']
+# filenames = ['Versuchsplan_orig_Strgn.h5']
 
 
-for filename in filenames:
-    # Read h5 file
-    file = h5py.File(path+filename,'r+')
+# for filename in filenames:
+#     # Read h5 file
+#     file = h5py.File(path+filename,'r+')
     
-    #convert and save as pd dataframe
-    hdf5_to_pd_dataframe_high_freq(file,target_path)
+#     #convert and save as pd dataframe
+#     hdf5_to_pd_dataframe_high_freq(file,target_path)
     
 cycle_files = os.listdir(target_path)
 
-# for cycle in cycle_files:
+for cycle in cycle_files:
     
-#     df = add_csv_to_pd_dataframe('data/Versuchsplan/'+cycle,path+csv_filename)
+    df = add_csv_to_pd_dataframe(target_path+cycle,path+csv_filename)
 
-# for i in range(416,425):
+# for i in range(1,251):
 #     c = pkl.load(open('cycle'+str(i)+'.pkl','rb'))
 #     diff = c.index.values[1::]-c.index.values[0:-1]
 #     idx_del = np.where(diff<=0.001)
 #     c.drop(index = c416.index[idx_del],inplace=True)
-#     pkl.dump(c,open('cycle'+str(i)+'.pkl','wb'))
+    # pkl.dump(c,open('cycle'+str(i)+'.pkl','wb'))
