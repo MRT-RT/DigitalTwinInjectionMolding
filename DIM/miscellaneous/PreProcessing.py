@@ -31,41 +31,42 @@ def hdf5_to_pd_dataframe(file,save_path=None):
             f3203I = file[cycle]['f3203I_Value']['block0_values'][:,[0,1]]
             f3303I = file[cycle]['f3303I_Value']['block0_values'][:,[0,1]]    
             timestamp1 = np.vstack([f3103I[:,[0]],f3203I[:,[0]],f3303I[:,[0]]])
-               
-            # monitoring charts 4-6
-            f3403I = file[cycle]['f3403I_Value']['block0_values'][:,[0,1]]
-            f3503I = file[cycle]['f3503I_Value']['block0_values'][:,[0,1]]
-            f3603I = file[cycle]['f3603I_Value']['block0_values'][:,[0,1]]  
-            timestamp2 = np.vstack([f3403I[:,[0]],f3503I[:,[0]],f3603I[:,[0]]])
-            
+                         
             # measuring chart
             f3113I = file[cycle]['f3113I_Value']['block0_values'][:,0:5]
             f3213I = file[cycle]['f3213I_Value']['block0_values'][:,0:5]
             f3313I = file[cycle]['f3313I_Value']['block0_values'][:,0:5]
-            timestamp3 = np.vstack([f3113I[:,[0]],f3213I[:,[0]],f3313I[:,[0]]])       
+            timestamp2 = np.vstack([f3113I[:,[0]],f3213I[:,[0]],f3313I[:,[0]]])  
+            
+            # monitoring charts 4-6
+            f3403I = file[cycle]['f3403I_Value']['block0_values'][:,[0,1]]
+            f3503I = file[cycle]['f3503I_Value']['block0_values'][:,[0,1]]
+            f3603I = file[cycle]['f3603I_Value']['block0_values'][:,[0,1]]  
+            timestamp3 = np.vstack([f3403I[:,[0]],f3503I[:,[0]],f3603I[:,[0]]])
             
             MonChart1_3 = np.vstack((f3103I,f3203I,f3303I)) 
-            MonChart4_6 = np.vstack((f3403I,f3503I,f3603I)) 
-            MeasChart = np.vstack((f3113I,f3213I,f3313I)) 
+            MeasChart1_3 = np.vstack((f3113I,f3213I,f3313I))
+            MonChart4_6 = np.vstack((f3403I,f3503I,f3603I))
+
                          
             df1 = pd.DataFrame(data=MonChart1_3[:,[1]],
             index = timestamp1[:,0], columns = ['Q_Vol_ist'])
-            
-            df2 = pd.DataFrame(data=MonChart4_6[:,[1]],
-            index = timestamp2[:,0], columns = ['V_Screw_ist'])
-            
-            cols = ['p_wkz_ist', 'T_wkz_ist', 'p_inj_soll','p_inj_ist']
+
+            df2 = pd.DataFrame(data=MeasChart1_3[:,1:5],
+            index = timestamp2[:,0], columns = ['p_wkz_ist', 'T_wkz_ist', 'p_inj_soll','p_inj_ist'])
+
+            df3 = pd.DataFrame(data=MonChart4_6[:,[1]],
+            index = timestamp3[:,0], columns = ['V_Screw_ist'])
     
-            df3 = pd.DataFrame(data=MeasChart[:,1:5],
-            index = timestamp3[:,0], columns = cols)
+
             
             df = pd.concat([df1,df2,df3],axis=1)
             
             # now add scalar values
-            
             Q_inj_soll = file[cycle]['Q305_Value']['block0_values'][:]
             Q_inj_soll = pd.Series(np.repeat(Q_inj_soll,len(df)))
             df=df.assign(Q_inj_soll = Q_inj_soll.values)
+            
             
             T_zyl1_ist = file[cycle]['T801I_Value']['block0_values'][:]
             T_zyl1_ist = pd.Series(np.repeat(T_zyl1_ist,len(df)))
@@ -86,6 +87,10 @@ def hdf5_to_pd_dataframe(file,save_path=None):
             T_zyl5_ist = file[cycle]['T805I_Value']['block0_values'][:]
             T_zyl5_ist = pd.Series(np.repeat(T_zyl5_ist,len(df)))
             df=df.assign(T_zyl5_ist = T_zyl5_ist.values)   
+
+            V_um_soll = file[cycle]['V305_Value']['block0_values'][:]
+            df['Umschaltpunkt']=np.nan
+            df.loc[0]['Umschaltpunkt'] = V_um_soll
             
             V_um_ist = file[cycle]['V4065_Value']['block0_values'][:]
             df['V_um_ist']=np.nan
@@ -98,6 +103,10 @@ def hdf5_to_pd_dataframe(file,save_path=None):
             p_inj_max_ist = file[cycle]['p4055_Value']['block0_values'][:]
             df['p_inj_max_ist']=np.nan
             df.loc[0]['p_inj_max_ist'] = p_inj_max_ist
+            
+            p_press_soll = file[cycle]['p312_Value']['block0_values'][:]
+            df['Nachdruckhöhe']=np.nan
+            df.loc[0]['Nachdruckhöhe'] = p_press_soll   
       
             t_dos_ist = file[cycle]['t4015_Value']['block0_values'][:]
             df['t_dos_ist']=np.nan
@@ -114,10 +123,21 @@ def hdf5_to_pd_dataframe(file,save_path=None):
             t_press2_soll = file[cycle]['t313_Value']['block0_values'][:]
             df['t_press2_soll']=np.nan
             df.loc[0]['t_press2_soll'] = t_press2_soll            
-            
+
             cycle_num = file[cycle]['f071_Value']['block0_values'][0,0]
             df['cycle_num']=np.nan
             df.loc[0]['cycle_num'] = cycle_num
+            
+            
+            p_stau = file[cycle]['p403_Value']['block0_values'][:]
+            df['Staudruck']=np.nan
+            df.loc[0]['Staudruck'] = p_stau    
+            
+            df=df.assign(Einspritzgeschwindigkeit = Q_inj_soll.values)
+            df=df.assign(Nachdruckzeit = t_press1_soll.item())
+
+            
+            
             
             pkl.dump(df,open(save_path+'cycle'+str(cycle_num)+'.pkl','wb'))
         except:
@@ -208,6 +228,10 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
             T_zyl5_ist = pd.Series(np.repeat(T_zyl5_ist,len(df)))
             df=df.assign(T_zyl5_ist = T_zyl5_ist.values)   
             
+            V_um_soll = file[cycle]['V305_Value']['block0_values'][:]
+            df['Umschaltpunkt']=np.nan
+            df.loc[0]['Umschaltpunkt'] = V_um_soll
+            
             V_um_ist = file[cycle]['V4065_Value']['block0_values'][:]
             df['V_um_ist']=np.nan
             df.loc[0]['V_um_ist'] = V_um_ist
@@ -219,6 +243,10 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
             p_inj_max_ist = file[cycle]['p4055_Value']['block0_values'][:]
             df['p_inj_max_ist']=np.nan
             df.loc[0]['p_inj_max_ist'] = p_inj_max_ist
+            
+            p_press_soll = file[cycle]['p312_Value']['block0_values'][:]
+            df['Nachdruckhöhe']=np.nan
+            df.loc[0]['Nachdruckhöhe'] = p_inj_max_ist            
       
             t_dos_ist = file[cycle]['t4015_Value']['block0_values'][:]
             df['t_dos_ist']=np.nan
@@ -234,7 +262,7 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
 
             t_press2_soll = file[cycle]['t313_Value']['block0_values'][:]
             df['t_press2_soll']=np.nan
-            df.loc[0]['t_press2_soll'] = t_press2_soll            
+            df.loc[0]['t_press2_soll'] = t_press2_soll  
             
             cycle_num = file[cycle]['f071_Value']['block0_values'][0,0]
             df['cycle_num']=np.nan
@@ -262,6 +290,7 @@ def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
     
     # add measurements from csv to pd dataframe
     for key in df_csv.keys():
+        
         df[key]=np.nan
         df.loc[0][key] = df_csv.loc[cycle_num][key]
         
