@@ -11,18 +11,10 @@ quality_filename = 'Messdaten_Verschlusskappe_Versuchsplan_orig_Stgrsn.csv'
 weight_filename = 'Gewicht_orig_Strgn.csv'
 plan_filename = 'Versuchsplan_Strgn.csv'
 
-# path = '/home/alexander/Downloads/Versuchsplan/' # @work
-# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
 
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/OriginalData/'  # @home
-
-# target_path = 'data/HighFrequencyMeasurements/'
-# target_path = 'E:/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/'
-target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/'
-
-df_quality = pd.read_csv(path+quality_filename,sep=';',index_col=0)
-df_weight = pd.read_csv(path+weight_filename,sep=';',header = None)
-df_plan = pd.read_csv(path+plan_filename,sep=';')
+df_quality = pd.read_csv(quality_filename,sep=';',index_col=0)
+df_weight = pd.read_csv(weight_filename,sep=';',header = None)
+df_plan = pd.read_csv(plan_filename,sep=';')
 
 
 # df_weight.index = df_plan.index
@@ -80,7 +72,7 @@ for z in df_weight.index:
 
 
 
-df_plan_new.to_csv(target_path+'Versuchsplan_Stgrn.csv',sep=';')
+df_plan_new.to_csv('Versuchsplan_Stgrn.csv',sep=';')
 
 
 
