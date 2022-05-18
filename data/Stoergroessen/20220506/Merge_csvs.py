@@ -89,7 +89,7 @@ for z in df_weight.index:
 
 
 
-df_plan_new.to_csv('Strgrsn_T_wkz.csv',sep=';')
+df_plan_new.to_csv('Strgrsn_Rezyklat.csv',sep=';')
 
 
 
