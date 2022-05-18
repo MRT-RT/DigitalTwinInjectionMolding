@@ -31,14 +31,14 @@ def Eval_GRU_on_Val(dim_c):
     # params = res.loc[res['loss_val'].idxmin()][['params']][0]
     params = res.loc[10]['params_val']
 
-    charges = list(range(1,275))
+    charges = list(range(1,26))
     
     mode='quality'
     split = 'all'
     # split = 'part'
     
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
        
    
@@ -49,7 +49,9 @@ def Eval_GRU_on_Val(dim_c):
     u_lab = [u_inj,u_press,u_cool]
     y_lab = ['Durchmesser_innen']
     
-    norm_cycle = pkl.load(open(path+'cycle11.pkl','rb'))
+    
+    norm_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    norm_cycle = pkl.load(open(norm_path+'cycle11.pkl','rb'))
     
     data_train,data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,
                                           mode,norm_cycle)

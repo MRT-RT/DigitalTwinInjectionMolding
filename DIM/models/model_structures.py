@@ -103,7 +103,8 @@ class RNN():
             try:
                 params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
             except:
-                params_new.append(self.Parameters[name])  
+                continue
+                # params_new.append(self.Parameters[name])  
             
         x1,y1 = self.Function(x0,u0,*params_new)     
                               
@@ -579,8 +580,8 @@ class GRU(RNN):
     as output
     """
 
-    def __init__(self,dim_u,dim_c,dim_hidden,dim_out,name,initial_params={}, 
-                 frozen_params = [], init_proc='random'):
+    def __init__(self,dim_u,dim_c,dim_hidden,u_label,y_label,dim_out,name,
+                 initial_params={},frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the GRU Architecture
         
@@ -608,6 +609,9 @@ class GRU(RNN):
         self.dim_c = dim_c
         self.dim_hidden = dim_hidden
         self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
         self.name = name
         
         self.InitialParameters = initial_params

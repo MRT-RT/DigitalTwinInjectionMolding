@@ -581,19 +581,24 @@ def parallel_mode(model,data,params=None):
         x0 = data['init_state'][i]
         try:
             switch = data['switch'][i]
-            switch = [io_data.index.get_loc(s) for s in switch]
+            # switch = [io_data.index.get_loc(s) for s in switch]
+            kwargs = {'switching_instances':switch}
+                        
             # print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
         except KeyError:
             switch = None
         
-        kwargs = {'switching_instances':switch}
+        
+        # u = io_data.iloc[0:-1][model.u_label].values
+        u = io_data[model.u_label]
+
+        
+        # Simulate Model        
+        pred = model.Simulation(x0,u,params,**kwargs)
+        
         
         y_ref = io_data[model.y_label].values
         
-        u = io_data.iloc[0:-1][model.u_label].values
-
-        # Simulate Model
-        pred = model.Simulation(x0,u,params,**kwargs)
         
         if isinstance(pred, tuple):           
             x_est= pred[0]
@@ -604,21 +609,26 @@ def parallel_mode(model,data,params=None):
         # Calculate simulation error            
         # Check for the case, where only last value is available
         
-        if y_ref.shape[0]==1:           # MUST BE UPDATED TO WORK WITH QUALITY DATA
-
+        if np.all(np.isnan(y_ref[1:])):           # MUST BE UPDATED TO WORK WITH QUALITY DATA
+            
+            y_ref = y_ref[[0]]
             y_est=y_est[-1,:]
             e= y_ref - y_est
-            loss = loss + cs.sumsqr(e[-1])
+            loss = loss + cs.sumsqr(e)
+            
+            idx = [i]
     
         else :
             e = y_ref - y_est
             loss = loss + cs.sumsqr(e)
             
+            idx = io_data.index
+        
         if params is None:
             y_est = np.array(y_est)
             
             df = pd.DataFrame(data=y_est, columns=model.y_label,
-                              index=io_data.index)
+                              index=idx)
             
             simulation.append(df)
         else:

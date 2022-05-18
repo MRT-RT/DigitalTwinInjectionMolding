@@ -198,10 +198,15 @@ class QualityModel():
         
         dim_c = []
         dim_out = []
+        u_label = []
+        y_label = []
         
         for subsystem in self.subsystems:
             dim_c.append(subsystem.dim_c)
             dim_out.append(subsystem.dim_out)
+            
+            u_label.extend(subsystem.u_label)
+            y_label.extend(subsystem.y_label)
             
             object.__setattr__(self, 'dim_u'+'_'+subsystem.name, 
                                 subsystem.dim_u)
@@ -218,6 +223,9 @@ class QualityModel():
             self.dim_out = dim_out[0]
         else:
             raise ValueError('Dimension of output all subsystems needs to be equal')
+            
+        self.u_label = list(set(u_label))
+        self.y_label = list(set(y_label))
             
         self.Initialize()
         
@@ -282,9 +290,18 @@ class QualityModel():
         """
         self.switching_instances = switching_instances
         
-        # Create empty arrays for output y and hidden state c
-        y = []
-        c = []    
+        
+        if self.switching_instances is not None:
+        
+            # switching_instances = [0] + switching_instances + [len(u)-1]
+            switching_instances = [0] + switching_instances + [u.index[-1]]
+            u_switched = []
+            
+            for s in range(len(switching_instances)-1):
+                
+                # u_switched.append(u.iloc[switching_instances[s]:switching_instances[s+1]].values)
+                u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]].values)
+            u = u_switched
         
         # Initial hidden state
         # X.append(np.zeros((c_dims[0],1)))
@@ -300,6 +317,13 @@ class QualityModel():
         # c0 = np.zeros((self.dim_c,1))
         
         
+        # Create empty arrays for output y and hidden state c
+        y = []
+        c = []   
+        
+        # 
+        # c.append(c0.T)
+        # y.append()
 
         # System Dynamics as Path Constraints
         for system,u_sys in zip(self.subsystems,u):

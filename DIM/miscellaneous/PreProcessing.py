@@ -276,16 +276,13 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
     return None
         
 
-def add_csv_to_pd_dataframe(df_file_path,csv_file_path):
+def add_csv_to_pd_dataframe(df_file_path,df_csv):
     
     #Read df
     df = pkl.load(open(df_file_path,'rb'))
     
     cycle_num = df.loc[0]['cycle_num']
     
-    #Read csv
-    df_csv = pd.read_csv(csv_file_path,sep=';',index_col=0)
-
     ###########################################################################
     
     # add measurements from csv to pd dataframe
@@ -426,13 +423,13 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
             # Read desired data from dataframe
             if len(u_lab)==1:
                 data.append(cycle)                
-                x_init.append([None])
+                x_init.append(None)
                 switch.append([None])
                 
             elif len(u_lab)==3:
                    
                 data.append(cycle)
-                x_init.append([None])
+                x_init.append(None)
                 switch.append([t1,t2])
                 
         
@@ -485,9 +482,9 @@ def eliminate_outliers(doe_plan):
     
     # eliminate all nan
     doe_plan = doe_plan[doe_plan.loc[:,'Gewicht']>=5]
-    doe_plan = doe_plan[doe_plan.loc[:,'Stegbreite_Gelenk']>=4]
+    # doe_plan = doe_plan[doe_plan.loc[:,'Stegbreite_Gelenk']>=4]
     doe_plan = doe_plan[doe_plan.loc[:,'Breite_Lasche']>=4]
-    
+    doe_plan = doe_plan[doe_plan.loc[:,'Durchmesser_innen']>=20]
     
     return doe_plan
 
@@ -548,7 +545,7 @@ def split_charges_to_trainval_data(path,charges,split):
     return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
 
     
-def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
+def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,norm_cycle):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
     split_charges_to_trainval_data(path,charges,split)
@@ -580,14 +577,22 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
         raise ValueError('''u_lab needs to be a list of either one or three 
                          elements with input labels!''')
 
-    # Normalize with respect to first cycle    
-    mean_y = cycles_train[0][y_lab].mean()                                    # This normalization was formerly used for quality models
+    # Normalize with respect to normalization cycle
+    mean_y = cycles_train[0][y_lab].mean() #norm_cycle[y_lab].mean()                                       # This normalization was formerly used for quality models
     
-    min_u = cycles_train[0][u_lab_all].min()
-    max_u = cycles_train[0][u_lab_all].max()
+    min_u = cycles_train[0][u_lab_all].min()#norm_cycle[u_lab_all].min()
+    max_u = cycles_train[0][u_lab_all].max()#norm_cycle[u_lab_all].max()
     
-    min_y = cycles_train[0][y_lab].min()
-    max_y = cycles_train[0][y_lab].max()
+    min_y = cycles_train[0][y_lab].min()#norm_cycle[y_lab].min()
+    max_y = cycles_train[0][y_lab].max()#norm_cycle[y_lab].max()
+
+    mean_y = norm_cycle[y_lab].mean()                                       # This normalization was formerly used for quality models
+    
+    min_u = norm_cycle[u_lab_all].min()
+    max_u = norm_cycle[u_lab_all].max()
+    
+    min_y = norm_cycle[y_lab].min()
+    max_y = norm_cycle[y_lab].max()
 
     min_u[max_u-min_u==0]=0                                                     # if signal is constant, set minimum to 0 to avoid division by zero    
     min_y[max_y-min_y==0]=0

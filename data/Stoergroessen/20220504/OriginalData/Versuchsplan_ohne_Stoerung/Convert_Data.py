@@ -18,7 +18,6 @@ from DIM.miscellaneous.PreProcessing import hdf5_to_pd_dataframe_high_freq, add_
 
 csv_filename = 'Versuchsplan_Stgrn.csv'
 
-
 target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/'
 
 filenames = ['Versuchsplan_orig_Strgn.h5']
@@ -33,9 +32,14 @@ for filename in filenames:
     
 cycle_files = os.listdir(target_path)
 
+
+df_csv = pd.read_csv(csv_file_path,sep=';',index_col=0)
+
 for cycle in cycle_files:
     
-    df = add_csv_to_pd_dataframe(target_path+cycle,csv_filename)
+    df = pkl.load(open(target_path+cycle,'rb'))
+    
+    df = add_csv_to_pd_dataframe(df,df_csv)
 
 # for i in range(1,251):
 #     c = pkl.load(open('cycle'+str(i)+'.pkl','rb'))

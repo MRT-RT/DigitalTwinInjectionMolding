@@ -9,7 +9,7 @@ import pandas as pd
 
 quality_filename = 'Messdaten_Verschlusskappe_Versuchsplan_orig_Stgrsn.csv'
 weight_filename = 'Gewicht_orig_Strgn.csv'
-plan_filename = 'Versuchsplan_Strgn.csv'
+plan_filename = 'Versuchsplan_Stgrn.csv'
 
 
 df_quality = pd.read_csv(quality_filename,sep=';',index_col=0)
@@ -72,8 +72,8 @@ for z in df_weight.index:
 
 
 
-df_plan_new.to_csv('Versuchsplan_Stgrn.csv',sep=';')
-
+df_plan_new.to_csv('Versuchsplan.csv',sep=';')
+# pkl.dump(df_plan_new,open('Versuchsplan.pkl','rb'))
 
 
 
