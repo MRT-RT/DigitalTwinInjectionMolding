@@ -22,6 +22,9 @@ def hdf5_to_pd_dataframe(file,save_path=None):
         DESCRIPTION.
 
     '''
+    
+    success = []
+    
     # print(file)
     for cycle in file.keys():
         
@@ -135,15 +138,14 @@ def hdf5_to_pd_dataframe(file,save_path=None):
             
             df=df.assign(Einspritzgeschwindigkeit = Q_inj_soll.values)
             df=df.assign(Nachdruckzeit = t_press1_soll.item())
-
-            
-            
             
             pkl.dump(df,open(save_path+'cycle'+str(cycle_num)+'.pkl','wb'))
+            
+            success.append(cycle_num)
         except:
             continue
     
-    return None
+    return success
 
 
 def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
@@ -276,10 +278,10 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
     return None
         
 
-def add_csv_to_pd_dataframe(df_file_path,df_csv):
+def add_csv_to_pd_dataframe(df,df_csv):
     
     #Read df
-    df = pkl.load(open(df_file_path,'rb'))
+    
     
     cycle_num = df.loc[0]['cycle_num']
     
@@ -302,7 +304,7 @@ def add_csv_to_pd_dataframe(df_file_path,df_csv):
                          'Düsentemperatur':'T_nozz_soll',
                          'Einspritzgeschwindigkeit':'v_inj_soll'}, inplace = True)
         
-    pkl.dump(df,open(df_file_path,'wb'))
+    # pkl.dump(df,open(df_file_path,'wb'))
     
     return df
     
@@ -484,7 +486,7 @@ def eliminate_outliers(doe_plan):
     doe_plan = doe_plan[doe_plan.loc[:,'Gewicht']>=5]
     # doe_plan = doe_plan[doe_plan.loc[:,'Stegbreite_Gelenk']>=4]
     doe_plan = doe_plan[doe_plan.loc[:,'Breite_Lasche']>=4]
-    doe_plan = doe_plan[doe_plan.loc[:,'Durchmesser_innen']>=20]
+    doe_plan = doe_plan[doe_plan.loc[:,'Durchmesser_innen']>=26.5]
     
     return doe_plan
 
@@ -578,44 +580,42 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,norm_cycle):
                          elements with input labels!''')
 
     # Normalize with respect to normalization cycle
-    mean_y = cycles_train[0][y_lab].mean() #norm_cycle[y_lab].mean()                                       # This normalization was formerly used for quality models
+    # mean_y = cycles_train[0][y_lab].mean() #norm_cycle[y_lab].mean()                                       # This normalization was formerly used for quality models
     
-    min_u = cycles_train[0][u_lab_all].min()#norm_cycle[u_lab_all].min()
-    max_u = cycles_train[0][u_lab_all].max()#norm_cycle[u_lab_all].max()
+    # min_u = cycles_train[0][u_lab_all].min()#norm_cycle[u_lab_all].min()
+    # max_u = cycles_train[0][u_lab_all].max()#norm_cycle[u_lab_all].max()
     
-    min_y = cycles_train[0][y_lab].min()#norm_cycle[y_lab].min()
-    max_y = cycles_train[0][y_lab].max()#norm_cycle[y_lab].max()
+    # min_y = cycles_train[0][y_lab].min()#norm_cycle[y_lab].min()
+    # max_y = cycles_train[0][y_lab].max()#norm_cycle[y_lab].max()
 
-    mean_y = norm_cycle[y_lab].mean()                                       # This normalization was formerly used for quality models
+    # mean_y = norm_cycle[y_lab].mean()                                       # This normalization was formerly used for quality models
     
-    min_u = norm_cycle[u_lab_all].min()
-    max_u = norm_cycle[u_lab_all].max()
+    # min_u = norm_cycle[u_lab_all].min()
+    # max_u = norm_cycle[u_lab_all].max()
     
-    min_y = norm_cycle[y_lab].min()
-    max_y = norm_cycle[y_lab].max()
+    # min_y = norm_cycle[y_lab].min()
+    # max_y = norm_cycle[y_lab].max()
 
-    min_u[max_u-min_u==0]=0                                                     # if signal is constant, set minimum to 0 to avoid division by zero    
-    min_y[max_y-min_y==0]=0
+    # min_u[max_u-min_u==0]=0                                                     # if signal is constant, set minimum to 0 to avoid division by zero    
+    # min_y[max_y-min_y==0]=0
     
-    print('p_inj_soll at switch point is set to 700 manually!')
+    # print('p_inj_soll at switch point is set to 700 manually!')
     
-    for cycle in cycles_train+cycles_val:
+    # for cycle in cycles_train+cycles_val:
         
-        t1,_,_ = find_switches(cycle)
-        cycle.loc[t1]['p_inj_soll']=700.00
-        
-        
-        cycle[u_lab_all] = (cycle[u_lab_all]-min_u)/(max_u-min_u)
-        
-        if mode == 'quality':
-            cycle[y_lab] = (cycle[y_lab]-mean_y)+1
-        elif mode == 'process':
-            cycle[y_lab] = (cycle[y_lab]-min_y)/(max_y-min_y)
+    #     t1,_,_ = find_switches(cycle)
+    #     cycle.loc[t1]['p_inj_soll']=700.00
         
         
+    #     cycle[u_lab_all] = (cycle[u_lab_all]-min_u)/(max_u-min_u)
         
-        # cycle[y_lab] = cycle[y_lab]-mean_y+1ArithmeticError                   # This normalization was formerly used for quality models
-    
+    #     if mode == 'quality':
+    #         cycle[y_lab] = (cycle[y_lab]-mean_y)+1
+    #     elif mode == 'process':
+    #         cycle[y_lab] = (cycle[y_lab]-min_y)/(max_y-min_y)
+        
+        
+            
     data_train,x_init_train,switch_train  = arrange_data_for_ident(cycles_train,y_lab,
                                         u_lab,mode)
     
@@ -625,14 +625,14 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,norm_cycle):
     data_train = {'data': data_train,
                 'init_state': x_init_train,
                 'switch': switch_train,
-                'cycle_num':charge_train_label,
-                'charge_num':cycles_train_label}
+                'charge_num':charge_train_label,
+                'cycle_num':cycles_train_label}
     
     data_val = {'data': data_val,
                 'init_state': x_init_val,
                 'switch': switch_val,
-                'cycle_num':charge_val_label,
-                'charge_num':cycles_val_label}
+                'charge_num':charge_val_label,
+                'cycle_num':cycles_val_label}
     
     return data_train,data_val
 
