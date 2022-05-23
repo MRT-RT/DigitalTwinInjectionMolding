@@ -38,7 +38,7 @@ def Eval_GRU_on_Val(dim_c):
     # split = 'part'
     
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
        
    
@@ -108,8 +108,8 @@ def Eval_GRU_on_Val(dim_c):
 results_train,results_val = Eval_GRU_on_Val(dim_c=9)
 
 
-BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-            results_val['y_est'].values.reshape((-1,1)))
+print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+            results_val['y_est'].values.reshape((-1,1))))
 
 # pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
 # pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 

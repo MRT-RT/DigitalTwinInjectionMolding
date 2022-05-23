@@ -9,7 +9,7 @@ import pandas as pd
 
 quality_filename = 'Messdaten_Verschlusskappe_Versuchsplan_orig_Stgrsn.csv'
 weight_filename = 'Gewicht_orig_Strgn.csv'
-plan_filename = 'Versuchsplan_Stgrn.csv'
+plan_filename = 'Wirkungsflächenversuchsplan_Strgn.csv'
 
 
 df_quality = pd.read_csv(quality_filename,sep=';',index_col=0)
