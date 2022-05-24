@@ -134,7 +134,9 @@ class RNN():
                 params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
             except:
                 params_new.append(self.Parameters[name])
-                
+        
+        u = u[self.u_label].values
+        
         F_sim = self.Function.mapaccum(u.shape[0])
         # print(params_new)
         x,y = F_sim(x0,u.T,*params_new)
@@ -339,7 +341,9 @@ class MLP():
                 should be optimized, if None, then the current parameters of
                 the model are used
         '''
-
+        
+        u = u[self.u_label].values
+        
         x = []
 
         # initial states

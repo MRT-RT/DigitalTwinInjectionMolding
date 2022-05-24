@@ -28,12 +28,12 @@ from DIM.optim.param_optim import ParallelModelTraining
 from DIM.optim.common import BestFitRate
 
 
-dim_hidden = 20
+dim_hidden = 5
 
     
-# res = pkl.load(open('MLP_h20-30_sim_2.pkl','rb'))
+res_sim = pkl.load(open('MLP_inj_sim_h5.pkl','rb'))
 # res = pkl.load(open('MLP_h5_sim_Hess.pkl','rb'))
-res = pkl.load(open('MLP_inj_h20_onestep_pred.pkl','rb'))
+# res = pkl.load(open('MLP_inj_h20_onestep_pred.pkl','rb'))
 
 
 charges = list(range(1,3))    # 275
@@ -41,8 +41,8 @@ charges = list(range(1,3))    # 275
 split = 'process'
 mode = 'process'
 
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+# path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
 # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
 
 u_inj= ['v_inj_soll']
@@ -52,7 +52,8 @@ u_cool= []
 u_lab = [u_inj,u_press,u_cool]
 y_lab = ['Q_Vol_ist','V_Screw_ist','p_wkz_ist','T_wkz_ist','p_inj_ist']
 
-data_train, data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
+data_train, data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,mode,None)
+
 
 data_inj_train = deepcopy(data_train)
 data_inj_val = deepcopy(data_val)
@@ -69,9 +70,11 @@ for i in range(len(data_inj_train['data'])):
     
     t2 = data_press_train['switch'][i][1]
     data_press_train['data'][i] = data_press_train['data'][i].loc[t1:t2]
+    data_press_train['init_state'][i] = data_press_train['data'][i][y_lab].loc[t1].values.reshape((5,1))
+    
     
     data_cool_train['data'][i] = data_cool_train['data'][i].loc[t2::]
-    
+    data_cool_train['init_state'][i] = data_cool_train['data'][i][y_lab].loc[t2].values.reshape((5,1))
 
 for i in range(len(data_inj_val['data'])):
     t1 = data_inj_val['switch'][i][0]
@@ -79,46 +82,52 @@ for i in range(len(data_inj_val['data'])):
     
     t2 = data_inj_val['switch'][i][1]
     data_press_val['data'][i] = data_press_val['data'][i].loc[t1:t2]
+    data_press_val['init_state'][i] = data_press_val['data'][i][y_lab].loc[t1].values.reshape((5,1))
     
     data_cool_val['data'][i] = data_cool_val['data'][i].loc[t2::]
+    data_cool_val['init_state'][i] = data_cool_val['data'][i][y_lab].loc[t2].values.reshape((5,1))
         
 
 inj_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,u_label=u_inj,
                 y_label=y_lab,name='inj')
 
-# press_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,name='press')
-# cool_model = MLP(dim_u=0,dim_out=5,dim_hidden=dim_hidden,name='cool')
+# press_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,u_label=u_press,
+#                 y_label=y_lab,name='press')
+
+# cool_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,u_label=u_cool,
+#                 y_label=y_lab,name='cool')
+
 
 # process_model = ProcessModel(subsystems=[inj_model,press_model,cool_model],
 #                               name='p_model')   
 
 # Assign best parameters to model
-# inj_model.Parameters = res['params_val'].loc[dim_hidden]
+inj_model.Parameters = res_sim['params_val'].loc[5]
 # inj_model.Parameters = res['params_val'].loc[res['loss_val'].idxmin()]
-inj_model.Parameters = res['params_val'].loc[9]
+# inj_model.Parameters = res['params_val'].loc[9]
 # process_model.SetParameters(params)
 
 # Evaluate model on training data
-# _,res_train = series_parallel_mode(inj_model,data_inj_train)
-_,res_val = series_parallel_mode(inj_model,data_inj_val)
-
-
-idx = 0
-plt.figure()
-plt.plot(data_inj_val['data'][idx])
-plt.plot(res_val[idx])
-plt.legend(list(data_inj_val['data'][idx].keys()) + list(res_val[idx].keys()))
-
-
+_,res_train = parallel_mode(inj_model,data_inj_train)
 _,res_val = parallel_mode(inj_model,data_inj_val)
 
 
-
 idx = 0
 plt.figure()
 plt.plot(data_inj_val['data'][idx])
 plt.plot(res_val[idx])
 plt.legend(list(data_inj_val['data'][idx].keys()) + list(res_val[idx].keys()))
+
+
+# _,res_val = parallel_mode(inj_model,data_inj_val)
+
+
+
+# idx = 0
+# plt.figure()
+# plt.plot(data_inj_val['data'][idx])
+# plt.plot(res_val[idx])
+# plt.legend(list(data_inj_val['data'][idx].keys()) + list(res_val[idx].keys()))
 
 # BFR_train = []
 

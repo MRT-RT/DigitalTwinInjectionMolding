@@ -39,7 +39,7 @@ def Fit_MLP(dim_hidden,initial_params=None):
     
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
     
     u_inj= ['v_inj_soll']
     u_press= ['p_inj_soll']
@@ -50,7 +50,7 @@ def Fit_MLP(dim_hidden,initial_params=None):
     # u_lab = [u_inj,[],[]]
     y_lab = ['Q_Vol_ist','V_Screw_ist','p_wkz_ist','T_wkz_ist','p_inj_ist']
     
-    data_train, data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
+    data_train, data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,mode,None)
     
     
     
