@@ -589,8 +589,8 @@ def parallel_mode(model,data,params=None):
             switch = None
         
         
-        # u = io_data.iloc[0:-1][model.u_label].values
-        u = io_data[model.u_label]
+        u = io_data.iloc[0:-1][model.u_label]
+        # u = io_data[model.u_label]
 
         
         # Simulate Model        

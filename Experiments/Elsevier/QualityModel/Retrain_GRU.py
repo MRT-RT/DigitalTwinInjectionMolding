@@ -36,8 +36,10 @@ def Fit_GRU(dim_c,initial_params=None):
     split = 'all'
     mode='quality'
     
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-   
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
     u_cool= ['p_wkz_ist','T_wkz_ist']
@@ -80,15 +82,15 @@ def Fit_GRU(dim_c,initial_params=None):
 if __name__ == '__main__':
     # multiprocessing.freeze_support()
     c1 = Fit_GRU(dim_c=1)
-    c2 = Fit_GRU(dim_c=2)
-    c3 = Fit_GRU(dim_c=3)
-    c4 = Fit_GRU(dim_c=4)
-    c5 = Fit_GRU(dim_c=5)
-    c6 = Fit_GRU(dim_c=6)
-    c7 = Fit_GRU(dim_c=7)
-    c8 = Fit_GRU(dim_c=8)
-    c9 = Fit_GRU(dim_c=9)
-    c10 = Fit_GRU(dim_c=10)
+    # c2 = Fit_GRU(dim_c=2)
+    # c3 = Fit_GRU(dim_c=3)
+    # c4 = Fit_GRU(dim_c=4)
+    # c5 = Fit_GRU(dim_c=5)
+    # c6 = Fit_GRU(dim_c=6)
+    # c7 = Fit_GRU(dim_c=7)
+    # c8 = Fit_GRU(dim_c=8)
+    # c9 = Fit_GRU(dim_c=9)
+    # c10 = Fit_GRU(dim_c=10)
     
     # print(BestFitRate(c1['y_true'].values.reshape((-1,1)),
     #             c1['y_est'].values.reshape((-1,1))))

@@ -123,6 +123,22 @@ class ProcessModel():
         """
         self.switching_instances = switching_instances
         
+        
+        
+        if self.switching_instances is not None:
+            switching_instances = [u.index.get_loc(s) for s in self.switching_instances]
+            
+            switching_instances = [0] + switching_instances + [len(u)]
+            # switching_instances = [0] + switching_instances + [u.index[-1]]
+            u_switched = []
+            
+            for s in range(len(switching_instances)-1):
+                
+                u_switched.append(u.iloc[switching_instances[s]:switching_instances[s+1]])
+                # u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]].values)
+                # u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]])
+            u = u_switched
+        
         # Create empty arrays for output x 
         x = []
         
@@ -291,16 +307,19 @@ class QualityModel():
         self.switching_instances = switching_instances
         
         
-        if self.switching_instances is not None:
         
-            # switching_instances = [0] + switching_instances + [len(u)-1]
-            switching_instances = [0] + switching_instances + [u.index[-1]]
+        if self.switching_instances is not None:
+            switching_instances = [u.index.get_loc(s) for s in self.switching_instances]
+            
+            switching_instances = [0] + switching_instances + [len(u)]
+            # switching_instances = [0] + switching_instances + [u.index[-1]]
             u_switched = []
             
             for s in range(len(switching_instances)-1):
                 
-                # u_switched.append(u.iloc[switching_instances[s]:switching_instances[s+1]].values)
-                u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]].values)
+                u_switched.append(u.iloc[switching_instances[s]:switching_instances[s+1]])
+                # u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]].values)
+                # u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]])
             u = u_switched
         
         # Initial hidden state
