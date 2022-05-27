@@ -59,12 +59,12 @@ class RNN():
         return None
                     
                     
-    # def SetParameters(self,params):
-    #     for p_name in self.Function.name_in()[2::]:
-    #         try:
-    #             self.Parameters[p_name] = params[p_name]
-    #         except:
-    #             pass           
+    def SetParameters(self,params):
+        for p_name in self.Function.name_in()[2::]:
+            try:
+                self.Parameters[p_name] = params[p_name]
+            except:
+                pass           
             
     # def SetInitialParameters(self,initial_params):
     #     for p_name in self.Function.name_in()[2::]:
@@ -103,7 +103,8 @@ class RNN():
             try:
                 params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
             except:
-                params_new.append(self.Parameters[name])  
+                continue
+                # params_new.append(self.Parameters[name])  
             
         x1,y1 = self.Function(x0,u0,*params_new)     
                               
@@ -133,7 +134,9 @@ class RNN():
                 params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
             except:
                 params_new.append(self.Parameters[name])
-                
+        
+        u = u[self.u_label].values
+        
         F_sim = self.Function.mapaccum(u.shape[0])
         # print(params_new)
         x,y = F_sim(x0,u.T,*params_new)
@@ -201,7 +204,7 @@ class MLP():
     Implementation of a single-layered Feedforward Neural Network.
     """
 
-    def __init__(self,dim_u,dim_out,dim_hidden,name,initial_params=None, 
+    def __init__(self,dim_u,dim_out,dim_hidden,u_label,y_label,name,initial_params=None, 
                  frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the Feedforward Neural Network Architecture
@@ -216,6 +219,7 @@ class MLP():
         dim_hidden : int
             Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
             if NN is supposed to have 10 neurons in hidden layer.
+        u_label : 
         name : str
             Name of the model, e.g. name = 'InjectionPhaseModel'.
 
@@ -227,6 +231,9 @@ class MLP():
         self.dim_u = dim_u
         self.dim_hidden = dim_hidden
         self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
         self.name = name
         
         self.InitialParameters = initial_params
@@ -324,7 +331,7 @@ class MLP():
                               
         return x1
 
-    def Simulation(self,x0,u,params=None):
+    def Simulation(self,x0,u,params=None,**kwargs):
         '''
         A iterative application of the OneStepPrediction in order to perform a
         simulation for a whole input trajectory
@@ -334,7 +341,9 @@ class MLP():
                 should be optimized, if None, then the current parameters of
                 the model are used
         '''
-
+        
+        u = u[self.u_label].values
+        
         x = []
 
         # initial states
@@ -387,10 +396,12 @@ class MLP():
                 if param in self.Parameters.keys():
                     self.Parameters[param] = self.InitialParameters[param]
                     
-    def AssignParameters(self,params):
-        
+    def SetParameters(self,params):
         for p_name in self.Function.name_in()[2::]:
-            self.Parameters[p_name] = params[p_name]
+            try:
+                self.Parameters[p_name] = params[p_name]
+            except:
+                pass           
 
 class Static_MLP():
     """
@@ -573,8 +584,8 @@ class GRU(RNN):
     as output
     """
 
-    def __init__(self,dim_u,dim_c,dim_hidden,dim_out,name,initial_params={}, 
-                 frozen_params = [], init_proc='random'):
+    def __init__(self,dim_u,dim_c,dim_hidden,u_label,y_label,dim_out,name,
+                 initial_params={},frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the GRU Architecture
         
@@ -602,6 +613,9 @@ class GRU(RNN):
         self.dim_c = dim_c
         self.dim_hidden = dim_hidden
         self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
         self.name = name
         
         self.InitialParameters = initial_params
