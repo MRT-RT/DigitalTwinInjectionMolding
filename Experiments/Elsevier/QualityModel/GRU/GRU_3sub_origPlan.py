@@ -26,13 +26,13 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 def Fit_GRU(dim_c,initial_params=None):
 
-    charges = list(range(1,2))
+    charges = list(range(1,275))
     
     split = 'all'
     mode='quality'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -71,11 +71,11 @@ def Fit_GRU(dim_c,initial_params=None):
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
-    s_opts = {"max_iter": 1, 'hessian_approximation':'limited-memory'}
+    s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
 
     
     results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
-                            initializations=1, BFR=False, p_opts=None, 
+                            initializations=10, BFR=False, p_opts=None, 
                             s_opts=s_opts,mode='parallel',n_pool=2)
 
     # results_GRU = ModelTraining(quality_model,data_train,data_val,
@@ -86,17 +86,6 @@ def Fit_GRU(dim_c,initial_params=None):
   
     return results_GRU  
 
-# c1_part = pkl.load(open('GRU_c1_3sub.pkl','rb'))
-# c1_all = Fit_GRU(dim_c=1,initial_params=c1_part.loc[4]['params_val'])
-
-# c2_part = pkl.load(open('GRU_c2_3sub.pkl','rb'))
-# c2_all = Fit_GRU(dim_c=2,initial_params=c2_part.loc[0]['params_val'])
-
-# c3_part = pkl.load(open('GRU_c3_3sub.pkl','rb'))
-# c3_all = Fit_GRU(dim_c=3,initial_params=c3_part.loc[0]['params_val'])
-
-# c4_part = pkl.load(open('GRU_c4_3sub.pkl','rb'))
-# c4_all = Fit_GRU(dim_c=4,initial_params=c4_part.loc[4]['params_val'])
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
