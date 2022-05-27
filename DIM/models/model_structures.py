@@ -113,7 +113,7 @@ class RNN():
         
         
    
-    def Simulation(self,x0,u,params=None):
+    def Simulation(self,x0,u,params=None,**kwargs):
         '''
         A iterative application of the OneStepPrediction in order to perform a
         simulation for a whole input trajectory
@@ -145,6 +145,107 @@ class RNN():
         y = y.T
 
         return x,y    
+    
+    
+    
+class State_MLP(RNN):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_c,dim_hidden,dim_out,u_label,y_label,name,initial_params=None, 
+                 frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        u_label : 
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_c = dim_c
+        self.dim_hidden = dim_hidden
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.InitialParameters = initial_params
+        self.FrozenParameters = frozen_params
+        self.InitializationProcedure = init_proc
+        
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        
+        dim_u = self.dim_u
+        dim_c = self.dim_c
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out
+        name = self.name      
+    
+        u = cs.MX.sym('u',dim_u,1)
+        c = cs.MX.sym('c',dim_c,1)
+        
+        # Parameters
+        # State equation parameters
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_u+dim_c)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)
+        
+        W_c = cs.MX.sym('W_c_'+name,dim_c,dim_hidden)
+        b_c = cs.MX.sym('b_c_'+name,dim_c,1)
+
+        # State equation parameters
+        C = cs.MX.sym('C_'+name,dim_out,dim_c)
+
+
+        # Model Equations
+        h =  cs.tanh(cs.mtimes(W_h,cs.vertcat(u,c))+b_h)
+        c_new = cs.mtimes(W_c,h)+b_c
+        
+        x_new = cs.mtimes(C,c_new)  
+        
+        input = [c,u,W_h,b_h,W_c,b_c,C]
+        input_names = ['c','u','W_h_'+name,'b_h_'+name,'W_c_'+name,'b_c_'+name,
+                       'C_'+name]
+        
+        output = [c_new,x_new]
+        output_names = ['c_new','x_new']
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None
+   
+    
+    
 
 class LinearSSM(RNN):
     """

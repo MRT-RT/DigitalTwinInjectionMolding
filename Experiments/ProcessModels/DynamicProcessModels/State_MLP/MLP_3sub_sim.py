@@ -21,7 +21,7 @@ sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
-from DIM.models.model_structures import MLP
+from DIM.models.model_structures import State_MLP
 from DIM.models.injection_molding import ProcessModel
 from DIM.optim.param_optim import parallel_mode, series_parallel_mode
 from DIM.optim.param_optim import ModelTraining
@@ -30,7 +30,7 @@ from DIM.optim.param_optim import ModelTraining
 
 
 
-def Fit_MLP(dim_hidden,initial_params=None):
+def Fit_MLP(dim_c,dim_hidden,initial_params=None):
 
     charges = list(range(1,2))  
  
@@ -91,28 +91,27 @@ def Fit_MLP(dim_hidden,initial_params=None):
     s_opts = {"max_iter": 3000, 'hessian_approximation':'limited-memory'}
     
        
-    inj_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,u_label=u_inj,
-                    y_label=y_lab,name='inj')
+    inj_model = State_MLP(dim_u=1,dim_c=dim_c,dim_hidden=dim_hidden,dim_out=5,
+                          u_label=u_inj,y_label=y_lab,name='inj')
     
-    press_model = MLP(dim_u=1,dim_out=5,dim_hidden=dim_hidden,u_label=u_press,
-                    y_label=y_lab, name='press')
+    C = np.zeros((5,7))
+    C[[0,1,2,3,4],[0,1,2,3,4]] = 1
     
-    cool_model = MLP(dim_u=0,dim_out=5,dim_hidden=dim_hidden,u_label=u_cool,
-                    y_label=y_lab,name='cool')
+    inj_model.InitialParameters = {'C_inj':C}
+    inj_model.FrozenParameters = ['C_inj']
+    
+    # press_model = MLP(dim_u=1,dim_c=7,dim_hidden=15,dim_out=5,u_label=u_press,
+    #                 y_label=y_lab, name='press')
+    
+    # cool_model = MLP(dim_u=1,dim_c=7,dim_hidden=15,dim_out=5,u_label=u_cool,
+    #                 y_label=y_lab,name='cool')
     
 
-    # Load One Step Prediction Results and use best as initialization
-    # for simulation model 
-    # init_inj = pkl.load(open('MLP_inj_h'+str(dim_h)+'_onestep_pred.pkl','rb'))
-    # init_inj['loss_val'] = pd.to_numeric(init_inj['loss_val'])
-    # idx = init_inj['loss_val'].idxmin()
-
-    # inj_model.InitialParameters = init_inj['params_val'].loc[idx]
-    
+    ''' Parameter Estimation '''    
     results_inj = ModelTraining(inj_model,data_inj_train,data_inj_val,
                             initializations=10,BFR=False, p_opts=None, 
                             s_opts=s_opts,mode='parallel')
-    pkl.dump(results_inj,open('MLP_inj_sim_h'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(results_inj,open('MLP_inj_sim_c'+str(dim_hidden)+'_h'+str(dim_hidden)+'.pkl','wb'))
     
     # init_press = pkl.load(open('MLP_press_h'+str(dim_h)+'_onestep_pred.pkl','rb'))
     # init_press['loss_val'] = pd.to_numeric(init_press['loss_val'])
@@ -120,18 +119,19 @@ def Fit_MLP(dim_hidden,initial_params=None):
     
     # press_model.InitialParameters = init_press['params_val'].loc[idx]
     
-    results_press = ModelTraining(press_model,data_press_train,data_press_val,
-                            initializations=10,BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel')    
-    pkl.dump(results_press,open('MLP_press_sim_h'+str(dim_hidden)+'.pkl','wb'))
+    # results_press = ModelTraining(press_model,data_press_train,data_press_val,
+    #                         initializations=10,BFR=False, p_opts=None, 
+    #                         s_opts=s_opts,mode='parallel')    
+    # pkl.dump(results_press,open('MLP_press_sim_h'+str(dim_hidden)+'.pkl','wb'))
+    
     # init_cool = pkl.load(open('MLP_cool_h'+str(dim_h)+'_onestep_pred.pkl','rb'))
     # init_cool['loss_val'] = pd.to_numeric(init_cool['loss_val'])
     # idx = init_cool['loss_val'].idxmin()
 
-    results_cool = ModelTraining(cool_model,data_cool_train,data_cool_val,
-                            initializations=10,BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel')
-    pkl.dump(results_cool,open('MLP_cool_sim_h'+str(dim_hidden)+'.pkl','wb'))
+    # results_cool = ModelTraining(cool_model,data_cool_train,data_cool_val,
+    #                         initializations=10,BFR=False, p_opts=None, 
+    #                         s_opts=s_opts,mode='parallel')
+    # pkl.dump(results_cool,open('MLP_cool_sim_h'+str(dim_hidden)+'.pkl','wb'))
     
     # s_opts = {"max_iter": 3000, 'hessian_approximation':'limited-memory'}
 
@@ -153,7 +153,7 @@ def Fit_MLP(dim_hidden,initial_params=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    Fit_MLP(dim_hidden=5)
+    Fit_MLP(dim_c=7,dim_hidden=15)
     Fit_MLP(dim_hidden=10)
     Fit_MLP(dim_hidden=15)
     Fit_MLP(dim_hidden=20)
