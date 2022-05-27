@@ -39,7 +39,7 @@ def Fit_GRU(dim_c,initial_params=None):
     u_cool= ['p_wkz_ist','T_wkz_ist']
     
     u_lab = [u_inj,u_press,u_cool]
-    y_lab = ['Durchmesser_innen']
+    y_lab = ['Gewicht']
     
     
     data_train,data_val = \
@@ -71,7 +71,7 @@ def Fit_GRU(dim_c,initial_params=None):
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')
     
-    s_opts = {"max_iter": 1000, 'hessian_approximation':'limited-memory'}
+    s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
 
     
     results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
@@ -82,7 +82,7 @@ def Fit_GRU(dim_c,initial_params=None):
     #                         initializations=10, BFR=False, p_opts=None, 
     #                         s_opts=s_opts,mode='parallel')
         
-    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn_Gewicht.pkl','wb'))
   
     return results_GRU  
 
