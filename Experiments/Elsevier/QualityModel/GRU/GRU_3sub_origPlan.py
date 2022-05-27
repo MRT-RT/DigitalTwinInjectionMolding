@@ -99,4 +99,3 @@ if __name__ == '__main__':
     c8 = Fit_GRU(dim_c=8)
     c9 = Fit_GRU(dim_c=9)
     c10 = Fit_GRU(dim_c=10)
-    

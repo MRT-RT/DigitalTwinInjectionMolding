@@ -499,7 +499,6 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
     # Evaluate on model on data
     
     if mode == 'parallel':
-        
         loss_train,_ = parallel_mode(model,data_train,params_opti)
         loss_val,_ = parallel_mode(model,data_val,params_opti)
         
