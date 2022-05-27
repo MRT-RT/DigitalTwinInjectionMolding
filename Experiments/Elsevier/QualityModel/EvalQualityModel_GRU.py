@@ -26,10 +26,10 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 def Eval_GRU_on_Val(dim_c):
 
     # Load best model
-    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
+    res = pkl.load(open('NewTrained_firstbatch/GRU_c'+str(dim_c)+'_3sub_Stoergrsn.pkl','rb'))
        
-    # params = res.loc[res['loss_val'].idxmin()][['params']][0]
-    params = res.loc[10]['params_val']
+    params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
+    # params = res.loc[10]['params_val']
 
     charges = list(range(1,26))
     
@@ -37,10 +37,9 @@ def Eval_GRU_on_Val(dim_c):
     split = 'all'
     # split = 'part'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-       
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+        
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -50,11 +49,11 @@ def Eval_GRU_on_Val(dim_c):
     y_lab = ['Durchmesser_innen']
     
     
-    norm_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    norm_cycle = pkl.load(open(norm_path+'cycle11.pkl','rb'))
+    u_lab = [u_inj,u_press,u_cool]
+    y_lab = ['Durchmesser_innen']
     
-    data_train,data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,
-                                          mode,norm_cycle)
+    data_train,data_val = \
+    LoadDynamicData(path,charges,split,y_lab,u_lab,mode,None)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))] 
@@ -79,19 +78,21 @@ def Eval_GRU_on_Val(dim_c):
     quality_model.SetParameters(params)
     
     # Evaluate model on training data
-    # _,y_train = parallel_mode(quality_model,data_train)
+    _,y_train = parallel_mode(quality_model,data_train)
     
     
-    # y_true = np.array([df[y_lab].iloc[0] for df in data_train['data']]).reshape((-1,1))
-    # y_train = np.array([df[y_lab].iloc[0] for df in y_train]).reshape((-1,1))
-    # e_train = y_true-y_train
+    y_true = np.array([df[y_lab].iloc[0] for df in data_train['data']]).reshape((-1,1))
+    y_train = np.array([df[y_lab].iloc[0] for df in y_train]).reshape((-1,1))
+    e_train = y_true-y_train
     
     
     
-    # results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
-    #                         columns=['y_true','y_est','e'],
-    #                           index = data_train['cycle_num'])
-    results_train = None
+    results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
+                            columns=['y_true','y_est','e'],
+                              index = data_train['cycle_num'])
+    
+    
+    # results_train = None
     # # Evaluate model on validation data
     _,y_val = parallel_mode(quality_model,data_val)
     
@@ -112,12 +113,14 @@ def Eval_GRU_on_Val(dim_c):
 results_train,results_val = Eval_GRU_on_Val(dim_c=9)
 
 
-BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-            results_val['y_est'].values.reshape((-1,1)))
+print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+            results_val['y_est'].values.reshape((-1,1))))
 
-plt.plot(results_val['y_true'],'o')
-plt.plot(results_val['y_est'],'o')
-plt.plot(results_val['e'],'o')
+# plt.plot(results_val['y_true'],'o')
+# plt.plot(results_val['y_est'],'o')
+# plt.plot(results_val['e'],'o')
+
+plt.plot(results_train['y_true'], results_train['e'],'o')
 
 # pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
 # pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 
