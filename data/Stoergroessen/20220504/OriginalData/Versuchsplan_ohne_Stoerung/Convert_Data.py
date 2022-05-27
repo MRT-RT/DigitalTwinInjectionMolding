@@ -43,7 +43,7 @@ df_csv = df_csv.loc[success]
 
 # save as pkl
 
-pkl.dump(df_csv,open(target_path+'Versuchsplan.pkl','wb'))
+# pkl.dump(df_csv,open(target_path+'Versuchsplan.pkl','wb'))
 
 for cycle in success:
     
@@ -53,7 +53,7 @@ for cycle in success:
     
     df = add_csv_to_pd_dataframe(df,df_csv)
     
-    pkl.dump(df,open(cycle_path,'wb'))
+    # pkl.dump(df,open(cycle_path,'wb'))
     
 # for i in range(1,251):
 #     c = pkl.load(open('cycle'+str(i)+'.pkl','rb'))
