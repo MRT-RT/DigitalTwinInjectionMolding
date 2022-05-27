@@ -74,13 +74,13 @@ def Fit_GRU(dim_c,initial_params=None):
     s_opts = {"max_iter": 1000, 'hessian_approximation':'limited-memory'}
 
     
-    # results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
-    #                         initializations=10, BFR=False, p_opts=None, 
-    #                         s_opts=s_opts,mode='parallel',n_pool=10)
-
-    results_GRU = ModelTraining(quality_model,data_train,data_val,
+    results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
                             initializations=10, BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel')
+                            s_opts=s_opts,mode='parallel',n_pool=10)
+
+    # results_GRU = ModelTraining(quality_model,data_train,data_val,
+    #                         initializations=10, BFR=False, p_opts=None, 
+    #                         s_opts=s_opts,mode='parallel')
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn.pkl','wb'))
   
