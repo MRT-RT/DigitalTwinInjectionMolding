@@ -509,7 +509,7 @@ class Static_MLP():
     Implementation of a single-layered Feedforward Neural Network.
     """
 
-    def __init__(self,dim_u,dim_out,dim_hidden,name,initial_params=None, 
+    def __init__(self,dim_u,dim_out,dim_hidden,u_label,y_label,name,initial_params=None, 
                  frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the Feedforward Neural Network Architecture
@@ -535,6 +535,9 @@ class Static_MLP():
         self.dim_u = dim_u
         self.dim_hidden = dim_hidden
         self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
         self.name = name
         
         self.InitialParameters = initial_params

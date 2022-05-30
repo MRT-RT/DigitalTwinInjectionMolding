@@ -641,7 +641,14 @@ def LoadFeatureData(path,charges, split, targets):
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
     split_charges_to_trainval_data(path,charges,split)    
        
-    # print(len(charge_val_label))
+    # load doe plan 
+    doe_plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
+
+    data_train = doe_plan.loc[cycles_train_label]
+    data_val = doe_plan.loc[cycles_val_label]
+    
+    data_train['charge'] = charge_train_label
+    data_val['charge'] = charge_val_label
     
     # Load cycle data and extract features
     cycles_train = []
@@ -649,16 +656,16 @@ def LoadFeatureData(path,charges, split, targets):
     
     features=['T_wkz_0','T_wkz_max','t_Twkz_max','T_wkz_int','p_wkz_max',
               'p_wkz_int', 'p_wkz_res','t_pwkz_max','p_inj_int', 'p_inj_max',
-              't_inj','x_inj','x_um','v']
+              't_inj','x_inj','x_um','v_mean']
     
-    features.extend(targets)
+    # features.extend(targets)
     
-    data_train = pd.DataFrame(data=None,columns = features, index=cycles_train_label)
-    data_val = pd.DataFrame(data=None,columns = features, index=cycles_val_label)
+    data_train_feat = pd.DataFrame(data=None,columns = features, index=cycles_train_label)
+    data_val_feat = pd.DataFrame(data=None,columns = features, index=cycles_val_label)
     # print(cycles_val_label)
     # print(len(data_val))
        
-    for data,cycle_labels in zip([data_train,data_val],[cycles_train_label,cycles_val_label]):
+    for data,cycle_labels in zip([data_train_feat,data_val_feat],[cycles_train_label,cycles_val_label]):
    
             
         for c in cycle_labels:
@@ -687,26 +694,26 @@ def LoadFeatureData(path,charges, split, targets):
             
             x_inj = cycle.loc[0]['V_Screw_ist']-cycle.loc[t1]['V_Screw_ist']        # injection stroke
             x_um =  cycle.loc[t1]['V_Screw_ist']                                    # switch position
-            v = cycle.loc[0:t1]['Q_Vol_ist'].mean()                                 # mean injection velocity
+            v_mean = cycle.loc[0:t1]['Q_Vol_ist'].mean()                            # mean injection velocity
             
             f = [T_wkz_0,T_wkz_max,t_Twkz_max,T_wkz_int,p_wkz_max,
                  p_wkz_int, p_wkz_res,t_pwkz_max,p_inj_int, p_inj_max, t_inj,
-                 x_inj,x_um,v]
+                 x_inj,x_um,v_mean]
             
-            y = list(cycle.loc[0][targets].values)
+            # y = list(cycle.loc[0][targets].values)
             
-            f.extend(y)
+            # f.extend(y)
             
             data.loc[c] = f
         # print(c)
     
     
-    data_train['charge'] = charge_train_label
-    data_val['charge'] = charge_val_label
+    data_train = pd.concat([data_train,data_train_feat],axis=1)
+    data_val = pd.concat([data_val,data_val_feat],axis=1)
     
     return data_train,data_val
 
-def LoadSetpointData(path,charges, split, targets):
+def LoadSetpointData(path,charges, split):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
     split_charges_to_trainval_data(path,charges,split)    
@@ -717,14 +724,34 @@ def LoadSetpointData(path,charges, split, targets):
     
     doe_plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
     
-    setpoints=list(doe_plan.columns[1:9])
+    # setpoints=list(doe_plan.columns[1:9])
     
-    setpoints.extend(targets)
+    # setpoints.extend(targets)
     
-    data_train = doe_plan.loc[cycles_train_label][setpoints]
-    data_val = doe_plan.loc[cycles_val_label][setpoints]
+    data_train = doe_plan.loc[cycles_train_label]#[setpoints]
+    data_val = doe_plan.loc[cycles_val_label]#[setpoints]
     
     data_train['charge'] = charge_train_label
     data_val['charge'] = charge_val_label
     
     return data_train,data_val  
+
+
+def MinMaxScale(df,columns,*args):
+    
+    try:
+        col_min = args[0]
+        col_max = args[1]
+    
+    except:
+        col_min = df[columns].min()
+        col_max = df[columns].max()
+        
+
+    df[columns] = 2*(df[columns] - col_min) / \
+        (col_max - col_min) - 1 
+        
+        
+    return df,(col_min,col_max)
+
+    
