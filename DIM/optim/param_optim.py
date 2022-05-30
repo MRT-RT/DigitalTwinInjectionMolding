@@ -503,8 +503,8 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
         loss_val,_ = parallel_mode(model,data_val,params_opti)
         
     elif mode == 'static':
-        loss_train,_ = static_mode(model,u_train,y_ref_train,params_opti)   
-        loss_val,_ = static_mode(model,u_val,y_ref_val,params_opti) 
+        loss_train,_ = static_mode(model,data_train,params_opti)  
+        loss_val,_ = static_mode(model,data_val,params_opti)
                 
     elif mode == 'series':      
         loss_train,_ = series_parallel_mode(model,data_train,params_opti)
@@ -635,29 +635,35 @@ def parallel_mode(model,data,params=None):
             
     return loss,simulation
 
-def static_mode(model,u,y_ref,params=None):
+def static_mode(model,data,params=None):
     
     loss = 0
-    y = []
+    y_est = []
     e = []
     
-                    
-    # Loop over all batches 
-    for i in range(0,len(u)): 
+    u = data[model.u_label].values
+    y_ref = data[model.y_label].values
+           
 
-        # One-Step prediction
-        for k in range(u[i].shape[0]):  
-            # print(k)
-            y_new = model.OneStepPrediction(u[i][k,:],params)
-            # print(y_new)
-            y.append(y_new)
-            e.append(y_ref[i][k,:]-y_new)
-            # Calculate one step prediction error
-            loss = loss + cs.sumsqr(e[-1]) 
-            
-        break
-    
-    return loss,e,y
+    # One-Step prediction
+    for k in range(u.shape[0]):  
+        # print(k)
+        y_new = model.OneStepPrediction(u[k,:],params)
+        # print(y_new)
+        y_est.append(y_new)
+        e.append(y_ref[k,:]-y_new)
+        # Calculate one step prediction error
+        loss = loss + cs.sumsqr(e[-1]) 
+        
+    if params is None:
+        y_est = np.array(y_est).reshape((-1,len(model.y_label)))
+        
+        df = pd.DataFrame(data=y_est, columns=model.y_label,
+                          index=data.index)
+    else:
+        df = None
+        
+    return loss,df
 
 
 def series_parallel_mode(model,data,params=None):

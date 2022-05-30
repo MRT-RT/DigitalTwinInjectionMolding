@@ -12,9 +12,10 @@ import sys
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
 sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
-from DIM.miscellaneous.PreProcessing import LoadSetpointData,MinMaxScale
+from DIM.miscellaneous.PreProcessing import LoadFeatureData,LoadSetpointData,MinMaxScale
 from DIM.models.model_structures import Static_MLP
 from DIM.optim.param_optim import ModelTraining, static_mode
+from DIM.optim.common import BestFitRate
 
 
 
@@ -24,34 +25,49 @@ path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
 charges = list(range(1,275))
 split = 'all'
 
-y_label = ['Durchmesser_innen']
 
-u_label = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
- 'Umschaltpunkt', 'Nachdruckhöhe', 'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
+# u_label_q = ['T_wkz_max', 't_Twkz_max', 'T_wkz_int', 'p_wkz_max',
+#   'p_wkz_int', 'p_wkz_res', 't_pwkz_max']
 
-data_train,data_val = LoadSetpointData(path,charges,split)
+u_label_q = ['p_wkz_max', 't_pwkz_max', 't_Twkz_max']
+
+u_label_p = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
+  'Umschaltpunkt', 'Nachdruckhöhe', 'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
+y_label_q = ['Durchmesser_innen']
+
+data_train,data_val = LoadFeatureData(path,charges,split,y_label_q)
 
 
-# Normalize data
-data_train,minmax = MinMaxScale(data_train,u_label+y_label)
-data_val,_ = MinMaxScale(data_val,u_label+y_label,minmax)
+# LoadSetpointData(path,charges,split,y_label_q)
 
-model = Static_MLP(dim_u=8, dim_out=1, dim_hidden=5,u_label=u_label,
-                   y_label=y_label,name='MLP', init_proc='xavier')
+# # Normalize data
+data_train,minmax = MinMaxScale(data_train,u_label_q+u_label_p+y_label_q)
+data_val,_ = MinMaxScale(data_val,u_label_q+u_label_p+y_label_q,minmax)
 
-# p_opts = {"huhu": 1}
 
-result = ModelTraining(model,data_train,data_val,initializations=1,p_opts=None,
-                                s_opts=None,mode='static')
+model_p = Static_MLP(dim_u=8, dim_out=3, dim_hidden=15,u_label=u_label_p,
+                    y_label=u_label_q,name='proc', init_proc='xavier')
 
-model.Parameters = result.loc[0,'params_val']
+model_q = Static_MLP(dim_u=3, dim_out=1, dim_hidden=4,u_label=u_label_q,
+                    y_label=y_label_q,name='qual', init_proc='xavier')
 
-_,prediction = static_mode(model,data_val)
 
-fig, ax = plt.subplots(figsize=(20, 10))
-sns.stripplot(x=data_val.index,y=data_val['Durchmesser_innen'],color='grey',alpha=.8,size=15,ax=ax)
-sns.stripplot(x=prediction.index,y=prediction['Durchmesser_innen'],size=15,ax=ax)
-ax.set_xlim([1,50]) 
+result_p = ModelTraining(model_p,data_train,data_val,initializations=10,
+                          p_opts=None,s_opts=None,mode='static')
+
+result_q = pkl.load(open('results_q.pkl','wb'))
+# result_q = ModelTraining(model_q,data_train,data_val,initializations=1,
+#                           p_opts=None,s_opts=None,mode='static')
+
+model_q.Parameters = result_q.loc[0]['params_val']
+
+_,prediction_q = static_mode(model_q,data_val)
+_,prediction_p = static_mode(model_p,data_val)
+
+# fig, ax = plt.subplots(figsize=(20, 10))
+# sns.stripplot(x=data_val.index,y=data_val['Durchmesser_innen'],color='grey',alpha=.8,size=15,ax=ax)
+# sns.stripplot(x=prediction.index,y=prediction['Durchmesser_innen'],size=15,ax=ax)
+# ax.set_xlim([1,50]) 
 
 # def Fit_MLP(dim_hidden):
     
