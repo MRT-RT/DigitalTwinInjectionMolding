@@ -23,16 +23,15 @@ from DIM.optim.common import BestFitRate
 
 path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
 charges = list(range(1,275))
-split = 'all'
+split = 'process'
 
 
 # u_label_q = ['T_wkz_max', 't_Twkz_max', 'T_wkz_int', 'p_wkz_max',
 #   'p_wkz_int', 'p_wkz_res', 't_pwkz_max']
 
-u_label_q = ['p_wkz_max', 't_pwkz_max', 't_Twkz_max']
-
 u_label_p = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
   'Umschaltpunkt', 'Nachdruckhöhe', 'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
+u_label_q = ['p_wkz_max', 't_pwkz_max', 't_Twkz_max']
 y_label_q = ['Durchmesser_innen']
 
 data_train,data_val = LoadFeatureData(path,charges,split,y_label_q)
@@ -45,24 +44,41 @@ data_train,minmax = MinMaxScale(data_train,u_label_q+u_label_p+y_label_q)
 data_val,_ = MinMaxScale(data_val,u_label_q+u_label_p+y_label_q,minmax)
 
 
-model_p = Static_MLP(dim_u=8, dim_out=3, dim_hidden=15,u_label=u_label_p,
+model_p = Static_MLP(dim_u=8, dim_out=3, dim_hidden=10,u_label=u_label_p,
                     y_label=u_label_q,name='proc', init_proc='xavier')
 
 model_q = Static_MLP(dim_u=3, dim_out=1, dim_hidden=4,u_label=u_label_q,
                     y_label=y_label_q,name='qual', init_proc='xavier')
 
 
-result_p = ModelTraining(model_p,data_train,data_val,initializations=10,
-                          p_opts=None,s_opts=None,mode='static')
-
-result_q = pkl.load(open('results_q.pkl','wb'))
-# result_q = ModelTraining(model_q,data_train,data_val,initializations=1,
+# result_p = ModelTraining(model_p,data_train,data_val,initializations=1,
 #                           p_opts=None,s_opts=None,mode='static')
 
-model_q.Parameters = result_q.loc[0]['params_val']
+# result_q = ModelTraining(model_q,data_train,data_val,initializations=5,
+#                           p_opts=None,s_opts=None,mode='static')
+
+result_p = pkl.load(open('results_p_process.pkl','rb'))
+result_q = pkl.load(open('results_q.pkl','rb'))
+
+
+
+model_p.Parameters = result_p.loc[0]['params_val']
+model_q.Parameters = result_q.loc[5]['params_val']
 
 _,prediction_q = static_mode(model_q,data_val)
 _,prediction_p = static_mode(model_p,data_val)
+
+
+# print(BestFitRate(data_val[u_label_q].values, prediction_p[u_label_q].values))
+print(BestFitRate(data_val[y_label_q].values, prediction_q[y_label_q].values))
+
+
+
+fig, ax = plt.subplots(figsize=(20, 10))
+sns.stripplot(x=data_val.index,y=data_val['p_wkz_max'],color='grey',alpha=.8,
+              size=15,ax=ax)
+sns.stripplot(x=prediction_p.index,y=prediction_p['p_wkz_max'],size=15,ax=ax)
+ax.set_xlim([1,50]) 
 
 # fig, ax = plt.subplots(figsize=(20, 10))
 # sns.stripplot(x=data_val.index,y=data_val['Durchmesser_innen'],color='grey',alpha=.8,size=15,ax=ax)

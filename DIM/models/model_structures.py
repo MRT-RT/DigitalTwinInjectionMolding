@@ -58,31 +58,6 @@ class RNN():
         
         return None
                     
-                    
-    def SetParameters(self,params):
-        for p_name in self.Function.name_in()[2::]:
-            try:
-                self.Parameters[p_name] = params[p_name]
-            except:
-                pass           
-            
-    # def SetInitialParameters(self,initial_params):
-    #     for p_name in self.Function.name_in()[2::]:
-    #         try:
-    #             self.InitialParameters[p_name] = initial_params[p_name]
-    #         except:
-    #             pass
-            
-    # def SetFrozenParameters(self,frozen_params):
-    #     # print(frozen_params)
-    #     # print(self.Function.name_in()[2::])
-    #     print(self.FrozenParameters)
-    #     for p_name in self.Function.name_in()[2::]:
-    #         if p_name in frozen_params:
-    #             # print(p_name)
-    #             self.FrozenParameters.append(p_name)
-    #     print(self.FrozenParameters)
-
             
     def OneStepPrediction(self,x0,u0,params=None):
         '''
@@ -110,8 +85,7 @@ class RNN():
                               
                               
         return x1,y1       
-        
-        
+           
    
     def Simulation(self,x0,u,params=None,**kwargs):
         '''
@@ -146,7 +120,31 @@ class RNN():
 
         return x,y    
     
-    
+    def SetParameters(self,params):
+            
+        for p_name in self.Function.name_in()[2::]:
+            try:
+                self.Parameters[p_name] = params[p_name]
+            except:
+                pass      
+
+    # def SetInitialParameters(self,initial_params):
+    #     for p_name in self.Function.name_in()[2::]:
+    #         try:
+    #             self.InitialParameters[p_name] = initial_params[p_name]
+    #         except:
+    #             pass
+            
+    # def SetFrozenParameters(self,frozen_params):
+    #     # print(frozen_params)
+    #     # print(self.Function.name_in()[2::])
+    #     print(self.FrozenParameters)
+    #     for p_name in self.Function.name_in()[2::]:
+    #         if p_name in frozen_params:
+    #             # print(p_name)
+    #             self.FrozenParameters.append(p_name)
+    #     print(self.FrozenParameters)
+
     
 class State_MLP(RNN):
     """
@@ -509,8 +507,8 @@ class Static_MLP():
     Implementation of a single-layered Feedforward Neural Network.
     """
 
-    def __init__(self,dim_u,dim_out,dim_hidden,u_label,y_label,name,initial_params=None, 
-                 frozen_params = [], init_proc='random'):
+    def __init__(self,dim_u,dim_out,dim_hidden,u_label,y_label,name,
+                 initial_params=None, frozen_params = [], init_proc='random'):
         """
         Initialization procedure of the Feedforward Neural Network Architecture
         
@@ -632,7 +630,6 @@ class Static_MLP():
                               
         return y
    
-
     def ParameterInitialization(self):
         '''
         Routine for parameter initialization. Takes input_names from the Casadi-

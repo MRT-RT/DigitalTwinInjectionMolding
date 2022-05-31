@@ -52,6 +52,10 @@ def RK4(f_cont,input,dt):
 
 def BestFitRate(y_target,y_est):
     
+    y_target = y_target.astype(float)
+    y_est = y_est.astype(float)
+    
+    
     e_pred = np.linalg.norm(y_target-y_est,axis=1)
     e_mean = np.linalg.norm(y_target-np.mean(y_target),axis=1)
     
