@@ -243,6 +243,40 @@ class QualityModel():
         self.y_label = list(set(y_label))
             
         self.Initialize()
+
+    def Initialize(self):
+        """
+        Re-Initializes each of the subsystems according to its own 
+        initialization routine. Model structure parameters for re-initialization
+        are taken from the attributes of the QualityModel instance. This
+        routine is called during multi-start parameter optimization when random
+        initialization of the subsystems is necessary.
+        
+        Parameters
+        ----------
+    
+        Returns
+        ----
+        """
+       
+        # Update attributes of each subsystem
+        for subsystem in self.subsystems:
+            
+            setattr(subsystem, 'dim_u', 
+                    object.__getattribute__(self,'dim_u'+'_'+subsystem.name))
+            setattr(subsystem, 'dim_c', 
+                    object.__getattribute__(self,'dim_c'))
+            setattr(subsystem, 'dim_hidden', 
+                    object.__getattribute__(self,'dim_hidden'+'_'+subsystem.name))
+            setattr(subsystem, 'dim_out',
+                    object.__getattribute__(self,'dim_out'))
+            
+            # Call Initialize function of each subsystem
+            subsystem.Initialize()
+            
+        self.ParameterInitialization()
+        
+        return None
     
     def Simulation(self,c0,u,params=None,switching_instances=None):
         """
