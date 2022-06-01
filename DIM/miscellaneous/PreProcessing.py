@@ -636,7 +636,7 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,norm_cycle):
     
     return data_train,data_val
 
-def LoadFeatureData(path,charges, split, targets):
+def LoadFeatureData(path,charges, split):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
     split_charges_to_trainval_data(path,charges,split)    
@@ -748,10 +748,9 @@ def MinMaxScale(df,columns,*args):
         col_max = df[columns].max()
         
 
-    df[columns] = 2*(df[columns] - col_min) / \
-        (col_max - col_min) - 1 
+    df_norm = 2*(df[columns] - col_min) / (col_max - col_min) - 1 
         
         
-    return df,(col_min,col_max)
+    return df_norm,(col_min,col_max)
 
     
