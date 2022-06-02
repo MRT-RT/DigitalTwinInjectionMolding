@@ -27,19 +27,16 @@ from DIM.optim.param_optim import parallel_mode, series_parallel_mode
 from DIM.optim.param_optim import ParallelModelTraining
 
 
-
-
-
 def Fit_MLP(dim_c,dim_hidden,initial_params=None):
 
     charges = list(range(1,275))  
  
-    split = 'all'
+    split = 'process'
     mode = 'process'
     
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
     
     u_inj= ['v_inj_soll']
     u_press= ['p_inj_soll']
@@ -94,7 +91,7 @@ def Fit_MLP(dim_c,dim_hidden,initial_params=None):
         data_cool_val['init_state'][i] = np.vstack([data_cool_val['data']\
                      [i][y_lab].loc[t2].values.reshape((5,1)),np.zeros((2,1))])
        
-    s_opts = {"max_iter": 1, 'hessian_approximation':'limited-memory'}
+    s_opts = {"max_iter": 3000, 'hessian_approximation':'limited-memory'}
     
     inj_model = State_MLP(dim_u=1,dim_c=dim_c,dim_hidden=dim_hidden,dim_out=5,
                           u_label=u_inj,y_label=y_lab,name='inj')
@@ -113,13 +110,13 @@ def Fit_MLP(dim_c,dim_hidden,initial_params=None):
 
     ''' Parameter Estimation '''    
     results_inj = ParallelModelTraining(inj_model,data_inj_train,data_inj_val,
-                            initializations=1,BFR=False, p_opts=None, 
+                            initializations=10,BFR=False, p_opts=None, 
                             s_opts=s_opts,mode='parallel',n_pool=4)
     
 
       
     results_press = ParallelModelTraining(press_model,data_press_train,data_press_val,
-                            initializations=1,BFR=False, p_opts=None, 
+                            initializations=10,BFR=False, p_opts=None, 
                             s_opts=s_opts,mode='parallel',n_pool=2)    
 
     
