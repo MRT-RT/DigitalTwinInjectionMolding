@@ -47,7 +47,7 @@ def Fit_MLP(dim_hidden):
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
     data_val,_ = MinMaxScale(data_val,u_label+y_label,minmax)
     
-    model = Static_MLP(dim_u=4, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
+    model = Static_MLP(dim_u=8, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
                         y_label=y_label,name='MLP', init_proc='xavier')
     
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
