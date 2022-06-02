@@ -608,7 +608,7 @@ def parallel_mode(model,data,params=None):
         # Calculate simulation error            
         # Check for the case, where only last value is available
         
-        if np.all(np.isnan(y_ref[1:])):           # MUST BE UPDATED TO WORK WITH QUALITY DATA
+        if np.all(np.isnan(y_ref[1:])):
             
             y_ref = y_ref[[0]]
             y_est=y_est[-1,:]
