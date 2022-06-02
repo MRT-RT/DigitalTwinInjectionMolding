@@ -41,13 +41,13 @@ data_val,_ = MinMaxScale(data_val,u_label_p+y_label_p,minmax)
 model_p = Static_MLP(dim_u=8, dim_out=8, dim_hidden=40,u_label=u_label_p,
                     y_label=y_label_p,name='proc', init_proc='xavier')
 
-result_p = ModelTraining(model_p,data_train,data_val,initializations=5,
-                          p_opts=None,s_opts=None,mode='static')
+# result_p = ModelTraining(model_p,data_train,data_val,initializations=5,
+#                           p_opts=None,s_opts=None,mode='static')
 
-# result_p = pkl.load(open('results_p_process.pkl','rb'))
-pkl.dump(result_p,open('results_p_process_stationary.pkl','wb'))
+result_p = pkl.load(open('results_p_process_stationary_40dim.pkl','rb'))
+# pkl.dump(result_p,open('results_p_process_stationary.pkl','wb'))
 
-model_p.Parameters = result_p.loc[0]['params_val']
+model_p.Parameters = result_p.loc[4]['params_val']
 # model_q.Parameters = result_q.loc[0]['params_val']
 
 _,prediction_p = static_mode(model_p,data_val)

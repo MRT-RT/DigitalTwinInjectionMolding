@@ -22,7 +22,7 @@ path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/nor
 
 # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
 charges = list(range(1,275))
-split = 'process'
+split = 'all'
 
 
 u_label_q = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
@@ -36,14 +36,14 @@ data_train,data_val = LoadSetpointData(path,charges,split)
 data_train,minmax = MinMaxScale(data_train,u_label_q+y_label_q)
 data_val,_ = MinMaxScale(data_val,u_label_q+y_label_q,minmax)
 
-model_q = Static_MLP(dim_u=8, dim_out=1, dim_hidden=4,u_label=u_label_q,
+model_q = Static_MLP(dim_u=8, dim_out=1, dim_hidden=10,u_label=u_label_q,
                    y_label=y_label_q,name='qual', init_proc='xavier')
 
-# result_q = ModelTraining(model_q,data_train,data_val,initializations=5,p_opts=None,
-#                                 s_opts=None,mode='static')
+result_q = ModelTraining(model_q,data_train,data_val,initializations=5,p_opts=None,
+                                s_opts=None,mode='static')
 
 # pkl.dump(result_q,open('results_q_static_stationary.pkl','wb'))
-result_q = pkl.load(open('results_q_static_stationary.pkl','rb'))
+result_q = pkl.load(open('results_q_static_trans.pkl','rb'))
 
 
 model_q.Parameters = result_q.loc[0]['params_val']
