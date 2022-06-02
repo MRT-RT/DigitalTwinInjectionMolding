@@ -399,19 +399,25 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
         t1,t2,t3 = find_switches(cycle)
         
         # Reduce dataframe to desired variables and treat NaN
-        if len(u_lab)==1:
-            u_all_lab = u_lab[0]
+        u_all_lab = []
+        
+        for u in u_lab:
+            u_all_lab.extend(u)
+        u_all_lab = list(set(u_all_lab))
+  
+        # if len(u_lab)==1:
+        #     u_all_lab = u_lab[0]
             
-        elif len(u_lab)==3:
-            u_inj_lab = u_lab[0]
-            u_press_lab = u_lab[1]
-            u_cool_lab = u_lab[2]
+        # elif len(u_lab)==3:
+        #     u_inj_lab = u_lab[0]
+        #     u_press_lab = u_lab[1]
+        #     u_cool_lab = u_lab[2]
             
-            u_all_lab = u_inj_lab + list(set(u_press_lab) - set(u_inj_lab))
-            u_all_lab = u_all_lab + list(set(u_cool_lab) - set(u_all_lab))
-        else:
-            print('Either one or three subsystems are supported!')
-            return None
+        #     u_all_lab = u_inj_lab + list(set(u_press_lab) - set(u_inj_lab))
+        #     u_all_lab = u_all_lab + list(set(u_cool_lab) - set(u_all_lab))
+        # else:
+        #     print('Either one or three subsystems are supported!')
+        #     return None
             
         cycle = cycle[u_all_lab+y_lab]
         
@@ -423,16 +429,20 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
             # y.append(cycle.loc[0,y_lab].values)
             
             # Read desired data from dataframe
-            if len(u_lab)==1:
-                data.append(cycle)                
-                x_init.append(None)
-                switch.append([None])
+            data.append(cycle)     
+            x_init.append(None)
+            switch.append([t1,t2])
+            
+            # if len(u_lab)==1:
+            #     data.append(cycle)                
+            #     x_init.append(None)
+            #     switch.append([None])
                 
-            elif len(u_lab)==3:
+            # elif len(u_lab)==3:
                    
-                data.append(cycle)
-                x_init.append(None)
-                switch.append([t1,t2])
+            #     data.append(cycle)
+            #     x_init.append(None)
+            #     switch.append([t1,t2])
                 
         
         elif mode == 'process':
@@ -565,19 +575,19 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,norm_cycle):
                                           'rb')))
     
     # Select input and output for dynamic model
-    if len(u_lab)==3:
-        u_inj_lab = u_lab[0]
-        u_press_lab = u_lab[1]
-        u_cool_lab = u_lab[2]
+    # if len(u_lab)==3:
+    #     u_inj_lab = u_lab[0]
+    #     u_press_lab = u_lab[1]
+    #     u_cool_lab = u_lab[2]
         
-        u_lab_all = u_lab[0] + list(set(u_lab[1])-set(u_lab[0]))
-        u_lab_all = u_lab_all + list(set(u_lab[2])-set(u_lab_all))
+    #     u_lab_all = u_lab[0] + list(set(u_lab[1])-set(u_lab[0]))
+    #     u_lab_all = u_lab_all + list(set(u_lab[2])-set(u_lab_all))
         
-    elif len(u_lab)==1:
-        u_lab_all = u_lab[0]
-    else:
-        raise ValueError('''u_lab needs to be a list of either one or three 
-                         elements with input labels!''')
+    # elif len(u_lab)==1:
+    #     u_lab_all = u_lab[0]
+    # else:
+    #     raise ValueError('''u_lab needs to be a list of either one or three 
+    #                      elements with input labels!''')
 
     # Normalize with respect to normalization cycle
     # mean_y = cycles_train[0][y_lab].mean() #norm_cycle[y_lab].mean()                                       # This normalization was formerly used for quality models
@@ -599,7 +609,7 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,norm_cycle):
     # min_u[max_u-min_u==0]=0                                                     # if signal is constant, set minimum to 0 to avoid division by zero    
     # min_y[max_y-min_y==0]=0
     
-    # print('p_inj_soll at switch point is set to 700 manually!')
+    # # print('p_inj_soll at switch point is set to 700 manually!')
     
     # for cycle in cycles_train+cycles_val:
         
