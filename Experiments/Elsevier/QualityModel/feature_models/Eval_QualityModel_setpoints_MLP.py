@@ -14,7 +14,7 @@ sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
 # print(two_up)
 
-from DIM.miscellaneous.PreProcessing import LoadSetpointData, MinMaxScale
+from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.optim.common import BestFitRate
 from DIM.models.model_structures import Static_MLP
 from DIM.optim.param_optim import ParallelModelTraining, static_mode
@@ -28,23 +28,23 @@ import pandas as pd
 
 def Eval_MLP(dim_hidden):
     
-    res = pkl.load(open('QualityModel_Gewicht_static_MLP_'+str(dim_hidden)+'.pkl','rb'))
+    res = pkl.load(open('QualityModel_Gewicht_feature_MLP_'+str(dim_hidden)+'.pkl','rb'))
     params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     
     charges = list(range(1,26)) # list(range(1,26))
     
     split = 'all'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    data_train,data_val = LoadSetpointData(path,charges,split)
+    data_train,data_val = LoadFeatureData(path,charges,split)
     
-    u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
-               'Einspritzgeschwindigkeit','Umschaltpunkt']
+    u_label = ['T_wkz_0', 'T_wkz_max', 't_Twkz_max', 'T_wkz_int', 'p_wkz_max',
+    'p_wkz_int', 'p_wkz_res', 't_pwkz_max']
     
     y_label = ['Gewicht']   
     
@@ -52,7 +52,7 @@ def Eval_MLP(dim_hidden):
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
     data_val,_ = MinMaxScale(data_val,u_label+y_label,minmax)
     
-    model = Static_MLP(dim_u=4, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
+    model = Static_MLP(dim_u=8, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
                         y_label=y_label,name='MLP', init_proc='xavier')
     
 
@@ -80,14 +80,12 @@ def Eval_MLP(dim_hidden):
 
     return results_train,results_val
 
-
+for i in range(1,11):
     
-
+    results_train,results_val = Eval_MLP(dim_hidden=i)
     
-results_train,results_val = Eval_MLP(dim_hidden=10)
-
-print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-            results_val['y_est'].values.reshape((-1,1))))
+    print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+                results_val['y_est'].values.reshape((-1,1))))
 
 
 
