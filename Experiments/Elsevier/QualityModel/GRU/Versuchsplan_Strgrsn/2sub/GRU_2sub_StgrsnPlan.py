@@ -68,18 +68,18 @@ def Fit_GRU(dim_c,initial_params=None):
     quality_model = QualityModel(subsystems=[inj_model,press_model],
                                   name='q_model')
     
-    s_opts = None #{"max_iter": 2000, 'hessian_approximation':'limited-memory'}
+    s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
 
     
-    # results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
-    #                         initializations=10, BFR=False, p_opts=None, 
-    #                         s_opts=s_opts,mode='parallel',n_pool=2)
-
-    results_GRU = ModelTraining(quality_model,data_train,data_val,
+    results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
                             initializations=10, BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel')
+                            s_opts=s_opts,mode='parallel',n_pool=2)
+
+    # results_GRU = ModelTraining(quality_model,data_train,data_val,
+    #                         initializations=10, BFR=False, p_opts=None, 
+    #                         s_opts=s_opts,mode='parallel')
         
-    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_2sub_Stoergrsn_Gewicht.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_2sub_Stoergrsn_Gewicht_Happrox.pkl','wb'))
   
     return results_GRU  
 
