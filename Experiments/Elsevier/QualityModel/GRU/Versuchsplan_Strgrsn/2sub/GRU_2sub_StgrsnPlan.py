@@ -31,8 +31,8 @@ def Fit_GRU(dim_c,initial_params=None):
     split = 'all'
     mode='quality'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']

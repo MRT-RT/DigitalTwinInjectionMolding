@@ -618,6 +618,9 @@ def parallel_mode(model,data,params=None):
             idx = [i]
     
         else :
+            
+            y_ref = y_ref[1:,:]                                                 # first observation cannot be predicted
+            
             e = y_ref - y_est
             loss = loss + cs.sumsqr(e)
             
