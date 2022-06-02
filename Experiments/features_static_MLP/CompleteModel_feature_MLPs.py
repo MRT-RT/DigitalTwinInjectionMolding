@@ -43,7 +43,7 @@ data_train,minmax = MinMaxScale(data_train,u_label_q+u_label_p+y_label_q)
 data_val,_ = MinMaxScale(data_val,u_label_q+u_label_p+y_label_q,minmax)
 
 
-model_p = Static_MLP(dim_u=8, dim_out=8, dim_hidden=10,u_label=u_label_p,
+model_p = Static_MLP(dim_u=8, dim_out=8, dim_hidden=40,u_label=u_label_p,
                     y_label=u_label_q,name='proc', init_proc='xavier')
 
 model_q = Static_MLP(dim_u=8, dim_out=1, dim_hidden=4,u_label=u_label_q,
@@ -56,8 +56,8 @@ model_q = Static_MLP(dim_u=8, dim_out=1, dim_hidden=4,u_label=u_label_q,
 # result_q = ModelTraining(model_q,data_train,data_val,initializations=5,
 #                           p_opts=None,s_opts=None,mode='static')
 
-result_p = pkl.load(open('results_p_process.pkl','rb'))
-result_q = pkl.load(open('results_q_feature.pkl','rb'))
+result_p = pkl.load(open('results_p_process_stationary_40dim.pkl','rb'))
+result_q = pkl.load(open('results_q_feature_stationary.pkl','rb'))
 
 model_p.Parameters = result_p.loc[0]['params_val']
 model_q.Parameters = result_q.loc[0]['params_val']
