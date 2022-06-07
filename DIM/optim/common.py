@@ -52,6 +52,15 @@ def RK4(f_cont,input,dt):
 
 def BestFitRate(y_target,y_est):
     
+    if len(y_target)==len(y_est):
+        N = len(y_target)
+    else:
+        print("Dimensions don't match!")
+        return None
+    
+    y_target = np.array(y_target).reshape((N,-1))
+    y_est = np.array(y_est).reshape((N,-1))
+    
     y_target = y_target.astype(float)
     y_est = y_est.astype(float)
     

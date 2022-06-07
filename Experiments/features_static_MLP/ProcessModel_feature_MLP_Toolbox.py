@@ -19,11 +19,11 @@ from DIM.optim.common import BestFitRate
 
 
 
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+# path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
 
-# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
 charges = list(range(1,275))
-split = 'process'
+split = 'all'
 
 u_label_p = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
   'Umschaltpunkt', 'Nachdruckhöhe', 'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
