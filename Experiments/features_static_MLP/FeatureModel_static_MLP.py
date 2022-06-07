@@ -19,9 +19,10 @@ from DIM.optim.common import BestFitRate
 
 
 
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+# path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
 
-# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+
 charges = list(range(1,275))
 split = 'all'
 
@@ -54,11 +55,11 @@ model_q = Static_MLP(dim_u=8, dim_out=1, dim_hidden=4,u_label=u_label_q,
 # result_p = ModelTraining(model_p,data_train,data_val,initializations=5,
 #                           p_opts=None,s_opts=None,mode='static')
 
-result_q = ModelTraining(model_q,data_train,data_val,initializations=5,
-                          p_opts=None,s_opts=None,mode='static')
+# result_q = ModelTraining(model_q,data_train,data_val,initializations=5,
+#                           p_opts=None,s_opts=None,mode='static')
 
 # result_p = pkl.load(open('results_p_process.pkl','rb'))
-# result_q = pkl.load(open('results_q.pkl','rb'))
+result_q = pkl.load(open('results_q.pkl','rb'))
 
 
 # model_p.Parameters = result_p.loc[0]['params_val']

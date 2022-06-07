@@ -557,7 +557,7 @@ def split_charges_to_trainval_data(path,charges,split):
     return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
 
     
-def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,norm_cycle):
+def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
     split_charges_to_trainval_data(path,charges,split)
