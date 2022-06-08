@@ -42,8 +42,8 @@ def Eval_MLP(dim_hidden):
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
-    path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
-    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
+    path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
     # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
@@ -65,7 +65,7 @@ def Eval_MLP(dim_hidden):
     
     # Normalize Data
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
-    data_st,_ = MinMaxScale(data_st,u_label+y_label,minmax)
+    data_st,_ = MinMaxScale(data_st,u_label+y_label,*minmax)
     
     model = Static_MLP(dim_u=4, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
                         y_label=y_label,name='MLP', init_proc='xavier')
