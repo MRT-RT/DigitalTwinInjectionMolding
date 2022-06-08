@@ -26,7 +26,7 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 def Eval_GRU_on_Val(dim_c):
 
     # Load best model
-    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn_Gewicht.pkl','rb'))
+    res = pkl.load(open('GRU_c'+str(dim_c)+'_2sub_Stoergrsn_Gewicht_Happrox.pkl','rb'))
        
     params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     # params = res.loc[10]['params_val']
@@ -37,14 +37,14 @@ def Eval_GRU_on_Val(dim_c):
     split = 'all'
     # split = 'part'
     
-    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
-    path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
-    # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
-    path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
     # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     
@@ -75,13 +75,11 @@ def Eval_GRU_on_Val(dim_c):
     inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,
                     u_label=u_inj,y_label=y_lab,dim_out=1,name='inj')
     
-    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,
+    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,
                       u_label=u_press,y_label=y_lab,dim_out=1,name='press')
     
-    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,
-                     u_label=u_cool,y_label=y_lab,dim_out=1,name='cool')
       
-    quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
+    quality_model = QualityModel(subsystems=[inj_model,press_model],
                                   name='q_model')    
     
     # Assign best parameters to model
