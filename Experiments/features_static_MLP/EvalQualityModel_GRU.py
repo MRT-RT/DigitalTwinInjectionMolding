@@ -11,6 +11,7 @@ import pandas as pd
 import seaborn as sns
 import time
 
+import os
 import sys
 sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
@@ -21,6 +22,11 @@ from DIM.models.injection_molding import QualityModel
 from DIM.optim.common import BestFitRate
 from DIM.optim.param_optim import parallel_mode
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadDynamicData
+
+
+print(os.path.abspath(os.getcwd()))
+
+test = os.path.split(os.path.abspath(os.getcwd()))
 
 
 def Eval_GRU_on_Val(dim_c):
@@ -105,11 +111,11 @@ def Eval_GRU_on_Val(dim_c):
     return results_train,results_val
 
 
-results_train,results_val = Eval_GRU_on_Val(dim_c=9)
+# results_train,results_val = Eval_GRU_on_Val(dim_c=9)
 
 
-print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-            results_val['y_est'].values.reshape((-1,1))))
+# print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+#             results_val['y_est'].values.reshape((-1,1))))
 
 # pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
 # pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 
