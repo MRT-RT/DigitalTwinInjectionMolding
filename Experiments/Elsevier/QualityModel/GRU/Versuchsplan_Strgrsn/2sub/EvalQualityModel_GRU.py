@@ -26,7 +26,7 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 def Eval_GRU_on_Val(dim_c):
 
     # Load best model
-    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn_Gewicht.pkl','rb'))
+    res = pkl.load(open('GRU_c'+str(dim_c)+'_2sub_Stoergrsn_Gewicht_Happrox.pkl','rb'))
     
     params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     # params = res.loc[10]['params_val']
@@ -36,8 +36,8 @@ def Eval_GRU_on_Val(dim_c):
     mode='quality'
     split = 'all'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
         
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
@@ -63,13 +63,10 @@ def Eval_GRU_on_Val(dim_c):
     inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,
                     u_label=u_inj,y_label=y_lab,dim_out=1,name='inj')
     
-    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,
+    press_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,
                       u_label=u_press,y_label=y_lab,dim_out=1,name='press')
-    
-    cool_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=10,
-                     u_label=u_cool,y_label=y_lab,dim_out=1,name='cool')
       
-    quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
+    quality_model = QualityModel(subsystems=[inj_model,press_model],
                                   name='q_model')    
     
     # Assign best parameters to model
@@ -99,9 +96,9 @@ def Eval_GRU_on_Val(dim_c):
 
     return results_train,results_val
 
+for i in range(1,11):
 
-results_train,results_val = Eval_GRU_on_Val(dim_c=10)
-
-
-print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-                  results_val['y_est'].values.reshape((-1,1))))
+    results_train,results_st = Eval_GRU_on_Val(dim_c=i)
+    
+    print(BestFitRate(results_st['y_true'].values.reshape((-1,1)),
+                results_st['y_est'].values.reshape((-1,1))))

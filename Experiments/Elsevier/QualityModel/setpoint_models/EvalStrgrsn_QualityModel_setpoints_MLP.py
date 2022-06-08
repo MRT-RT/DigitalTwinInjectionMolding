@@ -24,6 +24,7 @@ import multiprocessing
 import pickle as pkl
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def Eval_MLP(dim_hidden):
@@ -35,13 +36,27 @@ def Eval_MLP(dim_hidden):
     
     split = 'all'
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+    
+    path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    
+    path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
+    
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    data_train,data_val = LoadSetpointData(path,charges,split)
+    
+    
+    data_train,_ = LoadSetpointData(path_sys+path_data_train,charges,split)
+    data_st1,data_st2 = LoadSetpointData(path_sys+path_data_strgrsn,[1],split)
+    
+    data_st = pd.concat([data_st1,data_st2])
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
                'Einspritzgeschwindigkeit','Umschaltpunkt']
@@ -50,7 +65,7 @@ def Eval_MLP(dim_hidden):
     
     # Normalize Data
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
-    data_val,_ = MinMaxScale(data_val,u_label+y_label,minmax)
+    data_st,_ = MinMaxScale(data_st,u_label+y_label,minmax)
     
     model = Static_MLP(dim_u=4, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
                         y_label=y_label,name='MLP', init_proc='xavier')
@@ -69,21 +84,25 @@ def Eval_MLP(dim_hidden):
                               index = data_train.index)
     
     # Evaluate model on validation data
-    _,y_val = static_mode(model,data_val)
+    _,y_val = static_mode(model,data_st)
         
-    y_true = data_val[y_label].values.reshape((-1,1))
+    y_true = data_st[y_label].values.reshape((-1,1))
     e_val = y_true-y_val
     
     results_val = pd.DataFrame(data=np.hstack([y_true,y_val,e_val]),
                             columns=['y_true','y_est','e'],
-                            index = data_val.index)
+                            index = data_st.index)
 
     return results_train,results_val
-
 
 for i in range(1,11):
     
     results_train,results_val = Eval_MLP(dim_hidden=i)
+    
+    # plt.figure()
+    # plt.plot(results_val['y_true'],'o')
+    # plt.plot(results_val['y_est'],'o')
+    # plt.title('MLP ' + str(i))
     
     print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
                 results_val['y_est'].values.reshape((-1,1))))

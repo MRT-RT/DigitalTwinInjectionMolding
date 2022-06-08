@@ -36,14 +36,14 @@ def Eval_MLP(dim_hidden):
     
     split = 'all'
     
-    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
-    path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
-    # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
-    path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
     # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
