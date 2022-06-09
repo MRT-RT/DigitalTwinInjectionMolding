@@ -36,18 +36,18 @@ target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroe
 filenames = ['Versuchsplan_orig_Strgn.h5']
 
 
-for filename in filenames:
-    # Read h5 file
-    file = h5py.File(path+filename,'r+')
+# for filename in filenames:
+#     # Read h5 file
+#     file = h5py.File(path+filename,'r+')
     
-    #convert and save as pd dataframe
-    hdf5_to_pd_dataframe_high_freq(file,target_path)
+#     #convert and save as pd dataframe
+#     hdf5_to_pd_dataframe_high_freq(file,target_path)
     
-cycle_files = os.listdir(target_path)
+# cycle_files = os.listdir(target_path)
 
-for cycle in cycle_files:
+# for cycle in cycle_files:
     
-    df = add_csv_to_pd_dataframe(target_path+cycle,path+csv_filename)
+#     df = add_csv_to_pd_dataframe(target_path+cycle,path+csv_filename)
 
 # for i in range(1,251):
 #     c = pkl.load(open('cycle'+str(i)+'.pkl','rb'))
