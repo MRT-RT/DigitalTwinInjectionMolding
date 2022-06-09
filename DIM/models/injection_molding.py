@@ -138,8 +138,9 @@ class ProcessModel():
                 # u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]])
             u = u_switched
         
-        # Create empty arrays for output x 
-        x = []
+        # Create empty arrays for output y and hidden state c
+        y = []
+        x = []   
         
         # System Dynamics as Path Constraints
         for system,u_sys in zip(self.subsystems,u):
@@ -147,25 +148,20 @@ class ProcessModel():
             # Do a one step prediction based on the model
             sim = system.Simulation(x0,u_sys,params)
             
-            # Last hidden state is inital state for next model
-            x0 = sim[-1,:].T
-            
-            x.append(sim[1:,:])
-            
             # OneStepPrediction can return a tuple, i.e. state and output. The 
             # output is per convention the second entry
-            # if isinstance(sim,tuple):
-            #     c.append(sim[0])
-            #     y.append(sim[1])        
+            if isinstance(sim,tuple):
+                x.append(sim[0])
+                y.append(sim[1])    
+                
+                # Last hidden state is inital state for next model
+                x0 = sim[0][-1,:].T
 
-        # inj_params = cs.vcat([params[p].reshape((-1,1)) for p in self.subsystems[0].Parameters.keys()])
-        # grad = cs.gradient(sim[0][-1],inj_params)
-        # fun = cs.Function('fun',list(params.values()),[sim[0][-1],grad],list(params.keys()),[])
-        # fun(**self.Parameters)
-        # Concatenate list to casadiMX
-        x = cs.vcat(x)  
+        y = cs.vcat(y)  
+        x = cs.vcat(x)          
             
-        return x  
+        return x,y  
+
     
     def ParameterInitialization(self):
         
@@ -319,28 +315,11 @@ class QualityModel():
                 # u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]])
             u = u_switched
         
-        # Initial hidden state
-        # X.append(np.zeros((c_dims[0],1)))
-        
-        # Intervalls to divide input according to switching instances
-
-        # add zero and len(u) as indices
-        # ind = [0] + self.switching_instances + [u.shape[0]]  
-          
-                  
-        # intervals = [[ind[k],ind[k+1]] for k in range(0,len(ind)-1)]
-        
-        # c0 = np.zeros((self.dim_c,1))
-        
         
         # Create empty arrays for output y and hidden state c
         y = []
         c = []   
         
-        # 
-        # c.append(c0.T)
-        # y.append()
-
         # System Dynamics as Path Constraints
         for system,u_sys in zip(self.subsystems,u):
             
@@ -356,11 +335,6 @@ class QualityModel():
                 c.append(sim[0])
                 y.append(sim[1])        
 
-        # inj_params = cs.vcat([params[p].reshape((-1,1)) for p in self.subsystems[0].Parameters.keys()])
-        # grad = cs.gradient(sim[0][-1],inj_params)
-        # fun = cs.Function('fun',list(params.values()),[sim[0][-1],grad],list(params.keys()),[])
-        # fun(**self.Parameters)
-        # Concatenate list to casadiMX
         y = cs.vcat(y)  
         c = cs.vcat(c)          
             

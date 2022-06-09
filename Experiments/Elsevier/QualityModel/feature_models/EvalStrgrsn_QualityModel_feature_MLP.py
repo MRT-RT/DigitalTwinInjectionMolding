@@ -36,15 +36,15 @@ def Eval_MLP(dim_hidden):
     
     split = 'all'
     
-    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
-    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
     # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
-    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
-    path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
+    path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
@@ -99,10 +99,10 @@ for i in range(1,11):
     
     results_train,results_val = Eval_MLP(dim_hidden=i)
     
-    plt.figure()
-    plt.plot(results_val['y_true'],'o')
-    plt.plot(results_val['y_est'],'o')
-    plt.title('MLP ' + str(i))
+    # plt.figure()
+    # plt.plot(results_val['y_true'],'o')
+    # plt.plot(results_val['y_est'],'o')
+    # plt.title('MLP ' + str(i))
     
     print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
                 results_val['y_est'].values.reshape((-1,1))))
