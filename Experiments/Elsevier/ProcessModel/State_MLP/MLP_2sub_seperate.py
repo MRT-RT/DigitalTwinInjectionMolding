@@ -34,11 +34,11 @@ def Fit_MLP(dim_c,dim_hidden,initial_params=None):
     split = 'all'
     mode = 'process'
     
-    path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding'
+    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding'
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding'
+    
     path_data = '/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+
     
     u_inj= ['v_inj_soll']
     u_press= ['p_inj_soll']
@@ -112,19 +112,19 @@ def Fit_MLP(dim_c,dim_hidden,initial_params=None):
     press_model.FrozenParameters = ['C_press'] 
 
     ''' Parameter Estimation '''    
-    # results_inj = ModelTraining(inj_model,data_inj_train,data_inj_val,
-    #                         initializations=10,BFR=False, p_opts=None, 
-    #                         s_opts=s_opts,mode='parallel')
+    results_inj = ParallelModelTraining(inj_model,data_inj_train,data_inj_val,
+                            initializations=20,BFR=False, p_opts=None, 
+                            s_opts=s_opts,mode='parallel',n_pool=10)
     
 
       
     results_press = ParallelModelTraining(press_model,data_press_train,data_press_val,
-                            initializations=10,BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel',n_pool=2)    
+                            initializations=20,BFR=False, p_opts=None, 
+                            s_opts=s_opts,mode='parallel',n_pool=10)    
 
     
-    pkl.dump(results_inj,open('stationary/MLP_inj_sim_c'+str(dim_hidden)+'_h'+str(dim_hidden)+'.pkl','wb'))
-    pkl.dump(results_press,open('stationary/MLP_press_sim_c'+str(dim_hidden)+'_h'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(results_inj,open('seperate/MLP_inj_sim_c'+str(dim_hidden)+'_h'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(results_press,open('seperate/MLP_press_sim_c'+str(dim_hidden)+'_h'+str(dim_hidden)+'.pkl','wb'))
 
     return results_inj, results_press
 
@@ -132,12 +132,13 @@ def Fit_MLP(dim_c,dim_hidden,initial_params=None):
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()
+    
     inj_c7h5, press_c7h5 = Fit_MLP(dim_c=7,dim_hidden=5)
     inj_c7h10, press_c7h10 = Fit_MLP(dim_c=7,dim_hidden=10)
     inj_c7h20, press_c7h20 = Fit_MLP(dim_c=7,dim_hidden=20)
+    inj_c7h40, press_c7h40 = Fit_MLP(dim_c=7,dim_hidden=40)
+    
     inj_c8h5, press_c8h5 = Fit_MLP(dim_c=8,dim_hidden=5)
     inj_c8h10, press_c8h10 = Fit_MLP(dim_c=8,dim_hidden=10)
     inj_c8h20, press_c8h20 = Fit_MLP(dim_c=8,dim_hidden=20)
-    # inj_c7h80, press_c7h80 = Fit_MLP(dim_c=7,dim_hidden=80)
-    # inj_c7h100, press_c7h100 = Fit_MLP(dim_c=7,dim_hidden=100)
-    
+    inj_c8h40, press_c8h40 = Fit_MLP(dim_c=8,dim_hidden=40)
