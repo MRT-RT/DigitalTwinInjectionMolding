@@ -34,11 +34,11 @@ def Fit_MLP(dim_c,dim_hidden,initial_params=None):
     split = 'all'
     mode = 'process'
     
-    path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding'
+    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding'
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding'
+    
     path_data = '/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+    
     
     u_inj= ['v_inj_soll']
     u_press= ['p_inj_soll']
@@ -82,12 +82,12 @@ def Fit_MLP(dim_c,dim_hidden,initial_params=None):
     model_p = ProcessModel([inj_model, press_model], 'proc')
     
     ''' Parameter Estimation '''    
-    results = ModelTraining(model_p,data_train,data_val,
-                            initializations=10,BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel')
+    results = ParallelModelTraining(model_p,data_train,data_val,
+                            initializations=20,BFR=False, p_opts=None, 
+                            s_opts=s_opts,mode='parallel',n_pool=10)
     
 
-    pkl.dump(results,open('MLP_joint_sim_c'+str(dim_hidden)+'_h'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(results,open('joint/MLP_joint_sim_c'+str(dim_hidden)+'_h'+str(dim_hidden)+'.pkl','wb'))
 
     return results
 
@@ -98,9 +98,12 @@ if __name__ == '__main__':
     c7h5 = Fit_MLP(dim_c=7,dim_hidden=5)
     c7h10 = Fit_MLP(dim_c=7,dim_hidden=10)
     c7h20 = Fit_MLP(dim_c=7,dim_hidden=20)
+    c7h40 = Fit_MLP(dim_c=7,dim_hidden=40)
+    
     c8h5 = Fit_MLP(dim_c=8,dim_hidden=5)
     c8h10 = Fit_MLP(dim_c=8,dim_hidden=10)
     c8h20 = Fit_MLP(dim_c=8,dim_hidden=20)
+    c8h40 = Fit_MLP(dim_c=8,dim_hidden=40)
     # inj_c7h80, press_c7h80 = Fit_MLP(dim_c=7,dim_hidden=80)
     # inj_c7h100, press_c7h100 = Fit_MLP(dim_c=7,dim_hidden=100)
     
