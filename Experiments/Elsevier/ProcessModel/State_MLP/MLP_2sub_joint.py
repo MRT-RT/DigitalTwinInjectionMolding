@@ -87,7 +87,7 @@ def Fit_MLP(dim_c,dim_hidden,initial_params=None):
                             s_opts=s_opts,mode='parallel',n_pool=10)
     
 
-    pkl.dump(results,open('joint/MLP_joint_sim_c'+str(dim_hidden)+'_h'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(results,open('joint/MLP_joint_sim_c'+str(dim_c)+'_h'+str(dim_hidden)+'.pkl','wb'))
 
     return results
 
