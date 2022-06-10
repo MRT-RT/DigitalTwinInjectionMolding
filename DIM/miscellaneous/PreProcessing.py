@@ -666,7 +666,7 @@ def LoadFeatureData(path,charges, split):
     
     features=['T_wkz_0','T_wkz_max','t_Twkz_max','T_wkz_int','p_wkz_max',
               'p_wkz_int', 'p_wkz_res','t_pwkz_max','p_inj_int', 'p_inj_max',
-              't_inj','x_inj','x_um','v_mean']
+              't_inj','x_inj','x_um','v_mean','p_wkz_0','p_inj_0','x_0']
     
     # features.extend(targets)
     
@@ -706,9 +706,13 @@ def LoadFeatureData(path,charges, split):
             x_um =  cycle.loc[t1]['V_Screw_ist']                                    # switch position
             v_mean = cycle.loc[0:t1]['Q_Vol_ist'].mean()                            # mean injection velocity
             
+            p_wkz_0 = cycle.loc[0]['p_wkz_ist']
+            p_inj_0 = cycle.loc[0]['p_inj_ist']
+            x_0 = cycle.loc[0]['V_Screw_ist']
+            
             f = [T_wkz_0,T_wkz_max,t_Twkz_max,T_wkz_int,p_wkz_max,
                  p_wkz_int, p_wkz_res,t_pwkz_max,p_inj_int, p_inj_max, t_inj,
-                 x_inj,x_um,v_mean]
+                 x_inj,x_um,v_mean,p_wkz_0,p_inj_0,x_0]
             
             # y = list(cycle.loc[0][targets].values)
             
