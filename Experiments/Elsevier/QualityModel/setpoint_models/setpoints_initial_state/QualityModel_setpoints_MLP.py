@@ -16,7 +16,7 @@ sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding
 
 from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.models.model_structures import Static_MLP
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ParallelModelTraining
 
 import multiprocessing
 
@@ -26,7 +26,7 @@ import pickle as pkl
 def Fit_MLP(dim_hidden):
     
     print(dim_hidden)
-    charges = list(range(1,26)) # list(range(1,26))
+    charges = list(range(1,26))
     
     split = 'all'
     
@@ -53,7 +53,7 @@ def Fit_MLP(dim_hidden):
     
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
     
-    result = ModelTraining(model,data_train,data_val,initializations=10,
+    result = ParallelModelTraining(model,data_train,data_val,initializations=10,
                            p_opts=None,s_opts=s_opts,mode='static')
 
     result['dim_hidden'] = dim_hidden
