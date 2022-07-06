@@ -14,7 +14,7 @@ sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
 # print(two_up)
 
-from DIM.miscellaneous.PreProcessing import LoadSetpointData, MinMaxScale
+from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.optim.common import BestFitRate
 from DIM.models.model_structures import Static_MLP
 from DIM.optim.param_optim import ParallelModelTraining, static_mode
@@ -35,16 +35,17 @@ def Eval_MLP(dim_hidden):
     
     split = 'all'
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    data_train,data_val = LoadSetpointData(path,charges,split)
+    data_train,data_val = LoadFeatureData(path,charges,split)
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
-               'Einspritzgeschwindigkeit','Umschaltpunkt']
+               'Einspritzgeschwindigkeit','Umschaltpunkt',
+               'T_wkz_0','p_inj_0','x_0']
     
     y_label = ['Gewicht']   
     
@@ -52,7 +53,7 @@ def Eval_MLP(dim_hidden):
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
     data_val,_ = MinMaxScale(data_val,u_label+y_label,minmax)
     
-    model = Static_MLP(dim_u=4, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
+    model = Static_MLP(dim_u=7, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
                         y_label=y_label,name='MLP', init_proc='xavier')
     
 
