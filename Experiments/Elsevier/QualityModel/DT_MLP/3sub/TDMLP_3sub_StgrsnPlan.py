@@ -52,13 +52,13 @@ def Fit_TDMLP(order,dim_h,initial_params=None):
     data_val['init_state'] = c0_val
     
     
-    inj_model = TimeDelay_MLP(dim_u=2,dim_hidden=5,dim_out=1,dim_c=order,
+    inj_model = TimeDelay_MLP(dim_u=2,dim_hidden=dim_h,dim_out=1,dim_c=order,
                     u_label=u_inj,y_label=y_lab,name='inj')
     
-    press_model = TimeDelay_MLP(dim_u=2,dim_hidden=5,dim_out=1,dim_c=order,
+    press_model = TimeDelay_MLP(dim_u=2,dim_hidden=dim_h,dim_out=1,dim_c=order,
                     u_label=u_inj,y_label=y_lab,name='press')
     
-    cool_model = TimeDelay_MLP(dim_u=2,dim_hidden=5,dim_out=1,dim_c=order,
+    cool_model = TimeDelay_MLP(dim_u=2,dim_hidden=dim_h,dim_out=1,dim_c=order,
                     u_label=u_inj,y_label=y_lab,name='cool')
        
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
