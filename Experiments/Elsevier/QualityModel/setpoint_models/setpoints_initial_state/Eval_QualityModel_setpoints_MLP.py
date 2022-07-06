@@ -82,7 +82,7 @@ def Eval_MLP(dim_hidden):
     return results_train,results_val
 
 
-for i in range(1,11):
+for i in list(range(1,11))+[20,40]:
     
     results_train,results_val = Eval_MLP(dim_hidden=i)
     
