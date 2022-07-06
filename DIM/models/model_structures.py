@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from DIM.optim.common import RK4
 from scipy.stats import ortho_group
-from .initializations import XavierInitialization, RandomInitialization, HeInitialization
+from DIM.models.initializations import XavierInitialization, RandomInitialization, HeInitialization
 
 # from miscellaneous import *
 
@@ -241,9 +241,142 @@ class State_MLP(RNN):
         self.ParameterInitialization()
         
         return None
-   
+
     
+
+class TimeDelay_MLP(RNN):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_hidden,dim_out,dim_c,u_label,y_label,name,initial_params=None, 
+                 frozen_params = [], init_proc='xavier'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        u_label : 
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_hidden = dim_hidden
+        self.dim_out = dim_out
+        
+        self.dim_c = dim_c
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.InitialParameters = initial_params
+        self.FrozenParameters = frozen_params
+        self.InitializationProcedure = init_proc
+        
+        self.dynamics = 'external'
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        
+        dim_u = self.dim_u
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out
+        dim_c = self.dim_c
+        name = self.name      
     
+        u = cs.MX.sym('u',dim_u*dim_c,1)
+        c = cs.MX.sym('c',dim_out*dim_c,1)        
+        
+        # Parameters
+        # State equation parameters
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,(dim_u+dim_out)*dim_c)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)
+        
+        W_o = cs.MX.sym('W_o_'+name,dim_out,dim_hidden)
+        b_o = cs.MX.sym('b_o_'+name,dim_out,1)
+
+
+
+
+        # Model Equations
+        h =  cs.tanh(cs.mtimes(W_h,cs.vertcat(u,c))+b_h)    
+        y_new = cs.mtimes(W_o,h)+b_o  
+        
+        c_new = cs.vertcat(c,y_new)[dim_out::,:] 
+        
+        input = [c,u,W_h,b_h,W_o,b_o]
+        input_names = ['c','u','W_h_'+name,'b_h_'+name,'W_o_'+name,'b_o_'+name]
+        
+        output = [c_new,y_new]
+        output_names = ['c_new','y_new']
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None    
+
+    def Simulation(self,x0,u,params=None,**kwargs):
+        '''
+        A iterative application of the OneStepPrediction in order to perform a
+        simulation for a whole input trajectory
+        x0: Casadi MX, inital state a begin of simulation
+        u: Casadi MX,  input trajectory
+        params: A dictionary of opti variables, if the parameters of the model
+                should be optimized, if None, then the current parameters of
+                the model are used
+        '''
+        if params==None:
+            params = self.Parameters
+        
+        params_new = []
+            
+        for name in self.Function.name_in()[2::]:
+ 
+            try:
+                params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
+            except:
+                params_new.append(self.Parameters[name])
+        
+        u = u[self.u_label].values
+        
+        # Rearrange input time series into time delayed input vectors
+        u_delay = [u[i:i+self.dim_c,:].reshape((1,-1)) for i in range(u.shape[0]-self.dim_c+1)] 
+        u_delay = np.vstack(u_delay)
+        
+        
+        F_sim = self.Function.mapaccum(u_delay.shape[0])
+        # print(params_new)
+        x,y = F_sim(x0,u_delay.T,*params_new)
+        
+        x = x.T
+        y = y.T
+
+        return x,y 
 
 class LinearSSM(RNN):
     """

@@ -36,8 +36,8 @@ def Eval_GRU_on_Val(dim_c):
     mode='quality'
     split = 'all'
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
         
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
@@ -51,7 +51,7 @@ def Eval_GRU_on_Val(dim_c):
     y_lab = ['Gewicht']
     
     data_train,data_val = \
-    LoadDynamicData(path,charges,split,y_lab,u_lab,mode,None)
+    LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))] 
