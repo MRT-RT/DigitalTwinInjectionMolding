@@ -305,23 +305,26 @@ class QualityModel():
             switching_instances = [u.index.get_loc(s) for s in self.switching_instances]
             
             switching_instances = [0] + switching_instances + [len(u)]
-            # switching_instances = [0] + switching_instances + [u.index[-1]]
+            
+            lower_b = switching_instances[0:-1]
+            upper_b = switching_instances[1::]
+            
             u_switched = []
             
-            for s in range(len(switching_instances)-1):
-                
-                u_switched.append(u.iloc[switching_instances[s]:switching_instances[s+1]])
-                # u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]].values)
-                # u_switched.append(u.loc[switching_instances[s]:switching_instances[s+1]])
-            u = u_switched
-        
+            # if the model has external dynamics it needs delayed inputs
+            if self.subsystems[0].dynamics == 'external':
+                lower_b = [max(0,lb-self.subsystems[0].dim_c+1) for lb in lower_b]
+            
+            
+            for (lb,ub) in zip(lower_b,upper_b):
+                    u_switched.append(u.iloc[lb:ub])        
         
         # Create empty arrays for output y and hidden state c
         y = []
         c = []   
         
         # System Dynamics as Path Constraints
-        for system,u_sys in zip(self.subsystems,u):
+        for system,u_sys in zip(self.subsystems,u_switched):
             
             # Do a one step prediction based on the model
             sim = system.Simulation(c0,u_sys,params)
