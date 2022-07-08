@@ -17,7 +17,7 @@ class RNN():
     '''
     Parent class for all Models
     '''
-
+    
     def ParameterInitialization(self):
         '''
         Routine for parameter initialization. Takes input_names from the Casadi-
@@ -855,6 +855,8 @@ class GRU(RNN):
         self.InitialParameters = initial_params
         self.FrozenParameters = frozen_params
         self.InitializationProcedure = init_proc
+        
+        self.dynamics = 'internal'
         
         self.Initialize()  
  
