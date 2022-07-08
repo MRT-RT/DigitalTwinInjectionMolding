@@ -42,7 +42,7 @@ def Fit_MLP(dim_hidden):
                'Einspritzgeschwindigkeit','Umschaltpunkt',
                'T_wkz_0','p_inj_0','x_0']
     
-    y_label = ['E-Modul']   
+    y_label = ['Maximalspannung']   
     
     # Normalize Data
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
@@ -58,7 +58,7 @@ def Fit_MLP(dim_hidden):
 
     result['dim_hidden'] = dim_hidden
     
-    pkl.dump(result,open('QualityModel_EModul_static_MLP_'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(result,open('QualityModel_MaxSp_static_MLP_'+str(dim_hidden)+'.pkl','wb'))
 
     return result
 

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
-sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
 from sklearn.feature_selection import SequentialFeatureSelector
@@ -25,60 +25,55 @@ charges = list(range(1,26))
 split = 'all'
 
 # targets = ['Durchmesser_innen']
-targets = ['Gewicht']
+# targets = ['E-Modul']
+targets = ['Maximalspannung']
 
+path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized/'
 
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-
-data_train,data_val  = LoadSetpointData(path,charges,split,targets)
+data_train,data_val  = LoadSetpointData(path,charges,split)
 
 # data = data_train.append(data_val)
 
-inputs = [col for col in data_train.columns if col not in targets]
+inputs = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
+       'Umschaltpunkt']
+
+# Try polynomial models up to order 10
+for i in range(1,11):
+    # Polynomial Model
+    poly = PolynomialFeatures(i)
+    X_poly_train = poly.fit_transform(data_train[inputs])
+    X_poly_val = poly.transform(data_val[inputs])
+    
+    
+    PolyModel = LinearRegression()
+    PolyModel.fit(X_poly_train,data_train[targets])
+    
+    print(PolyModel.score(X_poly_val,data_val[targets]))
+    
+
 
 # Polynomial Model
-poly = PolynomialFeatures(4)
-X_poly_train = poly.fit_transform(data_train[inputs])
-X_poly_val = poly.transform(data_val[inputs])
+# poly = PolynomialFeatures(4)
+# X_poly_train = poly.fit_transform(data_train[inputs])
+# X_poly_val = poly.transform(data_val[inputs])
 
 
-PolyModel = LinearRegression()
-PolyModel.fit(X_poly_train,data_train[targets])
-y=PolyModel.predict(X_poly_val)
-print(PolyModel.score(X_poly_val,data_val[targets]))
+# PolyModel = LinearRegression()
+# PolyModel.fit(X_poly_train,data_train[targets])
+# y=PolyModel.predict(X_poly_val)
+# print(PolyModel.score(X_poly_val,data_val[targets]))
 
-data_val['y_est'] = y
-
-
-sns.stripplot(x=data_val.index,y=data_val[targets[0]],color='gray',size=8)
-sns.stripplot(x=data_val.index,y=data_val['y_est'],color='royalblue',size=8)
-# plt.xlim([1,30])
-
-plt.xticks([])
-plt.xlabel(None)
-plt.yticks([])
-plt.ylabel(None)
+# data_val['y_est'] = y
 
 
+# sns.stripplot(x=data_val.index,y=data_val[targets[0]],color='gray',size=8)
+# sns.stripplot(x=data_val.index,y=data_val['y_est'],color='royalblue',size=8)
+# # plt.xlim([1,30])
 
-
-
-# LinModel.fit(data_train[inputs],data_train[targets])
-# print(LinModel.score(data_val[inputs],data_val[targets]))
-
-
-# for i in range(1,11):
-#     # Polynomial Model
-#     poly = PolynomialFeatures(i)
-#     X_poly_train = poly.fit_transform(data_train[inputs])
-#     X_poly_val = poly.transform(data_val[inputs])
-    
-    
-#     PolyModel = LinearRegression()
-#     PolyModel.fit(X_poly_train,data_train[targets])
-    
-#     print(PolyModel.score(X_poly_val,data_val[targets]))
-    
+# plt.xticks([])
+# plt.xlabel(None)
+# plt.yticks([])
+# plt.ylabel(None)
 
 
 # # Linear Model Feaure Selection
