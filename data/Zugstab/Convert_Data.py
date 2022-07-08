@@ -115,7 +115,8 @@ for cycle in set(idx)-set(idx_del):
     cycle_df['Werkzeugtemperatur'] = cycle_df.loc[0]['Werkzeugtemperatur']
     cycle_df['Düsentemperatur'] = cycle_df.loc[0]['Düsentemperatur']
     cycle_df['Einspritzgeschwindigkeit'] = cycle_df.loc[0]['Einspritzgeschwindigkeit']       
-
+    cycle_df['Kühlzeit'] = 19.0
+    
     cycle_df.rename(columns = {'Werkzeugtemperatur':'T_wkz_soll',
                          'Düsentemperatur':'T_nozz_soll',
                          'Einspritzgeschwindigkeit':'v_inj_soll'}, inplace = True)
