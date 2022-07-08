@@ -31,15 +31,17 @@ def Fit_GRU(dim_c,initial_params=None):
     split = 'all'
     mode='quality'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
     u_cool= ['p_wkz_ist','T_wkz_ist']
     
     u_lab = [u_inj,u_press,u_cool]
-    y_lab = ['E-Modul']
+    
+    # y_lab = ['E-Modul']
+    y_lab = ['Maximalspannung'] 
     
     
     data_train,data_val = \
@@ -76,13 +78,13 @@ def Fit_GRU(dim_c,initial_params=None):
     
     results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
                             initializations=10, BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel',n_pool=2)
+                            s_opts=s_opts,mode='parallel',n_pool=5)
 
     # results_GRU = ModelTraining(quality_model,data_train,data_val,
     #                         initializations=1, BFR=False, p_opts=None, 
     #                         s_opts=s_opts,mode='parallel')
         
-    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn_Gewicht.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_MaxSp.pkl','wb'))
   
     return results_GRU  
 
