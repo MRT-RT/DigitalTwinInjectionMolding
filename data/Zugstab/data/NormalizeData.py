@@ -36,9 +36,9 @@ rest = ['Q_Vol_ist', 'V_Screw_ist', 'p_wkz_ist', 'T_wkz_ist', 'p_inj_soll',
        'Nachdruckhöhe', 'Staudruck']
 
 # Calculate quantities for normalization
-mean_y = norm_cycle[y_qual].mean()                                              # This normalization was formerly used for quality models
-min_rest = norm_cycle[rest].min()
-max_rest = norm_cycle[rest].max()
+mean_y = norm_cycle[y_qual].mean().astype('float64')                                              # This normalization was formerly used for quality models
+min_rest = norm_cycle[rest].min().astype('float64')
+max_rest = norm_cycle[rest].max().astype('float64')
 
 min_rest[max_rest-min_rest==0]=0                                                # if signal is constant, set minimum to 0 to avoid division by zero    
 

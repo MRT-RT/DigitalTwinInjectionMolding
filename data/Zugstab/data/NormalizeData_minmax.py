@@ -22,7 +22,7 @@ from DIM.miscellaneous.PreProcessing import find_switches
 norm_cycle = pkl.load(open('cycle210.pkl','rb'))
 plan = pkl.load(open('Versuchsplan.pkl','rb'))
 
-y_qual = ['Gewicht', 'OK/N.i.O.', 'Durchmesser_innen',
+y_qual = ['Gewicht', 'Durchmesser_innen',
        'Durchmesser_außen', 'Stegbreite_Gelenk', 'Breite_Lasche',
        'Rundheit_außen', 'Dicke', 'Mittenrauwert', 'Quadratischer Mittelwert',
        'Rautiefe', 'Höhe', 'Breite', 'E-Modul', 'Zugfestigkeit',
@@ -37,11 +37,11 @@ rest = ['Q_Vol_ist', 'V_Screw_ist', 'p_wkz_ist', 'T_wkz_ist', 'p_inj_soll',
        'Nachdruckhöhe', 'Staudruck']
 
 # Calculate quantities for normalization
-min_y = plan[y_qual].min()
-max_y = plan[y_qual].max()
+min_y = plan[y_qual].min().astype('float64')
+max_y = plan[y_qual].max().astype('float64')
 
-min_rest = norm_cycle[rest].min()
-max_rest = norm_cycle[rest].max()
+min_rest = norm_cycle[rest].min().astype('float64')
+max_rest = norm_cycle[rest].max().astype('float64')
 
 min_y[max_y-min_y==0]=0                                                          # if signal is constant, set minimum to 0 to avoid division by zero
 min_rest[max_rest-min_rest==0]=0                                                # if signal is constant, set minimum to 0 to avoid division by zero    
