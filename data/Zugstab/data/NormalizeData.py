@@ -44,8 +44,10 @@ min_rest[max_rest-min_rest==0]=0                                                
 
 cycle_files = os.listdir()
 cycle_files.remove('NormalizeData.py')
+cycle_files.remove('NormalizeData_minmax.py')
 cycle_files.remove('Versuchsplan.pkl')
 cycle_files.remove('normalized')
+cycle_files.remove('normalized_minmax')
 
 for file in cycle_files:
     c = pkl.load(open(file,'rb'))

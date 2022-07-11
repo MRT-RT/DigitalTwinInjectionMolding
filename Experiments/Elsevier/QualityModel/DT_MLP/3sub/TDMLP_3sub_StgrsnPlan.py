@@ -32,8 +32,8 @@ def Fit_TDMLP(order,dim_h,initial_params=None):
     split = 'all'
     mode='quality'
     
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
@@ -67,15 +67,15 @@ def Fit_TDMLP(order,dim_h,initial_params=None):
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
 
     
-    results = ParallelModelTraining(quality_model,data_train,data_val,
-                            initializations=10, BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel',n_pool=5)
+    # results = ParallelModelTraining(quality_model,data_train,data_val,
+    #                         initializations=10, BFR=False, p_opts=None, 
+    #                         s_opts=s_opts,mode='parallel',n_pool=5)
 
-    # results = ModelTraining(quality_model,data_train,data_val,
-    #                         initializations=1, BFR=False, p_opts=None, 
-    #                         s_opts=s_opts,mode='parallel')
+    results = ModelTraining(quality_model,data_train,data_val,
+                            initializations=1, BFR=False, p_opts=None, 
+                            s_opts=s_opts,mode='parallel')
         
-    pkl.dump(results,open('TDMLP_order'+str(order)+'_hidden'+str(dim_h)+'_3sub_Stoergrsn_Gewicht.pkl','wb'))
+    # pkl.dump(results,open('TDMLP_order'+str(order)+'_hidden'+str(dim_h)+'_3sub_Stoergrsn_Gewicht.pkl','wb'))
   
     return results  
 

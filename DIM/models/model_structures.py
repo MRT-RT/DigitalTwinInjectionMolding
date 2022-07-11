@@ -323,8 +323,8 @@ class TimeDelay_MLP(RNN):
 
 
         # Model Equations
-        h =  cs.tanh(cs.mtimes(W_h,cs.vertcat(u,c))+b_h)    
-        y_new = cs.mtimes(W_o,h)+b_o  
+        h =  cs.tanh( cs.mtimes(W_h,cs.vertcat(u,c)) + b_h )    
+        y_new = cs.mtimes(W_o,h)+b_o
         
         c_new = cs.vertcat(c,y_new)[dim_out::,:] 
         
