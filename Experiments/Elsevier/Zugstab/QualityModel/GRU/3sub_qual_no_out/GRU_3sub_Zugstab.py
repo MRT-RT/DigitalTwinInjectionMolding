@@ -93,6 +93,7 @@ def Fit_GRU(dim_c,initial_params=None):
   
     return results_GRU  
 
+
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     c1 = Fit_GRU(dim_c=1)
