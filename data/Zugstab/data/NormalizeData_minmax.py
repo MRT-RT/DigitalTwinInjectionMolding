@@ -43,7 +43,7 @@ max_y = plan[y_qual].max()
 min_rest = norm_cycle[rest].min()
 max_rest = norm_cycle[rest].max()
 
-min_y[max_y-min_y==0]=0                                                # if signal is constant, set minimum to 0 to avoid division by zero
+min_y[max_y-min_y==0]=0                                                          # if signal is constant, set minimum to 0 to avoid division by zero
 min_rest[max_rest-min_rest==0]=0                                                # if signal is constant, set minimum to 0 to avoid division by zero    
 
 cycle_files = os.listdir()
