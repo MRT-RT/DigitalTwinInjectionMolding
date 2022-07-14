@@ -280,9 +280,6 @@ def hdf5_to_pd_dataframe_high_freq(file,save_path=None):
 
 def add_csv_to_pd_dataframe(df,df_csv):
     
-    #Read df
-    
-    
     cycle_num = df.loc[0]['cycle_num']
     
     ###########################################################################

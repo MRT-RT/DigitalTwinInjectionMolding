@@ -118,7 +118,7 @@ def Eval_GRU_on_Val(dim_c):
     return results_train,results_st
 
 
-for i in range(1,5):
+for i in range(3,5):
 
     results_train,results_st = Eval_GRU_on_Val(dim_c=i)
     
@@ -126,9 +126,16 @@ for i in range(1,5):
                 results_st['y_est'].values.reshape((-1,1))))
 
     plt.figure()
-    sns.stripplot(x = results_st.index, y=results_st['y_true']-results_st['y_est'],color='grey')
-    plt.ylim([-0.02,0.02])
+    sns.stripplot(x = results_st.index, y=abs(results_st['y_true']-results_st['y_est']))
+    # plt.ylim([-0.02,0.02])
     plt.title(str(i))
+    
+    # plt.figure()
+    # sns.stripplot(x = results_st.index, y=results_st['y_true'],color='grey')
+    # sns.stripplot(x = results_st.index, y=results_st['y_est'])
+    # plt.ylim([-0.02,0.02])
+    # plt.title(str(i))
+    
 
 # plt.plot(results_val['y_true'],'o')
 # plt.plot(results_val['y_est'],'o')

@@ -20,8 +20,8 @@ csv_filename = 'Strgrsn_T_wkz.csv'
 filenames = ['Prozessgrößen_Strgn_WKZ_Temp.h5']
 
 
-target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220505/T_wkz_Stoerung/'
-
+# target_path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220505/T_wkz_Stoerung/'
+target_path ='E:/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220505/T_wkz_Stoerung/'
 
 for filename in filenames:
 
@@ -41,9 +41,14 @@ os.remove(target_path+'cycle105.pkl')                                          #
 
 cycle_files = os.listdir(target_path)
 
+csv = pd.read_csv(csv_filename,delimiter=';')  
+
 for cycle in cycle_files:
 
-    df = add_csv_to_pd_dataframe(target_path+cycle,csv_filename)
+    c = pkl.load(open(cycle,'rb'))    
+
+    
+    df = add_csv_to_pd_dataframe(c,csv_filename)
 
 # for i in range(1,251):
 #     c = pkl.load(open('cycle'+str(i)+'.pkl','rb'))
