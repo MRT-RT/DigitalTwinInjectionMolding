@@ -16,7 +16,7 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 from sklearn.feature_selection import SequentialFeatureSelector
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
-from DIM.miscellaneous.PreProcessing import LoadSetpointData
+from DIM.miscellaneous.PreProcessing import LoadFeatureData
 from sklearn.preprocessing import PolynomialFeatures
 
 
@@ -25,17 +25,24 @@ charges = list(range(1,26))
 split = 'all'
 
 # targets = ['Durchmesser_innen']
-# targets = ['E-Modul']
-targets = ['Maximalspannung']
+targets = ['E-Modul']
+# targets = ['Maximalspannung']
 
-path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized/'
+# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
-data_train,data_val  = LoadSetpointData(path,charges,split)
+path = path_sys + '/data/Zugstab/data/normalized_minmax/'
+
+data_train,data_val  = LoadFeatureData(path,charges,split)
 
 # data = data_train.append(data_val)
 
 inputs = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
-       'Umschaltpunkt']
+        'Umschaltpunkt']
+
+# inputs = ['Düsentemperatur', 'Werkzeugtemperatur','Einspritzgeschwindigkeit',
+#           'Umschaltpunkt','T_wkz_0','p_inj_0','x_0']
 
 # Try polynomial models up to order 10
 for i in range(1,11):

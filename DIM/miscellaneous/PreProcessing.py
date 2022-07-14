@@ -509,12 +509,13 @@ def eliminate_outliers(doe_plan):
         
     return doe_plan_no_out
 
-def split_charges_to_trainval_data(path,charges,split):
+def split_charges_to_trainval_data(path,charges,split,del_outl):
     
     # Load Versuchsplan to find cycles that should be considered for modelling
     data = pkl.load(open(path+'Versuchsplan.pkl','rb'))
     
-    data = eliminate_outliers(data)
+    if del_outl is True:
+        data = eliminate_outliers(data)
 
     
     # Delete outliers rudimentary
@@ -567,10 +568,10 @@ def split_charges_to_trainval_data(path,charges,split):
     return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
 
     
-def LoadDynamicData(path,charges,split,y_lab,u_lab,mode):
+def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
-    split_charges_to_trainval_data(path,charges,split)
+    split_charges_to_trainval_data(path,charges,split,del_outl)
       
     # Load cycle data, check if usable, convert to numpy array
     cycles_train = []
