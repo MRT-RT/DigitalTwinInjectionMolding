@@ -28,10 +28,10 @@ import pandas as pd
 
 def Eval_MLP(dim_hidden):
     
-    res = pkl.load(open('QualityModel_Gewicht_static_MLP_'+str(dim_hidden)+'.pkl','rb'))
+    res = pkl.load(open('QualityModel_Durchmesser_static_MLP_'+str(dim_hidden)+'.pkl','rb'))
     params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     
-    charges = list(range(1,26)) # list(range(1,26))
+    charges = list(range(1,275))
     
     split = 'all'
     

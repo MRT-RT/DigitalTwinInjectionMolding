@@ -26,15 +26,15 @@ import pickle as pkl
 def Fit_MLP(dim_hidden):
     
     print(dim_hidden)
-    charges = list(range(1,26))
+    charges = list(range(1,275))
     
     split = 'all'
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = path_sys + '/data/Versuchsplan/normalized/'
     
     data_train,data_val = LoadFeatureData(path,charges,split)
     
@@ -42,7 +42,7 @@ def Fit_MLP(dim_hidden):
                'Einspritzgeschwindigkeit','Umschaltpunkt',
                'T_wkz_0','p_inj_0','x_0']
     
-    y_label = ['Gewicht']   
+    y_label = ['Durchmesser_innen']   
     
     # Normalize Data
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
@@ -54,11 +54,11 @@ def Fit_MLP(dim_hidden):
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
     
     result = ParallelModelTraining(model,data_train,data_val,initializations=10,
-                           p_opts=None,s_opts=s_opts,mode='static')
+                           p_opts=None,s_opts=s_opts,mode='static',n_pool=5)
 
     result['dim_hidden'] = dim_hidden
     
-    pkl.dump(result,open('QualityModel_Gewicht_static_MLP_'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(result,open('QualityModel_Durchmesser_static_MLP_'+str(dim_hidden)+'.pkl','wb'))
 
     return result
 
