@@ -492,19 +492,20 @@ def arrange_data_for_ident(cycles,y_lab,u_lab,mode):
 
 def eliminate_outliers(doe_plan):
     
-    y_lab = ['Gewicht','Breite_Lasche','Durchmesser_innen','E-Modul'
-             ,'Maximalspannung']
-    
-    # Check if key exists in DataFrame here! Implement when it becomes a problem
-    """
-    Implement here
-    """
+    y_lab = ['Gewicht','Breite_Lasche','Durchmesser_innen','E-Modul','Maximalspannung',
+             'Stegbreite_Gelenk']
+    y_filt = []
+    for lab in y_lab:
+        if lab in doe_plan.keys():
+            y_filt.append(lab)
     
     # If all entries NaN then this measurement was not taken for all parts
-    y_lab = [lab for lab in y_lab if not doe_plan[lab].isnull().values.all()]
+    y_filt = [lab for lab in y_filt if not doe_plan[lab].isnull().values.all()]
     
     
-    doe_plan_no_out=  doe_plan[(np.abs(stats.zscore(doe_plan[y_lab])) < 3).all(axis=1)]
+    doe_plan_new = doe_plan[doe_plan[y_filt].notnull().all(axis=1)]
+    
+    doe_plan_no_out=  doe_plan_new[(np.abs(stats.zscore(doe_plan_new[y_filt])) < 3).all(axis=1)]
         
     return doe_plan_no_out
 
