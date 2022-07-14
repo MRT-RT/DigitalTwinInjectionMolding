@@ -14,7 +14,7 @@ sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
 # print(two_up)
 
-from DIM.miscellaneous.PreProcessing import LoadSetpointData, MinMaxScale
+from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.optim.common import BestFitRate
 from DIM.models.model_structures import Static_MLP
 from DIM.optim.param_optim import ParallelModelTraining, static_mode
@@ -35,18 +35,18 @@ def Eval_MLP(dim_hidden):
     
     split = 'all'
     
-    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-    path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
-    path = path_sys + '/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = path_sys + '/data/Versuchsplan/normalized/'
     
-    data_train,data_val = LoadSetpointData(path,charges,split)
+    data_train,data_val = LoadFeatureData(path,charges,split)
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
                'Einspritzgeschwindigkeit','Umschaltpunkt']
     
-    y_label = ['Gewicht']   
+    y_label = ['Durchmesser_innen']   
     
     # Normalize Data
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)

@@ -14,7 +14,7 @@ sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
 # print(two_up)
 
-from DIM.miscellaneous.PreProcessing import LoadSetpointData, MinMaxScale
+from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.models.model_structures import Static_MLP
 from DIM.optim.param_optim import ParallelModelTraining
 
