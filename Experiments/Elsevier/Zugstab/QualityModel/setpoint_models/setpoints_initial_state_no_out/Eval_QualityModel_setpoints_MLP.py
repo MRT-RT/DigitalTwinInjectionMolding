@@ -28,15 +28,15 @@ import pandas as pd
 
 def Eval_MLP(dim_hidden):
     
-    res = pkl.load(open('QualityModel_MaxSp_static_MLP_'+str(dim_hidden)+'.pkl','rb'))
+    res = pkl.load(open('QualityModel_EModul_static_MLP_'+str(dim_hidden)+'.pkl','rb'))
     params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     
     charges = list(range(1,26)) # list(range(1,26))
     
     split = 'all'
     
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized/'
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized_minmax/'
+    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Zugstab/data/normalized_minmax/'
     
     data_train,data_val = LoadFeatureData(path,charges,split)
     
@@ -44,8 +44,8 @@ def Eval_MLP(dim_hidden):
                'Einspritzgeschwindigkeit','Umschaltpunkt',
                'T_wkz_0','p_inj_0','x_0']
     
-    # y_label = ['E-Modul']
-    y_label = ['Maximalspannung'] 
+    y_label = ['E-Modul']
+    # y_label = ['Maximalspannung'] 
     
     # Normalize Data
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
