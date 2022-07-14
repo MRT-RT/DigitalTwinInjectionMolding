@@ -130,6 +130,30 @@ for i in range(3,5):
     # plt.ylim([-0.02,0.02])
     plt.title(str(i))
     
+    
+fig,ax = plt.subplots(1,1)
+
+sns.stripplot(x = results_st.index, y=results_st['y_true'],ax=ax,color='grey')
+
+# ax.set_xlabel('$n$')
+# ax.set_ylabel('$\mathrm{BFR}$')
+
+plt.vlines(x=[results_st.index.get_loc(loc) for loc in [20,45,65,85,105]], 
+           ymin=0, ymax=2, colors='k', linestyles='dashed')
+
+xticks = [0,3] + list(np.arange(8,58+5,5)) + [62,67,72,76,81,86,90,95,100,
+                                              105,109,114,118]
+
+ax.set_xticks(ax.get_xticks()[xticks])
+
+ax.set_xlim([0.8,10.2])
+ax.set_ylim([0.4,1])
+
+
+fig.set_size_inches((15/2.54,6/2.54))
+
+plt.tight_layout()
+plt.savefig('Results_Zugstab_MaxSp.png', bbox_inches='tight',dpi=600)    
     # plt.figure()
     # sns.stripplot(x = results_st.index, y=results_st['y_true'],color='grey')
     # sns.stripplot(x = results_st.index, y=results_st['y_est'])
