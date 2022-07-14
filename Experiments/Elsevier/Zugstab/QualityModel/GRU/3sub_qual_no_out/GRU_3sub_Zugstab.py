@@ -40,8 +40,8 @@ def Fit_GRU(dim_c,initial_params=None):
     
     u_lab = [u_inj,u_press,u_cool]
     
-    # y_lab = ['E-Modul']
-    y_lab = ['Maximalspannung'] 
+    y_lab = ['E-Modul']
+    # y_lab = ['Maximalspannung'] 
     
     
     data_train,data_val = \
@@ -83,13 +83,13 @@ def Fit_GRU(dim_c,initial_params=None):
     
     results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
                             initializations=10, BFR=False, p_opts=None, 
-                            s_opts=s_opts,mode='parallel',n_pool=5)
+                            s_opts=s_opts,mode='parallel',n_pool=10)
 
     # results_GRU = ModelTraining(quality_model,data_train,data_val,
     #                         initializations=1, BFR=False, p_opts=None, 
     #                         s_opts=s_opts,mode='parallel')
         
-    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_MaxSp.pkl','wb'))
+    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_EModul.pkl','wb'))
   
     return results_GRU  
 

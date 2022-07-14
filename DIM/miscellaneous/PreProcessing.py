@@ -513,7 +513,7 @@ def split_charges_to_trainval_data(path,charges,split):
     # Load Versuchsplan to find cycles that should be considered for modelling
     data = pkl.load(open(path+'Versuchsplan.pkl','rb'))
     
-    # data = eliminate_outliers(data)
+    data = eliminate_outliers(data)
 
     
     # Delete outliers rudimentary
