@@ -156,14 +156,16 @@ xticks = xticks[0::2]
 ax.set_xticks(ax.get_xticks()[xticks])
 
 ax.set_ylabel('m')
-ax.set_xlabel('m')
+ax.set_xlabel('c')
 
 
 ax.set_ylim([1.08+weight_c11-1,1.22+weight_c11-1])
+ax.set_xlim([0,120])
 fig.set_size_inches((20/2.54,6/2.54))
 plt.tight_layout()
-# plt.savefig('Results_Zugstab_MaxSp.png', bbox_inches='tight',dpi=600)    
-    # plt.figure()
+
+plt.savefig('Data_Disturbance_Recyc.png', bbox_inches='tight',dpi=600)    
+
     # sns.stripplot(x = results_st.index, y=results_st['y_true'],color='grey')
     # sns.stripplot(x = results_st.index, y=results_st['y_est'])
     # plt.ylim([-0.02,0.02])

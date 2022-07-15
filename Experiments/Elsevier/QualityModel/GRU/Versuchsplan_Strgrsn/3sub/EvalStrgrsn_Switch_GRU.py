@@ -45,8 +45,8 @@ def Eval_GRU_on_Val(dim_c):
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
-    path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
-    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
+    path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
     # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     
@@ -56,8 +56,6 @@ def Eval_GRU_on_Val(dim_c):
     
     u_lab = [u_inj,u_press,u_cool]
     y_lab = ['Gewicht']
-
-   
 
     data_train,data_val = LoadDynamicData(path_sys+path_data_train,charges,
                                           split,y_lab,u_lab,mode,True)
@@ -156,14 +154,16 @@ xticks = xticks[0::2]
 ax.set_xticks(ax.get_xticks()[xticks])
 
 ax.set_ylabel('m')
-ax.set_xlabel('m')
+ax.set_xlabel('c')
 
 
 ax.set_ylim([1.08+weight_c11-1,1.22+weight_c11-1])
+ax.set_xlim([0,120])
 fig.set_size_inches((20/2.54,6/2.54))
 plt.tight_layout()
-# plt.savefig('Results_Zugstab_MaxSp.png', bbox_inches='tight',dpi=600)    
-    # plt.figure()
+
+plt.savefig('Data_Disturbance_Recyc.png', bbox_inches='tight',dpi=600)    
+
     # sns.stripplot(x = results_st.index, y=results_st['y_true'],color='grey')
     # sns.stripplot(x = results_st.index, y=results_st['y_est'])
     # plt.ylim([-0.02,0.02])
