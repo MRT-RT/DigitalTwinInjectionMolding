@@ -45,8 +45,8 @@ def Eval_GRU_on_Val(dim_c):
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
-    path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
-    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
+    path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
     # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     
@@ -118,42 +118,72 @@ def Eval_GRU_on_Val(dim_c):
     return results_train,results_st
 
 
-for i in range(3,5):
+#Inititialize plot
+color_map = sns.color_palette()
+color_idx = 0
+fig,ax = plt.subplots(1,1)
+
+for i in range(4,5):
 
     results_train,results_st = Eval_GRU_on_Val(dim_c=i)
     
     print(BestFitRate(results_st['y_true'].values.reshape((-1,1)),
                 results_st['y_est'].values.reshape((-1,1))))
-
-    plt.figure()
-    sns.stripplot(x = results_st.index, y=abs(results_st['y_true']-results_st['y_est']))
-    # plt.ylim([-0.02,0.02])
-    plt.title(str(i))
     
+    e = abs(results_st['y_true']-results_st['y_est'])
     
-fig,ax = plt.subplots(1,1)
-
-sns.stripplot(x = results_st.index, y=results_st['y_true'],ax=ax,color='grey')
+    sns.stripplot(x = results_st.index, 
+                  y= e,
+                  ax=ax,color=color_map[color_idx],label = str(i))
+    
+    print(np.percentile(e, 0.9))
+    
+    color_idx = color_idx +1
+    
+    pkl.dump(results_st,open('GRU_c'+str(i)+'_SwitchDist_pred.pkl','wb'))
+    
+# sns.stripplot(x = results_st.index, y=results_st['y_true']+weight_c11-1,
+#               ax=ax,color='grey')
 
 # ax.set_xlabel('$n$')
 # ax.set_ylabel('$\mathrm{BFR}$')
 
-plt.vlines(x=[results_st.index.get_loc(loc) for loc in [20,45,65,85,105]], 
-           ymin=0, ymax=2, colors='k', linestyles='dashed')
 
-xticks = [0,3] + list(np.arange(8,58+5,5)) + [62,67,72,76,81,86,90,95,100,
-                                              105,109,114,118]
+# Um Punkte zu finden an denen Umschaltpunkt variiert wurde, müssen alle
+# alle Zyklen durchsucht werden
 
-ax.set_xticks(ax.get_xticks()[xticks])
+# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Umschaltpkt_Stoerung/'
 
-ax.set_xlim([0.8,10.2])
-ax.set_ylim([0.4,1])
+# switch = []
+# for c in range(251,410):
+#     c_data = pkl.load(open(path+'cycle'+str(c)+'.pkl','rb'))    
+#     switch.append(c_data.loc[0,'Umschaltpunkt'])
 
+# Zyklen an denen Umschaltpunkt geändert wird aus switch abgelesen
+switch =   list(np.array([30,42,54,69,84,100,115])+251)
+
+plt.vlines(x=[results_st.index.get_loc(loc) for loc in switch], 
+           ymin=0, ymax=10, colors='k', linestyles='dashed')
+
+ax.set_xticklabels([str(c-251) for c in range(251,410) if c not in [253,406]])
+
+xticks = [0] + list(np.arange(9,159,10))
+    
+ax.set_xticks(xticks)
+
+ax.set_xlim([-0.5,125])
+ax.set_ylim([8.115,8.155])
+
+ax.set_xlabel('$c$')
+ax.set_ylabel(None)
 
 fig.set_size_inches((15/2.54,6/2.54))
 
 plt.tight_layout()
-# plt.savefig('Results_Zugstab_MaxSp.png', bbox_inches='tight',dpi=600)    
+
+plt.savefig('Data_Disturbance_Switch.png', bbox_inches='tight',dpi=600)  
+
+  
     # plt.figure()
     # sns.stripplot(x = results_st.index, y=results_st['y_true'],color='grey')
     # sns.stripplot(x = results_st.index, y=results_st['y_est'])

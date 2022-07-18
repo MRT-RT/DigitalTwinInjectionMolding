@@ -35,6 +35,7 @@ def Eval_GRU_on_Val(dim_c):
     
     mode='quality'
     split = 'all'
+    del_outl = False
     
     # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
@@ -53,7 +54,7 @@ def Eval_GRU_on_Val(dim_c):
     y_lab = ['Gewicht']
     
     data_train,data_val = \
-    LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
+    LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))] 
@@ -102,9 +103,14 @@ def Eval_GRU_on_Val(dim_c):
     return results_train,results_val
 
 
-for i in range(1,11):
+for i in range(10,11):
 
-    results_train,results_st = Eval_GRU_on_Val(dim_c=i)
+    results_train,results_val = Eval_GRU_on_Val(dim_c=i)
     
-    print(BestFitRate(results_st['y_true'].values.reshape((-1,1)),
-                results_st['y_est'].values.reshape((-1,1))))
+    e = abs(results_val['y_true']-results_val['y_est'])
+    
+    
+    print(np.percentile(e, 90))    
+    
+    print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+                results_val['y_est'].values.reshape((-1,1))))
