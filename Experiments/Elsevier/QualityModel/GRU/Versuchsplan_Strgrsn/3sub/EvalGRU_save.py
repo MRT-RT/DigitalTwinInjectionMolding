@@ -35,10 +35,7 @@ def Eval_GRU_on_Val(dim_c):
     
     mode='quality'
     split = 'all'
-
     del_outl = True
-
-
     # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
     path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
@@ -105,14 +102,9 @@ def Eval_GRU_on_Val(dim_c):
     return results_train,results_val
 
 
-for i in range(10,11):
+for i in range(1,11):
 
-    results_train,results_val = Eval_GRU_on_Val(dim_c=i)
+    results_train,results_st = Eval_GRU_on_Val(dim_c=i)
     
-    e = abs(results_val['y_true']-results_val['y_est'])
-    
-    
-    print(np.percentile(e, 90))    
-    
-    print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-                results_val['y_est'].values.reshape((-1,1))))
+    print(BestFitRate(results_st['y_true'].values.reshape((-1,1)),
+                results_st['y_est'].values.reshape((-1,1))))
