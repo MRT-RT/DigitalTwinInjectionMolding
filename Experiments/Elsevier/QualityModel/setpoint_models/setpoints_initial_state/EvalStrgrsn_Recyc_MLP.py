@@ -9,12 +9,13 @@ import sys
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 # import os.path as path
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
 # print(two_up)
 
-from DIM.miscellaneous.PreProcessing import LoadSetpointData, MinMaxScale
+from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.optim.common import BestFitRate
 from DIM.models.model_structures import Static_MLP
 from DIM.optim.param_optim import ParallelModelTraining, static_mode
@@ -35,15 +36,17 @@ def Eval_MLP(dim_hidden):
     charges = list(range(1,26)) # list(range(1,26))
     
     split = 'all'
+    del_outl = False
     
-    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
-    # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
-    path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
     # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
@@ -53,13 +56,16 @@ def Eval_MLP(dim_hidden):
     
     
     
-    data_train,_ = LoadSetpointData(path_sys+path_data_train,charges,split)
-    data_st1,data_st2 = LoadSetpointData(path_sys+path_data_strgrsn,[1],split)
+    data_train,_ = LoadFeatureData(path_sys+path_data_train,charges,split,
+                                    del_outl)
+    data_st1,data_st2 = LoadFeatureData(path_sys+path_data_strgrsn,[1],split,
+                                         del_outl)
     
     data_st = pd.concat([data_st1,data_st2])
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
-               'Einspritzgeschwindigkeit','Umschaltpunkt']
+               'Einspritzgeschwindigkeit','Umschaltpunkt',
+               'T_wkz_0','p_inj_0','x_0']
     
     y_label = ['Gewicht']   
     
@@ -67,21 +73,14 @@ def Eval_MLP(dim_hidden):
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
     data_st,_ = MinMaxScale(data_st,u_label+y_label,*minmax)
     
-    model = Static_MLP(dim_u=4, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
+    model = Static_MLP(dim_u=7, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
                         y_label=y_label,name='MLP', init_proc='xavier')
     
 
     # Assign best parameters to model
     model.Parameters = params
     
-    # Evaluate model on training data
-    _,y_train = static_mode(model,data_train)
-    y_true = data_train[y_label].values.reshape((-1,1))
-    e_train = y_true-y_train
-    
-    results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
-                            columns=['y_true','y_est','e'],
-                              index = data_train.index)
+    results_train = None
     
     # Evaluate model on validation data
     _,y_val = static_mode(model,data_st)
@@ -95,17 +94,19 @@ def Eval_MLP(dim_hidden):
 
     return results_train,results_val
 
-for i in range(1,11):
+for i in list(range(1,11))+[20,40]:
     
-    results_train,results_val = Eval_MLP(dim_hidden=i)
+    print(i)
     
-    # plt.figure()
-    # plt.plot(results_val['y_true'],'o')
-    # plt.plot(results_val['y_est'],'o')
-    # plt.title('MLP ' + str(i))
+    results_train,results_st = Eval_MLP(dim_hidden=i)
     
-    print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-                results_val['y_est'].values.reshape((-1,1))))
+    e = abs(results_st['y_true']-results_st['y_est'])
+    
+    print('mean: '+ str(np.mean(e)))
+    print('std: '+ str(np.std(e)))
+    
+    print('BFR: ' + str(BestFitRate(results_st['y_true'].values.reshape((-1,1)),
+                results_st['y_est'].values.reshape((-1,1)))))
 
 
 

@@ -15,6 +15,8 @@ import sys
 sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
+
 
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
@@ -39,9 +41,10 @@ def Eval_GRU_on_Val(dim_c):
     del_outl = False
     # split = 'part'
     
-    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/' 
+    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
-    path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
