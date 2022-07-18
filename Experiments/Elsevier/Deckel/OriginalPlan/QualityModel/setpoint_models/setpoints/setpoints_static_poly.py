@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
-sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
 from sklearn.feature_selection import SequentialFeatureSelector
@@ -28,21 +28,19 @@ targets = ['Durchmesser_innen']
 # targets = ['Gewicht']
 
 
-# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
 # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
-path = path_sys + '/data/Versuchsplan/'
+path = path_sys + 'data/Versuchsplan/normalized/'
 
 data_train,data_val  = LoadFeatureData(path,charges,split)
 
 # data = data_train.append(data_val)
 
-inputs = ['Düsentemperatur', 'Werkzeugtemperatur','Einspritzgeschwindigkeit',
-          'Umschaltpunkt','T_wkz_0','p_inj_0','x_0']
-
-# inputs = ['Düsentemperatur', 'Werkzeugtemperatur','Einspritzgeschwindigkeit',
-#           'Umschaltpunkt']
+inputs = ['Düsentemperatur', 'Werkzeugtemperatur',
+       'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
+       'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
 
 for i in range(1,11):
     # Polynomial Model

@@ -44,8 +44,9 @@ def Eval_MLP(dim_hidden):
     data_train,data_val = LoadFeatureData(path,charges,split)
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
-               'Einspritzgeschwindigkeit','Umschaltpunkt',
-               'T_wkz_0','p_inj_0','x_0']
+                'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
+                'Nachdruckzeit', 'Staudruck', 'Kühlzeit','T_wkz_0','p_inj_0',
+                'x_0']
     
     
     y_label = ['Durchmesser_innen']   
@@ -54,7 +55,7 @@ def Eval_MLP(dim_hidden):
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
     data_val,_ = MinMaxScale(data_val,u_label+y_label,minmax)
     
-    model = Static_MLP(dim_u=7, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
+    model = Static_MLP(dim_u=11, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
                         y_label=y_label,name='MLP', init_proc='xavier')
     
 
