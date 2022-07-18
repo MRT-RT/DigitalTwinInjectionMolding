@@ -35,11 +35,12 @@ def Eval_GRU_on_Val(dim_c):
     
     mode='quality'
     split = 'all'
+    del_outl = True
     
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
-    sys_path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-    
-    path = sys_path + '/data/Zugstab/data/normalized_minmax/'
+    path = path_sys + '/data/Zugstab/data/normalized_minmax/'
     
     
     
@@ -52,7 +53,7 @@ def Eval_GRU_on_Val(dim_c):
     
     
     data_train,data_val = \
-    LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
+    LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))] 
