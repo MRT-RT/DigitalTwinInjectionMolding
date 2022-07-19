@@ -39,9 +39,10 @@ def Eval_GRU_on_Val(dim_c):
     del_outl = False
     # split = 'part'
     
-    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/' 
+    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
-    path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
@@ -123,7 +124,7 @@ color_map = sns.color_palette()
 color_idx = 0
 fig,ax = plt.subplots(1,1)
 
-for i in range(4,5):
+for i in [4]:#range(1,11):
 
     results_train,results_st = Eval_GRU_on_Val(dim_c=i)
     
@@ -138,7 +139,7 @@ for i in range(4,5):
     
     print(np.percentile(e, 0.9))
     
-    color_idx = color_idx +1
+    # color_idx = color_idx +1
     
     pkl.dump(results_st,open('GRU_c'+str(i)+'_SwitchDist_pred.pkl','wb'))
     

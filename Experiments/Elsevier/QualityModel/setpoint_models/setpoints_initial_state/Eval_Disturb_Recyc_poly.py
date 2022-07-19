@@ -55,7 +55,7 @@ inputs = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
 
 
 # Try polynomial models up to order 10
-for i in [3]: # range(1,11):
+for i in [2]: # range(1,11):
     print('Polynomial order: ' + str(i))
     # Polynomial Model
     poly = PolynomialFeatures(i)

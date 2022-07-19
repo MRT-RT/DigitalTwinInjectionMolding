@@ -86,9 +86,17 @@ def Eval_MLP(dim_hidden):
     return results_train,results_val
 
 
-for i in list(range(1,11))+[20,40]:
+for i in [2]:#list(range(1,11))+[20,40]:
     
     results_train,results_val = Eval_MLP(dim_hidden=i)
+    
+    e = abs(results_val['y_true']-results_val['y_est'])
+    
+    print(np.percentile(e, 50))
+    print(np.percentile(e, 75))  
+    print(np.percentile(e, 90)) 
+    print(np.percentile(e, 95)) 
+    print(np.percentile(e, 99))
     
     print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
                 results_val['y_est'].values.reshape((-1,1))))

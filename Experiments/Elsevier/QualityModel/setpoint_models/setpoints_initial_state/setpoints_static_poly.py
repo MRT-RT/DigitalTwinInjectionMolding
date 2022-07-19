@@ -49,7 +49,7 @@ inputs = ['Düsentemperatur', 'Werkzeugtemperatur', 'Einspritzgeschwindigkeit',
 #           'Umschaltpunkt','T_wkz_0','p_inj_0','x_0']
 
 # Try polynomial models up to order 10
-for i in range(1,11):
+for i in [2]:#range(1,11):
     print('Polynomial order: ' + str(i))
     # Polynomial Model
     poly = PolynomialFeatures(i)
@@ -77,5 +77,6 @@ for i in range(1,11):
     print('mean: '+ str(np.mean(e)))
     print('std: '+ str(np.std(e)))
     
-    print('BFR: ' + str(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-                results_val['y_est'].values.reshape((-1,1)))))
+    print(np.percentile(e,90))
+    print(np.percentile(e,95))
+    print(np.percentile(e,99))

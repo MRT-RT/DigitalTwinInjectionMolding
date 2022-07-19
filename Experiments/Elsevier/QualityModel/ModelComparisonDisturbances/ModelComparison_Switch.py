@@ -25,16 +25,21 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 
 
 # Load predictions of the models that performed best on the disturbance case studies
-GRU = pkl.load(open('GRU_c4_RecycDist_pred.pkl','rb'))
-MLP = pkl.load(open('MLP_initstate_h2_RecycDist_pred.pkl','rb'))
-Poly = pkl.load(open('Poly_p2_RecycDist_pred.pkl','rb'))
+GRU = pkl.load(open('GRU_c4_SwitchDist_pred.pkl','rb'))
+MLP = pkl.load(open('MLP_initstate_h2_SwitchDist_pred.pkl','rb'))
+Poly = pkl.load(open('Poly_p2_SwitchDist_pred.pkl','rb'))
 
+# Reindex so first cycle is 1, not 251
+GRU.index = GRU.index - 250
+MLP.index = MLP.index - 250
+Poly.index = Poly.index - 250
+
+# Sort by index to avoid weird lines in plot
 GRU = GRU.sort_index()
 MLP = MLP.sort_index()
 Poly = Poly.sort_index()
 
 ''' Error percentiles calculated on validation data set'''
-
 GRU_e_90 = 0.008954879377072067
 GRU_e_95 = 0.013591216769539397
 GRU_e_99 = 0.01712730203877552
@@ -74,16 +79,16 @@ color_map = sns.color_palette()
 fig,ax = plt.subplots(3,1)
 
 ax[0].plot(GRU.index, abs(GRU['e']),color=color_map[0],linestyle='solid',marker='x')
-ax[0].hlines(y=[GRU_e_90,GRU_e_95,GRU_e_99], xmin=0, xmax=130, colors='grey', 
+ax[0].hlines(y=[GRU_e_90,GRU_e_95,GRU_e_99], xmin=0, xmax=160, colors='grey', 
              linestyles='dashed')
 
 
 ax[1].plot(MLP.index, abs(MLP['e']),color=color_map[1],linestyle='solid',marker='x')
-ax[1].hlines(y=[MLP_e_90,MLP_e_95,MLP_e_99], xmin=0, xmax=130, colors='grey', 
+ax[1].hlines(y=[MLP_e_90,MLP_e_95,MLP_e_99], xmin=0, xmax=160, colors='grey', 
              linestyles='dashed')
 
 ax[2].plot(Poly.index, abs(Poly['e']),color=color_map[2],linestyle='solid',marker='x')
-ax[2].hlines(y=[Poly_e_90,Poly_e_95,Poly_e_99], xmin=0, xmax=130, colors='grey', 
+ax[2].hlines(y=[Poly_e_90,Poly_e_95,Poly_e_99], xmin=0, xmax=160, colors='grey', 
              linestyles='dashed')
 
 ax[0].set_xticklabels([])
@@ -91,10 +96,10 @@ ax[1].set_xticklabels([])
 
 # Plot lines at time instances where disturbance was varied
 for a in ax:
-    a.vlines(x=[20,45,65,85,105], 
+    a.vlines(x=[30,42,54,69,84,100,115], 
            ymin=0, ymax=10, colors='k', linestyles='dashed')
-    a.set_xlim([-0.5,125])
-    a.set_ylim([-0.001,0.051])
+    a.set_xlim([-0.5,160])
+    a.set_ylim([-0.001,0.031])
     a.set_ylabel(None)
     
 
@@ -105,12 +110,12 @@ fig.set_size_inches((15/2.54,10/2.54))
 
 plt.tight_layout()
 
-plt.savefig('ModelComparison_Disturbance_Recyc.png', bbox_inches='tight',dpi=600)  
+plt.savefig('ModelComparison_Disturbance_Switch.png', bbox_inches='tight',dpi=600)  
 
 
-for k in [10,20,30,40,50,60,70,80,90,100,110,120]:
-    print(BestFitRate(Poly.loc[1:k,'y_true'].values.reshape((-1,1)),
-                                Poly.loc[1:k,'y_est'].values.reshape((-1,1))))
+# for k in [10,20,30,40,50,60,70,80,90,100,110,120]:
+#     print(BestFitRate(Poly.loc[1:k,'y_true'].values.reshape((-1,1)),
+#                                 Poly.loc[1:k,'y_est'].values.reshape((-1,1))))
 
 # ax.set_xlabel('$n$')
 # ax.set_ylabel('$\mathrm{BFR}$')
