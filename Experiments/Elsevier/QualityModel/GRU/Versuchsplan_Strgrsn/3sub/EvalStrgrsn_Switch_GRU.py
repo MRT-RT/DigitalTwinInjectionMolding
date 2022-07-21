@@ -48,7 +48,6 @@ def Eval_GRU_on_Val(dim_c):
     
     # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
     path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
-    # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     
     u_inj= ['p_wkz_ist','T_wkz_ist']
@@ -142,18 +141,21 @@ for i in [4]:#range(1,11):
     # color_idx = color_idx +1
     
     pkl.dump(results_st,open('GRU_c'+str(i)+'_SwitchDist_pred.pkl','wb'))
-    
-# sns.stripplot(x = results_st.index, y=results_st['y_true']+weight_c11-1,
-#               ax=ax,color='grey')
+
+
+weight_c11 = 7.991
+
+sns.stripplot(x = results_st.index, y=results_st['y_true']+weight_c11-1,
+              ax=ax,color='grey')
 
 # ax.set_xlabel('$n$')
 # ax.set_ylabel('$\mathrm{BFR}$')
 
 
 # Um Punkte zu finden an denen Umschaltpunkt variiert wurde, müssen alle
-# alle Zyklen durchsucht werden
+#  Zyklen durchsucht werden
 
-# path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Umschaltpkt_Stoerung/'
+# path = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Umschaltpkt_Stoerung/'
 
 # switch = []
 # for c in range(251,410):
@@ -161,18 +163,18 @@ for i in [4]:#range(1,11):
 #     switch.append(c_data.loc[0,'Umschaltpunkt'])
 
 # Zyklen an denen Umschaltpunkt geändert wird aus switch abgelesen
-switch =   list(np.array([30,42,54,69,84,100,115])+251)
+switch =   list(np.array([30,42,54,69,84,100,115])+250)
 
 plt.vlines(x=[results_st.index.get_loc(loc) for loc in switch], 
            ymin=0, ymax=10, colors='k', linestyles='dashed')
 
-ax.set_xticklabels([str(c-251) for c in range(251,410) if c not in [253,406]])
+ax.set_xticklabels([str(c-250) for c in range(251,410) if c not in [253,406]])
 
-xticks = [0] + list(np.arange(9,159,10))
+xticks = [0] + list(np.arange(8,159,10))
     
 ax.set_xticks(xticks)
 
-ax.set_xlim([-0.5,125])
+ax.set_xlim([-0.5,160])
 ax.set_ylim([8.115,8.155])
 
 ax.set_xlabel('$c$')

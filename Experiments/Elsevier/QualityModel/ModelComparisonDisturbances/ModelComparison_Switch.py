@@ -78,21 +78,21 @@ MLP_e_99 = MLP_e[2]
 color_map = sns.color_palette()
 fig,ax = plt.subplots(3,1)
 
-ax[0].plot(GRU.index, abs(GRU['e']),color=color_map[0],linestyle='solid',marker='x')
+ax[0].plot(GRU.index, abs(GRU['e']),color=color_map[4],linestyle='solid',marker='d')
 ax[0].hlines(y=[GRU_e_90,GRU_e_95,GRU_e_99], xmin=0, xmax=160, colors='grey', 
              linestyles='dashed')
 
 
-ax[1].plot(MLP.index, abs(MLP['e']),color=color_map[1],linestyle='solid',marker='x')
+ax[1].plot(MLP.index, abs(MLP['e']),color=color_map[3],linestyle='solid',marker='+')
 ax[1].hlines(y=[MLP_e_90,MLP_e_95,MLP_e_99], xmin=0, xmax=160, colors='grey', 
              linestyles='dashed')
 
-ax[2].plot(Poly.index, abs(Poly['e']),color=color_map[2],linestyle='solid',marker='x')
+ax[2].plot(Poly.index, abs(Poly['e']),color=color_map[0],linestyle='solid',
+           marker='o',markersize=5)
 ax[2].hlines(y=[Poly_e_90,Poly_e_95,Poly_e_99], xmin=0, xmax=160, colors='grey', 
              linestyles='dashed')
 
-ax[0].set_xticklabels([])
-ax[1].set_xticklabels([])
+
 
 # Plot lines at time instances where disturbance was varied
 for a in ax:
@@ -101,8 +101,10 @@ for a in ax:
     a.set_xlim([-0.5,160])
     a.set_ylim([-0.001,0.031])
     a.set_ylabel(None)
+    a.set_xticks([1,20,40,60,80,100,120,140,160])
     
-
+ax[0].set_xticklabels([])
+ax[1].set_xticklabels([])
     
 ax[2].set_xlabel('$c$')
 
