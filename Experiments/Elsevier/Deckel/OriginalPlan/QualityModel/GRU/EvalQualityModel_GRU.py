@@ -12,9 +12,10 @@ import seaborn as sns
 import time
 
 import sys
-sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
@@ -31,14 +32,21 @@ def Eval_GRU_on_Val(dim_c):
     params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     # params = res.loc[10]['params_val']
 
-    charges = list(range(1,26))
+    # charges = list(range(1,26))
+    charges = list(range(1,275))
     
     mode='quality'
     split = 'all'
     # split = 'part'
+    del_outl = True
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+    
+    # path = path_sys + 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = path_sys + '/data/Versuchsplan/normalized/'
         
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
@@ -49,11 +57,8 @@ def Eval_GRU_on_Val(dim_c):
     y_lab = ['Durchmesser_innen']
     
     
-    u_lab = [u_inj,u_press,u_cool]
-    y_lab = ['Durchmesser_innen']
-    
     data_train,data_val = \
-    LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
+    LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))] 
@@ -110,7 +115,7 @@ def Eval_GRU_on_Val(dim_c):
     return results_train,results_val
 
 
-for i in range(1,11):
+for i in range(1,2):
 
     results_train,results_st = Eval_GRU_on_Val(dim_c=i)
     
