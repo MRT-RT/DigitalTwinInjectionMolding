@@ -9,6 +9,7 @@ import sys
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 # import os.path as path
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
@@ -34,14 +35,16 @@ def Eval_MLP(dim_hidden):
     charges = list(range(1,26)) # list(range(1,26))
     
     split = 'all'
+    del_outl = True
     
     # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-    path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path = path_sys + '/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
-    data_train,data_val = LoadFeatureData(path,charges,split)
+    data_train,data_val = LoadFeatureData(path,charges,split,del_outl)
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
                'Einspritzgeschwindigkeit','Umschaltpunkt',
@@ -83,9 +86,17 @@ def Eval_MLP(dim_hidden):
     return results_train,results_val
 
 
-for i in list(range(1,11))+[20,40]:
+for i in [2]:#list(range(1,11))+[20,40]:
     
     results_train,results_val = Eval_MLP(dim_hidden=i)
+    
+    e = abs(results_val['y_true']-results_val['y_est'])
+    
+    print(np.percentile(e, 50))
+    print(np.percentile(e, 75))  
+    print(np.percentile(e, 90)) 
+    print(np.percentile(e, 95)) 
+    print(np.percentile(e, 99))
     
     print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
                 results_val['y_est'].values.reshape((-1,1))))

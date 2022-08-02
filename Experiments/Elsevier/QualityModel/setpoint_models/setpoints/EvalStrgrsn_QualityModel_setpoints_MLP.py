@@ -14,7 +14,7 @@ sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
 # print(two_up)
 
-from DIM.miscellaneous.PreProcessing import LoadSetpointData, MinMaxScale
+from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.optim.common import BestFitRate
 from DIM.models.model_structures import Static_MLP
 from DIM.optim.param_optim import ParallelModelTraining, static_mode
@@ -35,15 +35,17 @@ def Eval_MLP(dim_hidden):
     charges = list(range(1,26)) # list(range(1,26))
     
     split = 'all'
+    del_outl = False
     
-    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'  
+    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path_data_train = 'data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
-    # path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
-    path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
+    path_data_strgrsn = 'data/Stoergroessen/20220506/Rezyklat_Stoerung/normalized/'
+    # path_data_strgrsn = 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung/normalized/'
     # path_data_strgrsn = 'data/Stoergroessen/20220505/T_wkz_Stoerung/normalized/'
     
     # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
@@ -53,8 +55,10 @@ def Eval_MLP(dim_hidden):
     
     
     
-    data_train,_ = LoadSetpointData(path_sys+path_data_train,charges,split)
-    data_st1,data_st2 = LoadSetpointData(path_sys+path_data_strgrsn,[1],split)
+    data_train,_ = LoadFeatureData(path_sys+path_data_train,charges,split,
+                                    del_outl)
+    data_st1,data_st2 = LoadFeatureData(path_sys+path_data_strgrsn,[1],split,
+                                         del_outl)
     
     data_st = pd.concat([data_st1,data_st2])
     
@@ -95,7 +99,7 @@ def Eval_MLP(dim_hidden):
 
     return results_train,results_val
 
-for i in range(1,11):
+for i in list(range(1,11))+[20,40]:
     
     results_train,results_val = Eval_MLP(dim_hidden=i)
     

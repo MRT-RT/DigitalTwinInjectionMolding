@@ -26,7 +26,7 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 def Eval_GRU_on_Val(dim_c):
 
     # Load best model
-    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_MaxSp.pkl','rb'))
+    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_EModul.pkl','rb'))
     
     params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     # params = res.loc[10]['params_val']
@@ -35,11 +35,12 @@ def Eval_GRU_on_Val(dim_c):
     
     mode='quality'
     split = 'all'
+    del_outl = True
     
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
-    sys_path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-    
-    path = sys_path + '/data/Zugstab/data/normalized_minmax/'
+    path = path_sys + '/data/Zugstab/data/normalized_minmax/'
     
     
     
@@ -48,11 +49,11 @@ def Eval_GRU_on_Val(dim_c):
     u_cool= ['p_wkz_ist','T_wkz_ist']
     
     u_lab = [u_inj,u_press,u_cool]
-    y_lab = ['Maximalspannung']
+    y_lab = ['E-Modul']
     
     
     data_train,data_val = \
-    LoadDynamicData(path,charges,split,y_lab,u_lab,mode)
+    LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))] 
@@ -105,7 +106,7 @@ for i in range(1,2):
 
     results_train,results_val = Eval_GRU_on_Val(dim_c=i)
     
-    results_val.drop(index=163,inplace=True)
+    # results_val.drop(index=163,inplace=True)
     
     print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
                 results_val['y_est'].values.reshape((-1,1))))

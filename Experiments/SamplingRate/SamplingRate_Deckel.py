@@ -40,7 +40,8 @@ def zero_phase_filter(data, cutoff, fs, order=5):
 
 plt.close('all')
 
-path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/HighFrequencyMeasurements/Deckel/' # @work
+path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
+path = path_sys + 'data/HighFrequencyMeasurements/Deckel/' # @work
 
 file = 'cycle416.pkl'
 
@@ -103,7 +104,11 @@ ax[1].set_title('Power Spectrum')
 
 ax[1].set_xlabel('Hz')
 
+fig.set_size_inches((15/2.54,10/2.54))
 
+plt.tight_layout()
+
+plt.savefig('PressureSignal_Spectrum.png', bbox_inches='tight',dpi=600)  
 
 # cutoff = fs/2
 

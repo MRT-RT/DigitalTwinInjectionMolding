@@ -603,10 +603,10 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl):
     
     return data_train,data_val
 
-def LoadFeatureData(path,charges, split):
+def LoadFeatureData(path,charges, split,del_outl):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
-    split_charges_to_trainval_data(path,charges,split)    
+    split_charges_to_trainval_data(path,charges,split,del_outl)    
        
     # load doe plan 
     doe_plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
