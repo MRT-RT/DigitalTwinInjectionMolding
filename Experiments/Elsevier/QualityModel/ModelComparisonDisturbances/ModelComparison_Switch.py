@@ -100,8 +100,9 @@ for a in ax:
            ymin=0, ymax=10, colors='k', linestyles='dashed')
     a.set_xlim([-0.5,160])
     a.set_ylim([-0.001,0.031])
-    a.set_ylabel(None)
+    a.set_ylabel('$\Delta m$' + ' in g')
     a.set_xticks([1,20,40,60,80,100,120,140,160])
+    
     
 ax[0].set_xticklabels([])
 ax[1].set_xticklabels([])

@@ -40,7 +40,8 @@ def zero_phase_filter(data, cutoff, fs, order=5):
 
 plt.close('all')
 
-path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
+path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
 path = path_sys + 'data/HighFrequencyMeasurements/Deckel/' # @work
 
 file = 'cycle416.pkl'
@@ -102,7 +103,7 @@ ax[1].set_xlim(0,25)
 ax[0].set_title('Amplitude Sepctrum (dB)')
 ax[1].set_title('Power Spectrum')
 
-ax[1].set_xlabel('Hz')
+ax[1].set_xlabel('frequency in' +'$\mathrm{Hz}$')
 
 fig.set_size_inches((15/2.54,10/2.54))
 
