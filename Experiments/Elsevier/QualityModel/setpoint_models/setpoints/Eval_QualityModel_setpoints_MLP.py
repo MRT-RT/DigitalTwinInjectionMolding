@@ -6,9 +6,10 @@ Created on Tue Jan 25 15:16:22 2022
 """
 
 import sys
+sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
-sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 # import os.path as path
 # two_up =  path.abspath(path.join(__file__ ,"../.."))
@@ -26,19 +27,22 @@ import numpy as np
 import pandas as pd
 
 
-def Eval_MLP(dim_hidden):
+def Eval_MLP(dim_hidden,init):
     
     res = pkl.load(open('QualityModel_Gewicht_static_MLP_'+str(dim_hidden)+'.pkl','rb'))
-    params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     
-    charges = list(range(1,26)) # list(range(1,26))
+    # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
+    params = res.loc[init][['params_val']][0]
+    
+    charges = list(range(1,26))
     
     split = 'all'
-    del_outl = False
+    del_outl = True
     
     # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-    path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path = path_sys + '/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
@@ -83,15 +87,26 @@ def Eval_MLP(dim_hidden):
     return results_train,results_val
 
 
-for i in range(1,11):
-    
-    results_train,results_val = Eval_MLP(dim_hidden=i)
-    
-    print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-                results_val['y_est'].values.reshape((-1,1))))
+data = []
 
 
+for c in range(1,11):
 
+    for init in range(0,10):    
+
+        results_train,results_val = Eval_MLP(c,init)
+        
+        BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+              results_val['y_est'].values.reshape((-1,1)))/100
+        
+        print('dim c:'+str(c)+' init:' + str(init) + ' BFR: ' + 
+              str(BFR))
+        
+        data.append([BFR,'MLP_set',c,'Gewicht',init])
+        
+df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
+
+pkl.dump(df,open('MLP_set_Gewicht.pkl','wb'))
 
 
 

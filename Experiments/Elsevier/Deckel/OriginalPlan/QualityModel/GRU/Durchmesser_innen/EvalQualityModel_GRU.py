@@ -27,34 +27,41 @@ from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_ou
 def Eval_GRU_on_Val(dim_c,init):
 
     # Load best model
-    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn_Gewicht.pkl','rb'))
-    
-    # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
-    
+    res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
+       
+    # params = res.loc[res['loss_val'].idxmin()][['params']][0]
     params = res.loc[init]['params_val']
 
-    charges = list(range(1,26))
+    charges = list(range(1,275))
     
     mode='quality'
     split = 'all'
+    # split = 'part'
     del_outl = True
     
     # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
     path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
     # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
-    
-    path = path_sys + '/data/Stoergroessen/20220504/Versuchsplan/normalized/'      
+
+    path = path_sys + '/data/Versuchsplan/normalized/'
+       
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
     u_press= ['p_wkz_ist','T_wkz_ist']
     u_cool= ['p_wkz_ist','T_wkz_ist']
     
     u_lab = [u_inj,u_press,u_cool]
-    y_lab = ['Gewicht']
+    y_lab = ['Durchmesser_innen']
     
-    data_train,data_val = \
-    LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl)
+    # norm_cycle = pkl.load(open(path+'cycle11.pkl','rb'))
+    
+    
+    # data_train,data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,
+    #                                       mode,norm_cycle)
+
+    data_train,data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,
+                                          mode,del_outl)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))] 
@@ -79,16 +86,19 @@ def Eval_GRU_on_Val(dim_c,init):
     quality_model.SetParameters(params)
     
     # Evaluate model on training data
-    _,y_train = parallel_mode(quality_model,data_train)
-    y_true = np.array([df[y_lab].iloc[0] for df in data_train['data']]).reshape((-1,1))
-    y_train = np.array([df[y_lab].iloc[0] for df in y_train]).reshape((-1,1))
-    e_train = y_true-y_train
+    # _,y_train = parallel_mode(quality_model,data_train)
     
-    results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
-                            columns=['y_true','y_est','e'],
-                              index = data_train['cycle_num'])
     
-    # Evaluate model on validation data
+    # y_true = np.array([df[y_lab].iloc[0] for df in data_train['data']]).reshape((-1,1))
+    # y_train = np.array([df[y_lab].iloc[0] for df in y_train]).reshape((-1,1))
+    # e_train = y_true-y_train
+    
+    
+    
+    # results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
+    #                         columns=['y_true','y_est','e'])
+    results_train = None
+    # # Evaluate model on validation data
     _,y_val = parallel_mode(quality_model,data_val)
     
     
@@ -96,9 +106,10 @@ def Eval_GRU_on_Val(dim_c,init):
     y_val = np.array([df[y_lab].iloc[0] for df in y_val]).reshape((-1,1))
     e_val = y_true-y_val
     
+    
+    
     results_val = pd.DataFrame(data=np.hstack([y_true,y_val,e_val]),
-                            columns=['y_true','y_est','e'],
-                            index = data_val['cycle_num'])
+                            columns=['y_true','y_est','e'])
 
     return results_train,results_val
 
@@ -109,16 +120,16 @@ for c in range(1,11):
 
     for init in range(0,10):    
 
-        results_train,results_st = Eval_GRU_on_Val(c,init)
+        results_train,results_val = Eval_GRU_on_Val(c,init)
         
-        BFR = BestFitRate(results_st['y_true'].values.reshape((-1,1)),
-              results_st['y_est'].values.reshape((-1,1)))
+        BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+              results_val['y_est'].values.reshape((-1,1)))
         
         print('dim c:'+str(c)+' init:' + str(init) + ' BFR: ' + 
               str(BFR))
         
-        data.append([BFR,'GRU_3sub',c,'Gewicht',init])
+        data.append([BFR,'GRU_3sub',c,'Durchmesser_innen',init])
         
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
-pkl.dump(df,open('GRU_3sub_Gewicht.pkl','wb')) # ausführen bei fehlermeldung
+pkl.dump(df,open('GRU_3sub_Durchmesser_innen.pkl','wb'))

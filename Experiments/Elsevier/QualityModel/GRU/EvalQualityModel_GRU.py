@@ -31,7 +31,7 @@ def Eval_GRU_on_Val(dim_c):
     params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     # params = res.loc[10]['params_val']
 
-    charges = list(range(1,26))
+    charges = list(range(1,275))
     
     mode='quality'
     split = 'all'
@@ -110,7 +110,7 @@ def Eval_GRU_on_Val(dim_c):
     return results_train,results_val
 
 
-for i in range(1,11):
+for i in range(1,2):
 
     results_train,results_st = Eval_GRU_on_Val(dim_c=i)
     

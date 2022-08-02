@@ -15,6 +15,7 @@ import sys
 sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
 sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
+sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 
 from DIM.models.model_structures import GRU
 from DIM.models.injection_molding import QualityModel
@@ -23,23 +24,27 @@ from DIM.optim.param_optim import parallel_mode
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadDynamicData
 
 
-def Eval_GRU_on_Val(dim_c):
+def Eval_GRU_on_Val(dim_c,init):
 
     # Load best model
     res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
        
     # params = res.loc[res['loss_val'].idxmin()][['params']][0]
-    params = res.loc[10]['params_val']
+    params = res.loc[init]['params_val']
 
     charges = list(range(1,275))
     
     mode='quality'
     split = 'all'
     # split = 'part'
+    del_outl = True
     
-    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/normalized/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+
+    path = path_sys + '/data/Versuchsplan/normalized/'
        
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
@@ -49,10 +54,14 @@ def Eval_GRU_on_Val(dim_c):
     u_lab = [u_inj,u_press,u_cool]
     y_lab = ['Durchmesser_innen']
     
-    norm_cycle = pkl.load(open(path+'cycle11.pkl','rb'))
+    # norm_cycle = pkl.load(open(path+'cycle11.pkl','rb'))
     
+    
+    # data_train,data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,
+    #                                       mode,norm_cycle)
+
     data_train,data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,
-                                          mode,norm_cycle)
+                                          mode,del_outl)
     
     c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
     c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))] 
@@ -104,12 +113,41 @@ def Eval_GRU_on_Val(dim_c):
 
     return results_train,results_val
 
+data = []
 
-results_train,results_val = Eval_GRU_on_Val(dim_c=9)
+
+for c in range(1,11):
+
+    for init in range(0,10):    
+
+        results_train,results_val = Eval_GRU_on_Val(c,init)
+        
+        BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+              results_val['y_est'].values.reshape((-1,1)))
+        
+        print('dim c:'+str(c)+' init:' + str(init) + ' BFR: ' + 
+              str(BFR))
+        
+        data.append([BFR,'GRU_3sub',c,'Durchmesser_innen',init])
+        
+df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
+
+pkl.dump(df,open('GRU_3sub_Durchmesser_innen.pkl','wb'))
 
 
-print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-            results_val['y_est'].values.reshape((-1,1))))
+
+
+
+
+
+
+
+
+# results_train,results_val = Eval_GRU_on_Val(dim_c=9)
+
+
+# print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+#             results_val['y_est'].values.reshape((-1,1))))
 
 # pkl.dump(results_train,open('GRU_results_train_c'+str(c)+'.pkl','wb')) 
 # pkl.dump(results_val,open('GRU_results_val_c'+str(c)+'.pkl','wb')) 

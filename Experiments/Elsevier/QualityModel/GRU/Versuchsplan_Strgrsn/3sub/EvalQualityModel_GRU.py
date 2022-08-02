@@ -25,13 +25,13 @@ from DIM.optim.param_optim import parallel_mode
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadDynamicData
 
 
-def Eval_GRU_on_Val(dim_c):
+def Eval_GRU_on_Val(dim_c,init):
 
     # Load best model
     res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn_Gewicht.pkl','rb'))
     
-    params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
-    # params = res.loc[10]['params_val']
+    # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
+    params = res.loc[init][['params_val']][0]
 
     charges = list(range(1,26))
     
@@ -107,17 +107,22 @@ def Eval_GRU_on_Val(dim_c):
 
     return results_train,results_val
 
+data = []
 
-for i in [4]: #range(1,11):
+for c in range(1,11):
 
-    results_train,results_val = Eval_GRU_on_Val(dim_c=i)
-    
-    e = abs(results_val['y_true']-results_val['y_est'])
-    
-    print(np.percentile(e, 90)) 
-    print(np.percentile(e, 95)) 
-    print(np.percentile(e, 99))
-    
-    
-    print(BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-                results_val['y_est'].values.reshape((-1,1))))
+    for init in range(0,10):    
+
+        results_train,results_val = Eval_GRU_on_Val(c,init)
+        
+        BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+              results_val['y_est'].values.reshape((-1,1)))/100
+        
+        print('dim c:'+str(c)+' init:' + str(init) + ' BFR: ' + 
+              str(BFR))
+        
+        data.append([BFR,'GRU_3sub',c,'Gewicht',init])
+        
+df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
+
+pkl.dump(df,open('GRU_3sub_Gewicht.pkl','wb'))
