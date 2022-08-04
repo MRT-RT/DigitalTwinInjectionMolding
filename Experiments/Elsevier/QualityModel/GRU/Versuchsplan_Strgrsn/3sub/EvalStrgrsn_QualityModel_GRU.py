@@ -127,6 +127,7 @@ for i in range(4,5):
 
     plt.figure()
     sns.stripplot(x = results_st.index, y=abs(results_st['y_true']-results_st['y_est']))
+    sns.stripplot(x = results_st.index, y=abs(results_st['y_true']-results_st['y_est']))
     # plt.ylim([-0.02,0.02])
     plt.title(str(i))
     

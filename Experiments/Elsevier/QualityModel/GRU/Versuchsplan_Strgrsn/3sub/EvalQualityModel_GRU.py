@@ -30,8 +30,8 @@ def Eval_GRU_on_Val(dim_c,init):
     # Load best model
     res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_Stoergrsn_Gewicht.pkl','rb'))
     
-    # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
-    params = res.loc[init][['params_val']][0]
+    params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
+    # params = res.loc[init][['params_val']][0]
 
     charges = list(range(1,26))
     
@@ -42,9 +42,9 @@ def Eval_GRU_on_Val(dim_c,init):
 
 
     # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
+    # path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+    path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
     
     path = path_sys + 'data/Stoergroessen/20220504/Versuchsplan/normalized/'      
    
@@ -109,7 +109,7 @@ def Eval_GRU_on_Val(dim_c,init):
 
 data = []
 
-for c in range(1,11):
+for c in [4]:
 
     for init in range(0,10):    
 
