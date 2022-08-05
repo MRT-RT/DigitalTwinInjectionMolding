@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pickle as pkl
 from scipy import stats
 
-def klemann_convert_hdf5(file,save_path=None):
+def klemann_convert_hdf5(,):
     '''
     
 
@@ -90,7 +90,8 @@ def klemann_convert_hdf5(file,save_path=None):
             T_zyl5_ist = file[cycle]['T805I_Value']['block0_values'][:]
             T_zyl5_ist = pd.Series(np.repeat(T_zyl5_ist,len(df)))
             df=df.assign(T_zyl5_ist = T_zyl5_ist.values)   
-
+            
+            ''' Setpoints Anfang '''
             V_um_soll = file[cycle]['V305_Value']['block0_values'][:]
             df['Umschaltpunkt']=np.nan
             df.loc[0]['Umschaltpunkt'] = V_um_soll
@@ -127,6 +128,8 @@ def klemann_convert_hdf5(file,save_path=None):
             df['t_press2_soll']=np.nan
             df.loc[0]['t_press2_soll'] = t_press2_soll            
 
+            ''' Setpoints Ende ''' 
+            
             cycle_num = file[cycle]['f071_Value']['block0_values'][0,0]
             df['cycle_num']=np.nan
             df.loc[0]['cycle_num'] = cycle_num

@@ -13,10 +13,12 @@ import time
 
 from DIM.miscellaneous.PreProcessing import klemann_convert_hdf5
 
+''' Programmübersicht '''
 # Open hdf5-file
 # Check if a new key/group has appeared
 # if False close and open again a few seconds later
 # if True open new group and parse data to new hdf5 file in new format
+
 
 # path to hdf5 file with raw data created by PIM machine
 hdf5_path = \
@@ -30,7 +32,7 @@ hdf5_path_new = 'test_folder/data.h5'
 # in future
 
 # Initialize cycle counter
-c = 1000
+c = 1
 
 execute_program = True
 
@@ -63,6 +65,8 @@ while execute_program:
     
     new_hdf5.close()
     file.close()
+    
+    c = c + 1 
     
     
         
