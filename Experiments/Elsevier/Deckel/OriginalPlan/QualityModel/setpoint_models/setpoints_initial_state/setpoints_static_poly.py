@@ -29,8 +29,8 @@ del_outl = True
 
 targets = ['Durchmesser_innen']
 
-# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
 # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
 path = path_sys + 'data/Versuchsplan/normalized/'
@@ -65,4 +65,4 @@ for i in range(1,11):
 
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
-pkl.dump(df,open('Poly_set_x0_Gewicht.pkl','wb'))
+pkl.dump(df,open('Poly_set_x0_Gewicht_all.pkl','wb'))

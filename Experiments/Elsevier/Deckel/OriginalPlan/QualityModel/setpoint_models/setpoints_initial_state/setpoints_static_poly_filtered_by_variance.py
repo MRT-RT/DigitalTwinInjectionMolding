@@ -8,6 +8,8 @@ Created on Tue Jan 25 15:16:22 2022
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pickle as pkl
+
 import sys
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
@@ -18,6 +20,12 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 from DIM.miscellaneous.PreProcessing import LoadFeatureData
 from sklearn.preprocessing import PolynomialFeatures
+
+path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+# path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+
+path = path_sys + 'data/Versuchsplan/normalized/'
 
 
 
@@ -46,15 +54,8 @@ del_outl = True
 
 targets = ['Durchmesser_innen']
 
-
-# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-# path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
-
-path = path_sys + 'data/Versuchsplan/normalized/'
-
-data_train,_  = LoadFeatureData(path,charges_train,split)
-_,data_val  = LoadFeatureData(path,charges_low_var,split)
+data_train,_  = LoadFeatureData(path,charges_train,split,del_outl)
+_,data_val  = LoadFeatureData(path,charges_low_var,split,del_outl)
 
 
 # data = data_train.append(data_val)
@@ -63,6 +64,8 @@ inputs = ['Düsentemperatur', 'Werkzeugtemperatur',
             'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
             'Nachdruckzeit', 'Staudruck', 'Kühlzeit','T_wkz_0','p_inj_0',
             'x_0']
+
+data= []
 
 for i in range(1,11):
     # Polynomial Model
