@@ -8,6 +8,7 @@ Created on Tue Jan 25 15:16:22 2022
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pickle as pkl
 import sys
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
@@ -51,11 +52,13 @@ targets = ['Durchmesser_innen']
 
 
 data_train,_  = LoadFeatureData(path,charges_train,split,del_outl)
-_,data_val  = LoadFeatureData(path,charges_low_var,split,del_outl)
+_,data_val  = LoadFeatureData(path,charges_train,split,del_outl)
 
 inputs = ['Düsentemperatur', 'Werkzeugtemperatur',
        'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
        'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
+
+data = []
 
 for i in range(1,11):
     # Polynomial Model
@@ -76,4 +79,4 @@ for i in range(1,11):
 
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
-pkl.dump(df,open('Poly_set_x0_Gewicht_low_var.pkl','wb'))
+pkl.dump(df,open('Poly_set_Durchmesser_all.pkl','wb'))
