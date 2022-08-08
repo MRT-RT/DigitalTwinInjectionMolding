@@ -37,7 +37,7 @@ def Fit_MLP(dim_hidden):
     
     path = path_sys + '/data/Versuchsplan/normalized/'
     
-    data_train,data_val = LoadFeatureData(path,charges,split)
+    data_train,data_val = LoadFeatureData(path,charges,split,del_outl)
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
                 'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',

@@ -26,15 +26,16 @@ from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 def Fit_GRU(dim_c,initial_params=None):
 
-    charges = list(range(1,3))#list(range(1,275))
+    charges = list(range(1,275))
     
     mode='quality'
     split = 'all'
-    # split = 'part'
+
     del_outl = True
-    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+    
+    path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
-    path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
     # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
     path = path_sys + '/data/Versuchsplan/normalized/'
@@ -68,13 +69,13 @@ def Fit_GRU(dim_c,initial_params=None):
     quality_model = QualityModel(subsystems=[inj_model,press_model,cool_model],
                                   name='q_model')   
     
-    s_opts = {"max_iter": 1, 'hessian_approximation':'limited-memory'}
+    s_opts = {"max_iter": 1000, 'hessian_approximation':'limited-memory'}
 
     
     results_GRU = ParallelModelTraining(quality_model,data_train,data_val,
                                         initializations=20, BFR=False,
                                         p_opts=None, s_opts=s_opts,
-                                        mode='parallel',n_pool=2)
+                                        mode='parallel',n_pool=4)
         
     pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
   
