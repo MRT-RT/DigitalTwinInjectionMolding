@@ -19,6 +19,28 @@ from sklearn.metrics import r2_score
 from DIM.miscellaneous.PreProcessing import LoadFeatureData
 from sklearn.preprocessing import PolynomialFeatures
 
+path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+# path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+
+path = path_sys + 'data/Versuchsplan/normalized/'
+
+# Find charges with high / low variance
+plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
+
+charges_low_var = []
+charges_high_var = []
+
+
+for charge in list(range(1,275)):
+    plan_sub = plan.loc[plan['Charge']==charge]
+    
+    std = plan_sub['Durchmesser_innen'].std()
+    
+    if std > 0.035:
+        charges_high_var.append(charge)
+    else:
+        charges_low_var.append(charge)
 
 
 charges_train = list(range(1,275))
@@ -27,14 +49,9 @@ del_outl = True
 
 targets = ['Durchmesser_innen']
 
-path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-# path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
-
-path = path_sys + 'data/Versuchsplan/normalized/'
 
 data_train,_  = LoadFeatureData(path,charges_train,split,del_outl)
-_,data_val  = LoadFeatureData(path,charges_train,split,del_outl)
+_,data_val  = LoadFeatureData(path,charges_low_var,split,del_outl)
 
 inputs = ['Düsentemperatur', 'Werkzeugtemperatur',
        'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
@@ -59,4 +76,4 @@ for i in range(1,11):
 
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
-pkl.dump(df,open('Poly_set_Durchmesser_all.pkl','wb'))
+pkl.dump(df,open('Poly_set_x0_Gewicht_low_var.pkl','wb'))
