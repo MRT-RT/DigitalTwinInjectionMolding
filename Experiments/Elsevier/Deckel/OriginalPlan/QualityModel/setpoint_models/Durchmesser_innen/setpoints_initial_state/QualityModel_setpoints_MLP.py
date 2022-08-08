@@ -56,7 +56,7 @@ def Fit_MLP(dim_hidden):
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
     
     result = ParallelModelTraining(model,data_train,data_val,initializations=10,
-                           p_opts=None,s_opts=s_opts,mode='static',n_pool=5)
+                           p_opts=None,s_opts=s_opts,mode='static',n_pool=2)
 
     result['dim_hidden'] = dim_hidden
     
@@ -67,6 +67,7 @@ def Fit_MLP(dim_hidden):
     
 if __name__ == '__main__':
     
+    multiprocessing.freeze_support()
     h1 = Fit_MLP(dim_hidden=1)
     h2 = Fit_MLP(dim_hidden=2)
     h3 = Fit_MLP(dim_hidden=3)
@@ -77,8 +78,7 @@ if __name__ == '__main__':
     h8 = Fit_MLP(dim_hidden=8)
     h9 = Fit_MLP(dim_hidden=9)
     h10 = Fit_MLP(dim_hidden=10)
-    h20 = Fit_MLP(dim_hidden=20)
-    h40 = Fit_MLP(dim_hidden=40)    
+   
 
 
 
