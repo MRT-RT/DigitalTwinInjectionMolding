@@ -29,6 +29,7 @@ def Fit_MLP(dim_hidden):
     charges = list(range(1,275))
     
     split = 'all'
+    del_outl = True
     
     path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
     # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
@@ -36,7 +37,7 @@ def Fit_MLP(dim_hidden):
     
     path = path_sys + '/data/Versuchsplan/normalized/'
     
-    data_train,data_val = LoadFeatureData(path,charges,split)
+    data_train,data_val = LoadFeatureData(path,charges,split,del_outl)
     
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
@@ -54,7 +55,7 @@ def Fit_MLP(dim_hidden):
     
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
     
-    result = ParallelModelTraining(model,data_train,data_val,initializations=10,
+    result = ParallelModelTraining(model,data_train,data_val,initializations=20,
                            p_opts=None,s_opts=s_opts,mode='static',n_pool=5)
 
     result['dim_hidden'] = dim_hidden
@@ -65,6 +66,8 @@ def Fit_MLP(dim_hidden):
 
     
 if __name__ == '__main__':
+    
+    multiprocessing.freeze_support()
     
     h1 = Fit_MLP(dim_hidden=1)
     h2 = Fit_MLP(dim_hidden=2)
