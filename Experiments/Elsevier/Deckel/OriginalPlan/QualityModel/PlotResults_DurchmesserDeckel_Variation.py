@@ -7,10 +7,10 @@ import seaborn as sns
 
 # Result of models copy and pasted from Eval_..._.py
 
-poly_setpoints = pkl.load(open('./setpoint_models/setpoints/Poly_set_Durchmesser_all.pkl','rb'))
-poly_setpoints_x0 =    pkl.load(open('./setpoint_models/setpoints_initial_state/Poly_set_x0_Durchmesser_all.pkl','rb'))
-MLP_setpoints = pkl.load(open('./setpoint_models/setpoints/MLP_set_Durchmesser_all.pkl','rb'))
-MLP_setpoints_x0 = pkl.load(open('./setpoint_models/setpoints_initial_state/MLP_set_x0_Durchmesser_all.pkl','rb'))
+poly_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints/Poly_set_Durchmesser_all.pkl','rb'))
+poly_setpoints_x0 =    pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints_initial_state/Poly_set_x0_Durchmesser_all.pkl','rb'))
+MLP_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints/MLP_set_Durchmesser_all.pkl','rb'))
+MLP_setpoints_x0 = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints_initial_state/MLP_set_x0_Durchmesser_all.pkl','rb'))
 GRU = pkl.load(open('./GRU/Durchmesser_innen/GRU_3sub_Durchmesser_innen.pkl','rb'))
 
 res = pd.concat([poly_setpoints,poly_setpoints_x0,MLP_setpoints,
@@ -61,7 +61,7 @@ legend.set_bbox_to_anchor((1.05, 1))
 ax.set_xlabel('$n$')
 ax.set_ylabel('$\mathrm{BFR}$')
 
-fig.set_size_inches((16/2.54,8/2.54))
+fig.set_size_inches((16/2.54,6/2.54))
 # ax.set_xlim([0.8,10.2])
 ax.set_ylim([0.7,1])
 # ax.set_xticks(range(1,11))
