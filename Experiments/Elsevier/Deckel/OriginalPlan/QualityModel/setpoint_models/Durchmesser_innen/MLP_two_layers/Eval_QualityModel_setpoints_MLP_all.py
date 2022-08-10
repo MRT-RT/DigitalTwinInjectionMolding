@@ -11,6 +11,7 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 
+
 from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.optim.common import BestFitRate
 from DIM.models.model_structures import Static_Multi_MLP
@@ -36,7 +37,9 @@ def Eval_MLP(dim_hidden,init,charges,path):
    
     # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     
-    params = res.loc[init][['params_val']][0]   
+    params = res.loc[init][['params_val']][0]
+    
+    charges = list(range(1,275)) 
     
     split = 'all'
     del_outl = True
@@ -47,7 +50,6 @@ def Eval_MLP(dim_hidden,init,charges,path):
                 'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
                 'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
     
-    
     y_label = ['Durchmesser_innen']   
     
     # Normalize Data
@@ -55,7 +57,7 @@ def Eval_MLP(dim_hidden,init,charges,path):
     data_val,_ = MinMaxScale(data_val,u_label+y_label,minmax)
     
     model = Static_Multi_MLP(dim_u=8, dim_out=1, dim_hidden=dim_hidden,
-                             layers=2, u_label=u_label, y_label=y_label,
+                             layers=2,u_label=u_label,y_label=y_label,
                              name='MLP', init_proc='xavier')
     
 
@@ -83,45 +85,26 @@ def Eval_MLP(dim_hidden,init,charges,path):
 
     return results_train,results_val
 
-# Find charges with high / low variance
-plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
-
-charges_low_var = []
-charges_high_var = []
-
-
-for charge in list(range(1,275)):
-    plan_sub = plan.loc[plan['Charge']==charge]
-    
-    std = plan_sub['Durchmesser_innen'].std()
-    
-    if std > 0.035:
-        charges_high_var.append(charge)
-    else:
-        charges_low_var.append(charge)
-
 data = []
+
+charges = list(range(1,275))
 
 for c in range(1,11):
 
     for init in range(0,20):    
 
-        results_train,results_val = Eval_MLP(c,init,charges_low_var,
+
+        results_train,results_val = Eval_MLP(c,init,charges,
                                                     path)
-        
+                                                    
         BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
               results_val['y_est'].values.reshape((-1,1)))/100
         
         print('dim c:'+str(c)+' init:' + str(init) + ' BFR: ' + 
               str(BFR))
         
-        data.append([BFR,'MLP_2l_set_x0',c,'Durchmesser_innen',init])
+        data.append([BFR,'MLP_2l_set',c,'Durchmesser_innen',init])
         
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
-pkl.dump(df,open('MLP_set_Durchmesser_low_var.pkl','wb'))
-
-
-
-
-
+pkl.dump(df,open('MLP_2layer_set_Durchmesser.pkl','wb'))

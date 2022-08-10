@@ -108,9 +108,9 @@ data = []
 
 for c in range(1,11):
 
-    for init in range(0,10):  
+    for init in range(0,20):  
         
-        results_train,results_val = Eval_MLP(c,init,charges_high_var,
+        results_train,results_val = Eval_MLP(c,init,charges_low_var,
                                                     path)
         
         BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
@@ -123,7 +123,7 @@ for c in range(1,11):
         
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
-pkl.dump(df,open('MLP_set_Durchmesser_high_var.pkl','wb'))
+pkl.dump(df,open('MLP_set_Durchmesser_low_var.pkl','wb'))
 
 
 
