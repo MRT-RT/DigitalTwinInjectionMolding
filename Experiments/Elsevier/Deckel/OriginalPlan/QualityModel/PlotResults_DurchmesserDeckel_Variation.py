@@ -69,5 +69,5 @@ ax.set_ylim([0.7,1])
 # ax.set_xticks(range(1,11))
 
 plt.tight_layout()
-plt.savefig('Results_Deckel_Durchmesser_all.png', bbox_inches='tight',dpi=600)
+# plt.savefig('Results_Deckel_Durchmesser_all.png', bbox_inches='tight',dpi=600)
 

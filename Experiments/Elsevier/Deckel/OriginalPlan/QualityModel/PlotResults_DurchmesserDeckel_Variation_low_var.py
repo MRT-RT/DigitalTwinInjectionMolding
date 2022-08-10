@@ -9,8 +9,10 @@ import seaborn as sns
 
 poly_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints/Poly_set_Durchmesser_low_var.pkl','rb'))
 poly_setpoints_x0 =    pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints_initial_state/Poly_set_x0_Durchmesser_low_var.pkl','rb'))
-MLP_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints/MLP_set_Durchmesser_low_var.pkl','rb'))
-MLP_setpoints_x0 = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints_initial_state/MLP_set_x0_Durchmesser_low_var.pkl','rb'))
+# MLP_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints/MLP_set_Durchmesser_low_var.pkl','rb'))
+# MLP_setpoints_x0 = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints_initial_state/MLP_set_x0_Durchmesser_low_var.pkl','rb'))
+MLP_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/MLP_two_layers/MLP_2layer_set_Durchmesser_low_var.pkl','rb'))
+MLP_setpoints_x0 = pkl.load(open('./setpoint_models/Durchmesser_innen/MLP_two_layers_initial_state/MLP_2layer_set_x0_Durchmesser_low_var.pkl','rb'))
 GRU = pkl.load(open('./GRU/Durchmesser_innen/GRU_3sub_Durchmesser_innen_low_var.pkl','rb'))
 
 res = pd.concat([poly_setpoints,poly_setpoints_x0,MLP_setpoints,

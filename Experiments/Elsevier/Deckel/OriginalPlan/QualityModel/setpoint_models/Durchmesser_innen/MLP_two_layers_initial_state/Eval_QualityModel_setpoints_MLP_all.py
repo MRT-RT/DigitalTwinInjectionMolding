@@ -24,9 +24,9 @@ import numpy as np
 import pandas as pd
 
 
-path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
 # path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
-# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
 # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
 path = path_sys + '/data/Versuchsplan/normalized/'
@@ -99,8 +99,11 @@ for c in range(1,11):
         results_train,results_val = Eval_MLP(c,init,charges,
                                                     path)
                                                     
-        BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-              results_val['y_est'].values.reshape((-1,1)))/100
+        BFR = BestFitRate(results_train['y_true'].values.reshape((-1,1)),
+              results_train['y_est'].values.reshape((-1,1)))/100
+        
+        # BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+        #       results_val['y_est'].values.reshape((-1,1)))/100
         
         print('dim c:'+str(c)+' init:' + str(init) + ' BFR: ' + 
               str(BFR))

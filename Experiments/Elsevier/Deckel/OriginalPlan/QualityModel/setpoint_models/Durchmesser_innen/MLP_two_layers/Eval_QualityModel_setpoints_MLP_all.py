@@ -24,9 +24,9 @@ import numpy as np
 import pandas as pd
 
 
-path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
 # path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
-# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
 # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
 path = path_sys + '/data/Versuchsplan/normalized/'
@@ -35,9 +35,9 @@ def Eval_MLP(dim_hidden,init,charges,path):
     
     res = pkl.load(open('QM_Di_MLP_'+str(dim_hidden)+'.pkl','rb'))
    
-    # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
+    params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     
-    params = res.loc[init][['params_val']][0]
+    # params = res.loc[init][['params_val']][0]
     
     charges = list(range(1,275)) 
     
@@ -91,14 +91,17 @@ charges = list(range(1,275))
 
 for c in range(1,11):
 
-    for init in range(0,20):    
+    for init in range(0,1):    
 
 
         results_train,results_val = Eval_MLP(c,init,charges,
                                                     path)
                                                     
-        BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-              results_val['y_est'].values.reshape((-1,1)))/100
+        BFR = BestFitRate(results_train['y_true'].values.reshape((-1,1)),
+              results_train['y_est'].values.reshape((-1,1)))/100
+        
+        # BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+        #       results_val['y_est'].values.reshape((-1,1)))/100
         
         print('dim c:'+str(c)+' init:' + str(init) + ' BFR: ' + 
               str(BFR))
@@ -107,4 +110,4 @@ for c in range(1,11):
         
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
-pkl.dump(df,open('MLP_2layer_set_Durchmesser.pkl','wb'))
+# pkl.dump(df,open('MLP_2layer_set_Durchmesser_all.pkl','wb'))
