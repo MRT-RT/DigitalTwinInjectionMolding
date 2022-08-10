@@ -9,8 +9,10 @@ import seaborn as sns
 
 poly_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints/Poly_set_Durchmesser_all.pkl','rb'))
 poly_setpoints_x0 =    pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints_initial_state/Poly_set_x0_Durchmesser_all.pkl','rb'))
-MLP_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints/MLP_set_Durchmesser_all.pkl','rb'))
-MLP_setpoints_x0 = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints_initial_state/MLP_set_x0_Durchmesser_all.pkl','rb'))
+# MLP_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints/MLP_set_Durchmesser_all.pkl','rb'))
+# MLP_setpoints_x0 = pkl.load(open('./setpoint_models/Durchmesser_innen/setpoints_initial_state/MLP_set_x0_Durchmesser_all.pkl','rb'))
+MLP_setpoints = pkl.load(open('./setpoint_models/Durchmesser_innen/MLP_two_layers/MLP_2layer_set_Durchmesser_all.pkl','rb'))
+MLP_setpoints_x0 = pkl.load(open('./setpoint_models/Durchmesser_innen/MLP_two_layers_initial_state/MLP_2layer_set_x0_Durchmesser_all.pkl','rb'))
 GRU = pkl.load(open('./GRU/Durchmesser_innen/GRU_3sub_Durchmesser_innen.pkl','rb'))
 
 res = pd.concat([poly_setpoints,poly_setpoints_x0,MLP_setpoints,
@@ -48,10 +50,10 @@ legend = stripplot.get_legend()
 legend.set_title(None)
 
 legend_texts = ['$\mathrm{PR}^{n}_{\mathrm{s}}$',
-           '$\mathrm{PR}^{n}_{\mathrm{s}}$' + ' with ' + '$x_{0}$',
-           '$\mathrm{MLP}^{n}_{\mathrm{s}}$',
-           '$\mathrm{MLP}^{n}_{\mathrm{s}}$' + ' with '  + '$x_{0}$',
-           '$\mathrm{ID}^{n}_{3}$']
+            '$\mathrm{PR}^{n}_{\mathrm{s}}$' + ' with ' + '$x_{0}$',
+            '$\mathrm{MLP}^{n}_{\mathrm{s}}$',
+            '$\mathrm{MLP}^{n}_{\mathrm{s}}$' + ' with '  + '$x_{0}$',
+            '$\mathrm{ID}^{n}_{3}$']
 
 for handle,new_text in zip(legend.texts,legend_texts):
     handle.set_text(new_text)
