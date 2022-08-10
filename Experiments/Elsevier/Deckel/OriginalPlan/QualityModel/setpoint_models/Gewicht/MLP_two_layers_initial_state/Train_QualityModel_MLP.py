@@ -61,7 +61,7 @@ def Fit_MLP(dim_hidden):
 
     result['dim_hidden'] = dim_hidden
     
-    pkl.dump(result,open('QM_Di_MLP_'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(result,open('QM_m_MLP_'+str(dim_hidden)+'.pkl','wb'))
 
     return result
 

@@ -43,7 +43,7 @@ def Fit_MLP(dim_hidden):
                 'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
                 'Nachdruckzeit', 'Staudruck', 'Kühlzeit']
     
-    y_label = ['Durchmesser_innen']   
+    y_label = ['Gewicht']   
     
     # Normalize Data
     data_train,minmax = MinMaxScale(data_train,u_label+y_label)
@@ -60,7 +60,7 @@ def Fit_MLP(dim_hidden):
 
     result['dim_hidden'] = dim_hidden
     
-    pkl.dump(result,open('QM_Di_MLP_'+str(dim_hidden)+'.pkl','wb'))
+    pkl.dump(result,open('QM_m_MLP_'+str(dim_hidden)+'.pkl','wb'))
 
     return result
 
