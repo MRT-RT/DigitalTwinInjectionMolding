@@ -21,7 +21,7 @@ class static():
         Routine for parameter initialization. Takes input_names from the Casadi-
         Function defining the model equations self.Function and defines a 
         dictionary with input_names as keys. According to the initialization
-        procedure defined in self.InitializationProcedure each key contains 
+        procedure defined in self.init_proc each key contains 
         a numpy array of appropriate shape
 
         Returns
@@ -31,11 +31,11 @@ class static():
         '''
                 
         # Initialization procedure
-        if self.InitializationProcedure == 'random':
+        if self.init_proc == 'random':
             initialization = RandomInitialization
-        elif self.InitializationProcedure == 'xavier':
+        elif self.init_proc == 'xavier':
             initialization = XavierInitialization
-        elif self.InitializationProcedure == 'he':
+        elif self.init_proc == 'he':
             initialization = HeInitialization      
         
         # Define all parameters in a dictionary and initialize them 
@@ -48,10 +48,10 @@ class static():
         self.AssignParameters(new_param_values)
 
         # Initialize with specific inital parameters if given
-        if self.InitialParameters is not None:
-            for param in self.InitialParameters.keys():
+        if self.initial_params is not None:
+            for param in self.initial_params.keys():
                 if param in self.Parameters.keys():
-                    self.Parameters[param] = self.InitialParameters[param]
+                    self.Parameters[param] = self.initial_params[param]
 
     def OneStepPrediction(self,u0,params=None):
         """
@@ -112,7 +112,7 @@ class recurrent():
         Routine for parameter initialization. Takes input_names from the Casadi-
         Function defining the model equations self.Function and defines a 
         dictionary with input_names as keys. According to the initialization
-        procedure defined in self.InitializationProcedure each key contains 
+        procedure defined in self.init_proc each key contains 
         a numpy array of appropriate shape
 
         Returns
@@ -122,11 +122,11 @@ class recurrent():
         '''
                 
         # Initialization procedure
-        if self.InitializationProcedure == 'random':
+        if self.init_proc == 'random':
             initialization = RandomInitialization
-        elif self.InitializationProcedure == 'xavier':
+        elif self.init_proc == 'xavier':
             initialization = XavierInitialization
-        elif self.InitializationProcedure == 'he':
+        elif self.init_proc == 'he':
             initialization = HeInitialization      
         
         # Define all parameters in a dictionary and initialize them 
@@ -139,11 +139,11 @@ class recurrent():
         # self.SetParameters(new_param_values)
 
         # Initialize with specific inital parameters if given
-        # self.SetParameters(self.InitialParameters)
-        if self.InitialParameters is not None:
-            for param in self.InitialParameters.keys():
+        # self.SetParameters(self.initial_params)
+        if self.initial_params is not None:
+            for param in self.initial_params.keys():
                 if param in self.Parameters.keys():
-                    self.Parameters[param] = self.InitialParameters[param]
+                    self.Parameters[param] = self.initial_params[param]
         
         return None
                     
@@ -217,22 +217,22 @@ class recurrent():
             except:
                 pass      
 
-    # def SetInitialParameters(self,initial_params):
+    # def Setinitial_params(self,initial_params):
     #     for p_name in self.Function.name_in()[2::]:
     #         try:
-    #             self.InitialParameters[p_name] = initial_params[p_name]
+    #             self.initial_params[p_name] = initial_params[p_name]
     #         except:
     #             pass
             
-    # def SetFrozenParameters(self,frozen_params):
+    # def Setfrozen_params(self,frozen_params):
     #     # print(frozen_params)
     #     # print(self.Function.name_in()[2::])
-    #     print(self.FrozenParameters)
+    #     print(self.frozen_params)
     #     for p_name in self.Function.name_in()[2::]:
     #         if p_name in frozen_params:
     #             # print(p_name)
-    #             self.FrozenParameters.append(p_name)
-    #     print(self.FrozenParameters)
+    #             self.frozen_params.append(p_name)
+    #     print(self.frozen_params)
 
     
 class State_MLP(recurrent):
@@ -272,9 +272,9 @@ class State_MLP(recurrent):
         self.y_label = y_label
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         
         self.Initialize()
@@ -370,9 +370,9 @@ class TimeDelay_MLP(recurrent):
         self.y_label = y_label
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         self.dynamics = 'external'
         
@@ -480,9 +480,9 @@ class LinearSSM(recurrent):
 
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         self.Initialize()
 
@@ -556,9 +556,9 @@ class MLP():
         self.y_label = y_label
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         
         self.Initialize()
@@ -684,7 +684,7 @@ class MLP():
         Routine for parameter initialization. Takes input_names from the Casadi-
         Function defining the model equations self.Function and defines a 
         dictionary with input_names as keys. According to the initialization
-        procedure defined in self.InitializationProcedure each key contains 
+        procedure defined in self.init_proc each key contains 
         a numpy array of appropriate shape
 
         Returns
@@ -694,11 +694,11 @@ class MLP():
         '''
                 
         # Initialization procedure
-        if self.InitializationProcedure == 'random':
+        if self.init_proc == 'random':
             initialization = RandomInitialization
-        elif self.InitializationProcedure == 'xavier':
+        elif self.init_proc == 'xavier':
             initialization = XavierInitialization
-        elif self.InitializationProcedure == 'he':
+        elif self.init_proc == 'he':
             initialization = HeInitialization      
         
         # Define all parameters in a dictionary and initialize them 
@@ -711,10 +711,10 @@ class MLP():
         # self.AssignParameters(new_param_values)
 
         # Initialize with specific inital parameters if given
-        if self.InitialParameters is not None:
-            for param in self.InitialParameters.keys():
+        if self.initial_params is not None:
+            for param in self.initial_params.keys():
                 if param in self.Parameters.keys():
-                    self.Parameters[param] = self.InitialParameters[param]
+                    self.Parameters[param] = self.initial_params[param]
                     
     def SetParameters(self,params):
         for p_name in self.Function.name_in()[2::]:
@@ -759,9 +759,9 @@ class Static_MLP(static):
         self.y_label = y_label
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         
         self.Initialize()
@@ -814,7 +814,8 @@ class Static_Multi_MLP(static):
     """
 
     def __init__(self,dim_u,dim_out,dim_hidden,layers,u_label,y_label,name,
-                 initial_params=None, frozen_params = [], init_proc='random'):
+                 initial_params=None, frozen_params = [], init_proc='random',
+                 **kwargs):
         """
         Initialization procedure of the Feedforward Neural Network Architecture
         
@@ -845,9 +846,9 @@ class Static_Multi_MLP(static):
         self.y_label = y_label
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         
         self.Initialize()
@@ -896,7 +897,7 @@ class Static_Multi_MLP(static):
         # hidden layer to output layer
         y = cs.mtimes(W_o,h)+b_o
         
-        input = [u,*W_h,b_h,W_o,b_o]
+        input = [u,W_u,b_u,*W_h,*b_h,W_o,b_o]
         input_names = [var.name() for var in input]
                 
         output = [y]
@@ -954,9 +955,9 @@ class PolynomialModel(static):
         self.y_label = y_label
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         
         self.Initialize()
@@ -1046,9 +1047,9 @@ class GRU(recurrent):
         self.y_label = y_label
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         self.dynamics = 'internal'
         
@@ -1160,9 +1161,9 @@ class LSTM(recurrent):
         self.dim_out = dim_out
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         self.Initialize()  
  
@@ -1302,7 +1303,7 @@ class LSTM(recurrent):
         Routine for parameter initialization. Takes input_names from the Casadi-
         Function defining the model equations self.Function and defines a 
         dictionary with input_names as keys. According to the initialization
-        procedure defined in self.InitializationProcedure each key contains 
+        procedure defined in self.init_proc each key contains 
         a numpy array of appropriate shape
 
         Returns
@@ -1312,11 +1313,11 @@ class LSTM(recurrent):
         '''
                 
         # Initialization procedure
-        if self.InitializationProcedure == 'random':
+        if self.init_proc == 'random':
             initialization = RandomInitialization
-        elif self.InitializationProcedure == 'xavier':
+        elif self.init_proc == 'xavier':
             initialization = XavierInitialization
-        elif self.InitializationProcedure == 'he':
+        elif self.init_proc == 'he':
             initialization = HeInitialization      
         
         # Define all parameters in a dictionary and initialize them 
@@ -1329,10 +1330,10 @@ class LSTM(recurrent):
         self.AssignParameters(new_param_values)
 
         # Initialize with specific inital parameters if given
-        if self.InitialParameters is not None:
-            for param in self.InitialParameters.keys():
+        if self.initial_params is not None:
+            for param in self.initial_params.keys():
                 if param in self.Parameters.keys():
-                    self.Parameters[param] = self.InitialParameters[param]
+                    self.Parameters[param] = self.initial_params[param]
                     
     def AssignParameters(self,params):
         
@@ -1377,9 +1378,9 @@ class LSS(recurrent):
         self.A_eig = A_eig
         self.name = name
         
-        self.InitialParameters = initial_params
-        self.FrozenParameters = frozen_params
-        self.InitializationProcedure = init_proc
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
         
         self.Initialize()  
  
@@ -1443,7 +1444,7 @@ class LSS(recurrent):
         Routine for parameter initialization. Takes input_names from the Casadi-
         Function defining the model equations self.Function and defines a 
         dictionary with input_names as keys. According to the initialization
-        procedure defined in self.InitializationProcedure each key contains 
+        procedure defined in self.init_proc each key contains 
         a numpy array of appropriate shape
 
         Returns
@@ -1453,11 +1454,11 @@ class LSS(recurrent):
         '''
                 
         # Initialization procedure
-        if self.InitializationProcedure == 'random':
+        if self.init_proc == 'random':
             initialization = RandomInitialization
-        elif self.InitializationProcedure == 'xavier':
+        elif self.init_proc == 'xavier':
             initialization = XavierInitialization
-        elif self.InitializationProcedure == 'he':
+        elif self.init_proc == 'he':
             initialization = HeInitialization      
         
         # Define all parameters in a dictionary and initialize them 
@@ -1480,9 +1481,9 @@ class LSS(recurrent):
             self.Parameters[A_key] = self.A_eig.reshape((self.dim_c,self.dim_c))
         
         # Initialize with specific inital parameters if given
-        if self.InitialParameters is not None:
-            for param in self.InitialParameters.keys():
+        if self.initial_params is not None:
+            for param in self.initial_params.keys():
                 if param in self.Parameters.keys():
-                    self.Parameters[param] = self.InitialParameters[param]
+                    self.Parameters[param] = self.initial_params[param]
         
         return None

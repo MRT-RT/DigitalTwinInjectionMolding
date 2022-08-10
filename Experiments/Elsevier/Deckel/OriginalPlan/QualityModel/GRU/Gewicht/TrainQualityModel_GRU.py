@@ -77,7 +77,7 @@ def Fit_GRU(dim_c,initial_params=None):
                                         p_opts=None, s_opts=s_opts,
                                         mode='parallel',n_pool=4)
         
-    pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'_3sub_all.pkl','wb'))
+    # pkl.dump(results_GRU,open('GRU_c'+str(dim_c)+'.pkl','wb'))
   
     return results_GRU  
 

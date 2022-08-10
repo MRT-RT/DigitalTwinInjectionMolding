@@ -38,7 +38,7 @@ class ProcessModel():
         self.subsystems = subsystems
         self.switching_instances = []
         self.name = name
-        self.FrozenParameters = []
+        self.frozen_params = []
         
         dim_out = []
         u_label = []
@@ -166,12 +166,12 @@ class ProcessModel():
     def ParameterInitialization(self):
         
         self.Parameters = {}
-        self.FrozenParameters = []
+        self.frozen_params = []
         
         for system in self.subsystems:
             system.ParameterInitialization()
             self.Parameters.update(system.Parameters)                                  # append subsystems parameters
-            self.FrozenParameters.extend(system.FrozenParameters)
+            self.frozen_params.extend(system.frozen_params)
 
     def SetParameters(self,params):
         
@@ -205,7 +205,7 @@ class QualityModel():
         self.subsystems = subsystems
         self.switching_instances = []
         self.name = name
-        self.FrozenParameters = []
+        self.frozen_params = []
         
         dim_c = []
         dim_out = []
@@ -346,12 +346,12 @@ class QualityModel():
     def ParameterInitialization(self):
         
         self.Parameters = {}
-        self.FrozenParameters = []
+        self.frozen_params = []
         
         for system in self.subsystems:
             system.ParameterInitialization()
             self.Parameters.update(system.Parameters)                                  # append subsystems parameters
-            self.FrozenParameters.extend(system.FrozenParameters)
+            self.frozen_params.extend(system.frozen_params)
 
     def SetParameters(self,params):
         

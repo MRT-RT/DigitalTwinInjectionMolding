@@ -97,7 +97,7 @@ def CreateSymbolicVariables(Parameters):
         dim1 = Parameters[param].shape[1]
         
         opti_vars[param] = cs.MX.sym(param,dim0,dim1)
-        opti_vars_vec.append(opti_vars[param].reshape((-1,1)))
+        # opti_vars_vec.append(opti_vars[param].reshape((-1,1)))
         
     return opti_vars
 
@@ -110,6 +110,7 @@ def ModelTraining(model,data_train,data_val,initializations=10, BFR=False,
     
     for i in range(0,initializations):
         
+        model.ParameterInitialization()
         res = TrainingProcedure(model, data_train,data_val, p_opts, s_opts, mode)
                
         # save parameters and performance in list
@@ -123,7 +124,8 @@ def TrainingProcedure(model, data_train, data_val, p_opts, s_opts, mode):
     
     # initialize model to make sure given initial parameters are assigned
     
-    model.ParameterInitialization()
+    # Auskommen tieren hilft! 
+    # model.ParameterInitialization()
     
     # Estimate Parameters on training data
     params_train,params_val,loss_train,loss_val = \
@@ -141,13 +143,27 @@ def ParallelModelTraining(model,data_train,data_val,initializations=10,
      
     data_train = [copy.deepcopy(data_train) for i in range(0,initializations)]
     data_val = [copy.deepcopy(data_val) for i in range(0,initializations)]
-    model = [copy.deepcopy(model) for i in range(0,initializations)]
+    models = [copy.deepcopy(model) for i in range(0,initializations)]
     p_opts = [copy.deepcopy(p_opts) for i in range(0,initializations)]
     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
+    # Hilft nicht:
+    # models = [model.__class__(**model.__dict__) for i in range(0,initializations)]
+    
+    # Hilft nicht:    
+    # Bug Fix: For some reason, although models are reinitialized in 
+    # TrainingProcedure, exactly n_pool models ended up with the exact
+    # same parameters. Therefore models are reinitialized here again before 
+    # processes are created
+    
+    for model in models:
+        model.ParameterInitialization()
+    
+    
     pool = multiprocessing.Pool(n_pool)
-    results = pool.starmap(TrainingProcedure, zip(model, data_train, data_val, p_opts, s_opts, mode))        
+    results = pool.starmap(TrainingProcedure, zip(models, data_train, data_val, 
+                                                  p_opts, s_opts, mode))        
     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
                         'model','params_train','params_val'])
     
@@ -384,7 +400,7 @@ def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel
      
     
     opti_vars_vec = cs.vcat([params_opti[p].reshape((-1,1)) for p in 
-                             params_opti.keys() if p not in model.FrozenParameters])
+                             params_opti.keys() if p not in model.frozen_params])
     
     # LM Optimizer
     grad = cs.gradient(loss_train,opti_vars_vec)
@@ -398,7 +414,7 @@ def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel
     
     
     # replace frozen parameters in params_opti with numeric model parameters
-    # for p in model.FrozenParameters:
+    # for p in model.frozen_params:
     #     params_opti[p] = model.Parameters[p]      
 
     lam = 1
@@ -430,7 +446,7 @@ def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel
             
             # new params
             params_new =  AddParameterUpdate(params,d_theta,
-                                            model.FrozenParameters)
+                                            model.frozen_params)
             
             # evaluate loss
             f = train(**params_new)['F']
@@ -490,7 +506,7 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
     # Create dictionary of all non-frozen parameters to create Opti Variables of 
     OptiParameters = model.Parameters.copy()
     
-    for frozen_param in model.FrozenParameters:
+    for frozen_param in model.frozen_params:
         OptiParameters.pop(frozen_param)
         
     
