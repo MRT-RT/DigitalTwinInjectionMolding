@@ -35,7 +35,7 @@ path = path_sys + '/data/Versuchsplan/normalized/'
 
 def Eval_MLP(dim_hidden,init,charges,path):
     
-    res = pkl.load(open('QualityModel_Durchmesser_static_MLP_'+str(dim_hidden)+'.pkl','rb'))
+    res = pkl.load(open('QM_Di_MLP_'+str(dim_hidden)+'.pkl','rb'))
       
     # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     
