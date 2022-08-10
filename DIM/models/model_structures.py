@@ -788,8 +788,8 @@ class Static_MLP(static):
         W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_u)
         b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)
         
-        W_o = cs.MX.sym('W_out_'+name,dim_out,dim_hidden)
-        b_o = cs.MX.sym('b_out_'+name,dim_out,1)
+        W_o = cs.MX.sym('W_o_'+name,dim_out,dim_hidden)
+        b_o = cs.MX.sym('b_o_'+name,dim_out,1)
 
         # Model Equations
         h =  cs.tanh(cs.mtimes(W_h,u)+b_h)

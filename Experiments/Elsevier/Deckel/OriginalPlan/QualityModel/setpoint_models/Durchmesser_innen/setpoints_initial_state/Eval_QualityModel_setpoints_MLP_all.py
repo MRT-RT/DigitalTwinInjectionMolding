@@ -23,30 +23,26 @@ import pickle as pkl
 import numpy as np
 import pandas as pd
 
+# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
+path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+# path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
-def Eval_MLP(dim_hidden,init):
+
+path = path_sys + '/data/Versuchsplan/normalized/'
+# path = path_sys + '/data/Stoergroessen/20220504/Versuchsplan/normalized/'  
     
-    res = pkl.load(open('QualityModel_Durchmesser_static_MLP_'+str(dim_hidden)+'.pkl','rb'))
+def Eval_MLP(dim_hidden,init,charges,path):
+    
+    res = pkl.load(open('QM_Di_MLP_'+str(dim_hidden)+'.pkl','rb'))
    
     # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     
     params = res.loc[init][['params_val']][0]
-    
-    charges = list(range(1,275)) 
-    # charges = list(range(1,26))
-    
+      
     split = 'all'
     del_outl = True
-    
-    # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-    path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
-    # path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-    # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
-
-    
-    path = path_sys + '/data/Versuchsplan/normalized/'
-    # path = path_sys + '/data/Stoergroessen/20220504/Versuchsplan/normalized/'  
-    
+        
     data_train,data_val = LoadFeatureData(path,charges,split,del_outl)
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
@@ -89,13 +85,15 @@ def Eval_MLP(dim_hidden,init):
 
     return results_train,results_val
 
+charges = list(range(1,275)) 
+
 data = []
 
 for c in range(1,11):
 
-    for init in range(0,10):    
+    for init in range(0,20):    
 
-        results_train,results_val = Eval_MLP(c,init)
+        results_train,results_val = Eval_MLP(c,init,charges,path)
         
         BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
               results_val['y_est'].values.reshape((-1,1)))/100
