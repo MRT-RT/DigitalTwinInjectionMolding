@@ -29,7 +29,7 @@ def Eval_GRU_on_Val(dim_c,init):
     # Load best model
     res = pkl.load(open('GRU_c'+str(dim_c)+'_3sub_all.pkl','rb'))
        
-    # params = res.loc[res['loss_val'].idxmin()][['params']][0]
+    # params = res.loc[res['loss_val'].idxmin()][['params_val']][0]
     params = res.loc[init]['params_val']
 
     charges = list(range(1,275))
@@ -54,12 +54,7 @@ def Eval_GRU_on_Val(dim_c,init):
     u_lab = [u_inj,u_press,u_cool]
     y_lab = ['Durchmesser_innen']
     
-    # norm_cycle = pkl.load(open(path+'cycle11.pkl','rb'))
     
-    
-    # data_train,data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,
-    #                                       mode,norm_cycle)
-
     data_train,data_val = LoadDynamicData(path,charges,split,y_lab,u_lab,
                                           mode,del_outl)
     
@@ -86,19 +81,22 @@ def Eval_GRU_on_Val(dim_c,init):
     quality_model.SetParameters(params)
     
     # Evaluate model on training data
-    # _,y_train = parallel_mode(quality_model,data_train)
+    _,y_train = parallel_mode(quality_model,data_train)
     
     
-    # y_true = np.array([df[y_lab].iloc[0] for df in data_train['data']]).reshape((-1,1))
-    # y_train = np.array([df[y_lab].iloc[0] for df in y_train]).reshape((-1,1))
-    # e_train = y_true-y_train
+    y_true = np.array([df[y_lab].iloc[0] for df in data_train['data']]).reshape((-1,1))
+    y_train = np.array([df[y_lab].iloc[0] for df in y_train]).reshape((-1,1))
+    e_train = y_true-y_train
     
     
     
-    # results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
-    #                         columns=['y_true','y_est','e'])
-    results_train = None
-    # # Evaluate model on validation data
+    results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
+                            columns=['y_true','y_est','e'],
+                            index = data_train['cycle_num'])
+
+    # results_train = None
+    
+    # Evaluate model on validation data
     _,y_val = parallel_mode(quality_model,data_val)
     
     
@@ -109,16 +107,17 @@ def Eval_GRU_on_Val(dim_c,init):
     
     
     results_val = pd.DataFrame(data=np.hstack([y_true,y_val,e_val]),
-                            columns=['y_true','y_est','e'])
+                            columns=['y_true','y_est','e'],
+                            index = data_val['cycle_num'])
 
     return results_train,results_val
 
 data = []
 
 
-for c in range(1,11):
+for c in [4]: #range(1,11):
 
-    for init in range(0,20):    
+    for init in [5]: #range(0,20):    
 
         results_train,results_val = Eval_GRU_on_Val(c,init)
         
@@ -132,4 +131,6 @@ for c in range(1,11):
         
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
-pkl.dump(df,open('GRU_3sub_Durchmesser_innen.pkl','wb'))
+# pkl.dump(df,open('GRU_3sub_Durchmesser_innen.pkl','wb'))
+
+pkl.dump([results_train,results_val],open('GRU_4c_pred.pkl','wb'))

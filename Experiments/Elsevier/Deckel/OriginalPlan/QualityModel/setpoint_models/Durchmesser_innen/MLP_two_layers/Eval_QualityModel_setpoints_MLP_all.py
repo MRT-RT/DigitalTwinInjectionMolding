@@ -39,8 +39,6 @@ def Eval_MLP(dim_hidden,init,charges,path):
     
     # params = res.loc[init][['params_val']][0]
     
-    charges = list(range(1,275)) 
-    
     split = 'all'
     del_outl = True
     
@@ -89,7 +87,7 @@ data = []
 
 charges = list(range(1,275))
 
-for c in range(1,11):
+for c in [10]: #range(1,11):
 
     for init in range(0,1):    
 
@@ -97,11 +95,11 @@ for c in range(1,11):
         results_train,results_val = Eval_MLP(c,init,charges,
                                                     path)
                                                     
-        BFR = BestFitRate(results_train['y_true'].values.reshape((-1,1)),
-              results_train['y_est'].values.reshape((-1,1)))/100
+        # BFR = BestFitRate(results_train['y_true'].values.reshape((-1,1)),
+        #       results_train['y_est'].values.reshape((-1,1)))/100
         
-        # BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
-        #       results_val['y_est'].values.reshape((-1,1)))/100
+        BFR = BestFitRate(results_val['y_true'].values.reshape((-1,1)),
+              results_val['y_est'].values.reshape((-1,1)))/100
         
         print('dim c:'+str(c)+' init:' + str(init) + ' BFR: ' + 
               str(BFR))
@@ -111,3 +109,5 @@ for c in range(1,11):
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
 # pkl.dump(df,open('MLP_2layer_set_Durchmesser_all.pkl','wb'))
+
+pkl.dump([results_train,results_val],open('MLP_2l_h10_pred.pkl','wb'))

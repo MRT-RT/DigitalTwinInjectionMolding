@@ -9,6 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle as pkl
+import numpy as np
 
 import sys
 sys.path.insert(0, "/home/alexander/GitHub/DigitalTwinInjectionMolding/")
@@ -29,8 +30,8 @@ del_outl = True
 
 targets = ['Durchmesser_innen']
 
-path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
+path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
 # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
 path = path_sys + 'data/Versuchsplan/normalized/'
@@ -46,7 +47,7 @@ inputs = ['Düsentemperatur', 'Werkzeugtemperatur',
 
 data = []
 
-for i in range(1,11):
+for i in [4]: #(1,11):
     # Polynomial Model
     poly = PolynomialFeatures(i)
     X_poly_train = poly.fit_transform(data_train[inputs])
@@ -66,3 +67,31 @@ for i in range(1,11):
 df = pd.DataFrame(data=data,columns=['BFR','model','complexity','target','init'])
 
 pkl.dump(df,open('Poly_set_x0_Durchmesser_all.pkl','wb'))
+
+
+
+
+
+# Evaluate model on training data
+y_train = PolyModel.predict(X_poly_train).reshape((-1,1))
+y_true = data_train[targets[0]].values.reshape((-1,1))
+e_train = y_true-y_train
+
+results_train = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
+                        columns=['y_true','y_est','e'],
+                        index = data_train.index)
+
+y_train = PolyModel.predict(X_poly_val).reshape((-1,1))
+y_true = data_val[targets[0]].values.reshape((-1,1))
+e_train = y_true-y_train
+
+results_val = pd.DataFrame(data=np.hstack([y_true,y_train,e_train]),
+                        columns=['y_true','y_est','e'],
+                        index = data_val.index)
+
+pkl.dump([results_train,results_val],open('Poly_p4_pred.pkl','wb'))
+
+
+
+
+
