@@ -21,15 +21,15 @@ from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 
 # from DIM.models.model_structures import GRU
 # from DIM.models.injection_molding import QualityModel
-# from DIM.optim.common import BestFitRate
+from DIM.optim.common import BestFitRate
 # from DIM.optim.param_optim import parallel_mode
 # from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadDynamicData
 
 # Load data used for normalization
 
 # path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-# path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
-path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
+path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
+# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
 # path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
 
 path = path_sys + '/data/Versuchsplan/normalized/'
@@ -70,90 +70,55 @@ for df in MLP:
 color_map = sns.color_palette()
 fig,ax = plt.subplots(3,1)
 
-ax[0].plot(GRU[0].index, GRU[0]['y_true'],color=color_map[0],linestyle='solid',marker='d')
-ax[0].plot(MLP[0].index, MLP[0]['y_true'],color=color_map[1],linestyle='solid',marker='d')
-ax[0].plot(Poly[0].index, Poly[0]['y_true'],color=color_map[2],linestyle='solid',marker='d')
-
-# ax[0].hlines(y=[GRU_e_90,GRU_e_95,GRU_e_99], xmin=0, xmax=130, colors='grey', 
-#              linestyles='dashed')
+ax[0].plot(GRU[0].index, GRU[0]['y_true'],color='grey',linestyle='None',marker='d')
+ax[0].plot(GRU[1].index, GRU[1]['y_true'],color='red',linestyle='None',marker='d')
+ax[0].plot(GRU[0].index, GRU[0]['y_est'],color=color_map[4],linestyle='None',marker='o')
+ax[0].plot(GRU[1].index, GRU[1]['y_est'],color=color_map[4],linestyle='None',marker='o')
 
 
+ax[1].plot(MLP[0].index, MLP[0]['y_true'],color='grey',linestyle='None',marker='d')
+ax[1].plot(MLP[1].index, MLP[1]['y_true'],color='red',linestyle='None',marker='d')
+ax[1].plot(MLP[0].index, MLP[0]['y_est'],color=color_map[2],linestyle='None',marker='o')
+ax[1].plot(MLP[1].index, MLP[1]['y_est'],color=color_map[2],linestyle='None',marker='o')
+
+ax[2].plot(Poly[0].index, Poly[0]['y_true'],color='grey',linestyle='None',marker='d')
+ax[2].plot(Poly[1].index, Poly[1]['y_true'],color='red',linestyle='None',marker='d')
+ax[2].plot(Poly[0].index, Poly[0]['y_est'],color=color_map[1],linestyle='None',marker='o')
+ax[2].plot(Poly[1].index, Poly[1]['y_est'],color=color_map[1],linestyle='None',marker='o')
 
 
+for a in ax:
+    a.set_xlim([0,100])#([1800,1900])
+    a.set_ylim([27.2,28])
+    a.set_xlabel('$c$')
+    a.set_ylabel('$D_{\mathrm{i}}$ in $\mathrm{mm}$')
 
 
+ax[0].set_xticklabels([])
+ax[1].set_xticklabels([])
+ax[2].set_xlabel('$c$')
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ax[0].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
+'$\mathrm{ID}^{4}_{3}$'])
+ax[1].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
+'$\mathrm{MLP}^{10}_{\mathrm{s}}$'])
+ax[2].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
+'$\mathrm{PR}^{4}_{\mathrm{s}}$' + ' with ' + '$x_{0}$'])
 
 
 
 
 
+# legend = stripplot.get_legend()
+# legend.set_title(None)
 
+# legend_texts = ['$\mathrm{PR}^{n}_{\mathrm{s}}$',
+#             '$\mathrm{PR}^{n}_{\mathrm{s}}$' + ' with ' + '$x_{0}$',
+#             '$\mathrm{MLP}^{n}_{\mathrm{s}}$',
+#             '$\mathrm{MLP}^{n}_{\mathrm{s}}$' + ' with '  + '$x_{0}$',
+#             '$\mathrm{ID}^{n}_{3}$']
 
-
-
-
-
-
-
-# path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
-# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/'
-
-# path = path_sys + 'data/Versuchsplan/'
-
-
-# plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
-
-# plan = plan.sort_index()
-
-# #Inititialize plot
-# color_map = sns.color_palette()
-# fig,ax = plt.subplots(1,1)
-
-# # sns.stripplot(x=plan.index[0:100], y=plan.loc[1:100,'Durchmesser_innen'],color='grey',ax=ax)
-
-# ax.plot(plan.loc[1:101].index,plan.loc[1:101,'Durchmesser_innen'],
-#         linestyle = 'None',marker='o',color='grey')
-
-# x_tick_val = list(np.arange(2,102,10)) + list(np.arange(8,102,10))
-# x_tick_val.sort()
-
-# # Charge 8 has 11 reptitions, indices of following charges must be increased by 1
-# for i in range(-4,-1):
-#     x_tick_val[i] =  x_tick_val[i] + 1
-
-# x_tick_val[-1] =  x_tick_val[-1] + 1
-
-# # sns.stripplot(x=x_tick_val,y=plan.loc[x_tick_val,'Durchmesser_innen'],color=color_map[0],ax=ax)
-# ax.plot(plan.loc[x_tick_val].index,plan.loc[x_tick_val,'Durchmesser_innen'],
-#         linestyle = 'None',marker='o',color='red')
-
-
-# # xticks = [0] + list(np.arange(9,100,10))
 
 # # ax.set_xticks(ax.get_xticks()[xticks])
 # # ax.set_xlim([-0.5,125])
@@ -163,15 +128,46 @@ ax[0].plot(Poly[0].index, Poly[0]['y_true'],color=color_map[2],linestyle='solid'
     
 # ax.set_xlabel('$c$')
 
-# fig.set_size_inches((15/2.54,6/2.54))
+fig.set_size_inches((15/2.54,12/2.54))
 
-# plt.tight_layout()
+plt.tight_layout()
 
-# plt.savefig('Di_data.png', bbox_inches='tight',dpi=600)  
-
-
+plt.savefig('Di_predict.png', bbox_inches='tight',dpi=600)  
 
 
+
+fig2,ax2 = plt.subplots(1,3)
+
+kwargs = {'binwidth': 0.01, 'stat': 'probability'}
+
+sns.histplot(GRU[1]['e'],color=color_map[4],ax=ax2[0],**kwargs)
+sns.histplot(MLP[1]['e'],color=color_map[2],ax=ax2[1],**kwargs)
+sns.histplot(Poly[1]['e'],color=color_map[1],ax=ax2[2],**kwargs)
+
+[a.set_xlim([-0.3,0.3]) for a in ax2]
+[a.set_ylim([0,0.13]) for a in ax2]
+# [a.set_yticklabels([0,0.13]) for a in ax2]
+[a.set_xlabel('$e$') for a in ax2]
+[a.set_ylabel(None) for a in ax2]
+
+
+legends = [['$\mathrm{ID}^{4}_{3}$'],['$\mathrm{MLP}^{10}_{\mathrm{s}}$'],
+          ['$\mathrm{PR}^{4}_{\mathrm{s}}$' + ' with ' + '$x_{0}$']]
+
+[a.legend(l) for a,l in zip(ax2,legends)]
+ax[0].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
+'$\mathrm{ID}^{4}_{3}$'])
+ax[1].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
+])
+ax[2].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
+'$\mathrm{PR}^{4}_{\mathrm{s}}$' + ' with ' + '$x_{0}$'])
+
+
+
+fig.set_size_inches((15/2.54,6/2.54))
+
+plt.tight_layout()
+plt.savefig('Di_predict_hist.png', bbox_inches='tight',dpi=600)
 
 
 

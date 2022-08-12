@@ -26,3 +26,21 @@ data = pd.DataFrame(data=[[1,2,3]],columns=['u1','u2','u3'])
 _,y_est = static_mode(PolyModel, data)
 
 print('Result is ' + str(y_est.loc[0,'y']))
+
+
+
+
+import casadi as cs
+
+
+u = cs.MX.sym('u',3,1)
+w = cs.MX.sym('W_in',3,1,5) 
+
+y = []
+
+for wi in w:
+    y.append( cs.mtimes(wi.T,u) )
+
+y = cs.vertcat(*y)
+
+y = cs.sum1(y)

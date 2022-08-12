@@ -982,14 +982,15 @@ class PolynomialModel(static):
         
         # Model Parameters
         w = cs.MX.sym('W_'+name,1,3)        # Replace dimensions 1 with appropriate dimensions of parameter
-
+        b = cs.MX.sym('b_'+name,1,1)
 
         # Model Equations
-        y = cs.mtimes(w,u)                             # Replace with actual model equations
+        y = cs.mtimes(w,u) + b                            # Replace with actual model equations
         
         
-        input = [u,w]
-        input_names = ['u','W_'+name]
+        input = [u,w,b]
+        
+        input_names = [var.name() for var in input]
         
         output = [y]
         output_names = ['y']  
