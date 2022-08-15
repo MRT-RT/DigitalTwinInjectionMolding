@@ -669,7 +669,7 @@ def eliminate_outliers(doe_plan):
 def split_charges_to_trainval_data(path,charges,split,del_outl):
     
     # Load Versuchsplan to find cycles that should be considered for modelling
-    data = pkl.load(open(path+'Versuchsplan.pkl','rb'))
+    data = pkl.load(open(path+'/Versuchsplan.pkl','rb'))
     
     if del_outl is True:
         data = eliminate_outliers(data)
@@ -769,7 +769,7 @@ def LoadFeatureData(path,charges, split,del_outl):
     split_charges_to_trainval_data(path,charges,split,del_outl)    
        
     # load doe plan 
-    doe_plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
+    doe_plan = pkl.load(open(path+'/Versuchsplan.pkl','rb'))
 
     data_train = doe_plan.loc[cycles_train_label]
     data_val = doe_plan.loc[cycles_val_label]

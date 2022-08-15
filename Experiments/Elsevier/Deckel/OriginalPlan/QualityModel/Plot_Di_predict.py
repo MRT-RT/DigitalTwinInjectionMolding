@@ -10,12 +10,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import time
-
 import sys
-sys.path.insert(0, "E:\GitHub\DigitalTwinInjectionMolding")
-sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
-sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
-sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
+from pathlib import Path
+
+path_dim = Path.cwd().parents[4]
+sys.path.insert(0, path_dim.as_posix())
 
 from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 
@@ -27,16 +26,13 @@ from DIM.optim.common import BestFitRate
 
 # Load data used for normalization
 
-# path_sys = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/'
-path_sys = 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/'
-# path_sys = '/home/alexander/GitHub/DigitalTwinInjectionMolding/' 
-# path_sys = 'E:/GitHub/DigitalTwinInjectionMolding/'
+path = path_dim / 'data/Versuchsplan/normalized/'
 
-path = path_sys + '/data/Versuchsplan/normalized/'
+plan = pkl.load(open(path.as_posix() + '/Versuchsplan.pkl','rb'))
 
-plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
+data_train,data_val = LoadFeatureData(path.as_posix(),list(range(1,275)),
 
-data_train,data_val = LoadFeatureData(path,list(range(1,275)),'all',True)
+                                      'all',True)
 _,minmax = MinMaxScale(data_train,['Durchmesser_innen'])
 
 
@@ -132,7 +128,7 @@ fig.set_size_inches((15/2.54,12/2.54))
 
 plt.tight_layout()
 
-plt.savefig('Di_predict.png', bbox_inches='tight',dpi=600)  
+# plt.savefig('Di_predict.png', bbox_inches='tight',dpi=600)  
 
 
 
@@ -167,7 +163,7 @@ ax[2].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
 fig.set_size_inches((15/2.54,6/2.54))
 
 plt.tight_layout()
-plt.savefig('Di_predict_hist.png', bbox_inches='tight',dpi=600)
+# plt.savefig('Di_predict_hist.png', bbox_inches='tight',dpi=600)
 
 
 
