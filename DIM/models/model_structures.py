@@ -5,6 +5,7 @@
 # import os
 # print (os.getcwd())
 import casadi as cs
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from DIM.optim.common import RK4
@@ -1488,3 +1489,189 @@ class LSS(recurrent):
                     self.Parameters[param] = self.initial_params[param]
         
         return None
+    
+class DoubleExponential(static):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_out,u_label,y_label,name,
+                 initial_params=None, frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        if dim_u > 1 or dim_out>1:
+            print('This model can only have one input and one ouput!')
+            
+            return None
+            
+        self.dim_u = dim_u
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        dim_u = self.dim_u
+        dim_out = self.dim_out 
+        name = self.name
+    
+        u = cs.MX.sym('u',dim_u,1)
+        
+        # Model Parameters
+        a = cs.MX.sym('a_'+name,1)
+        b = cs.MX.sym('b_'+name,1)
+        
+        T1 = cs.MX.sym('T1_'+name,1)
+        T2 = cs.MX.sym('T2_'+name,1)
+
+        # Model Equations
+        y = a*cs.exp(-T1*u)-b*cs.exp(-T2*u)
+        
+        
+        input = [u,a,b,T1,T2]
+        input_names = [var.name() for var in input]
+        
+        output = [y]
+        output_names = ['y']  
+        
+        self.Function = cs.Function(name, input, output, input_names,
+                                    output_names)
+        
+        self.ParameterInitialization()
+        
+        return None
+    
+    def scale_data(self,data,**kwargs):
+        
+        u_label = self.u_label[0]
+        y_label = self.y_label[0]
+        
+        data = data.copy()
+                
+        unscale = kwargs.pop('unscale',False)
+        
+        if unscale:
+            data.loc[:,u_label]  = data.loc[:,u_label] + self.norm_u
+            data.loc[:,y_label]  = data.loc[:,y_label] + self.norm_y 
+                      
+        else:
+            
+            try:
+                norm_u = self.norm_u
+                norm_y = self.norm_y
+            
+            except:
+                # normalize x-Coordinate
+                idx_T_min = pd.to_numeric(pd.Series(data[u_label])).idxmin()
+                norm_u = data.loc[idx_T_min,u_label] 
+                self.norm_u = norm_u
+                
+                # normalize y-Coordinate
+                idx_T_max = pd.to_numeric(data[u_label]).idxmax()
+                norm_y = data.loc[idx_T_max,y_label]                
+                self.norm_y = norm_y
+
+            
+            norm_col_u = pd.to_numeric(data.loc[:,u_label]) - norm_u
+            data.loc[:,u_label] = norm_col_u
+            
+        
+            norm_col_y = pd.to_numeric(data.loc[:,y_label]) - norm_y
+            data.loc[:,y_label] = norm_col_y
+        
+        return data
+
+    def data_initializtion(self,data):
+        
+        u_label = self.u_label[0]
+        y_label = self.y_label[0] 
+        
+        T1 = 2/(data.loc[data.index[-1],u_label]*0.9)
+        T2 = 2*T1
+        
+        signal_energy = sum(data[y_label].values**2)
+        
+        
+        exp_energy = sum([np.exp(-T1*u)**2 + np.exp(-T2*u)**2 for u in data[u_label]])
+        
+        a = np.sqrt(signal_energy/exp_energy)
+        
+        b = a - data.loc[data[u_label].idxmin(),y_label]
+       
+        
+        return None
+        
+    def data_constraints(self,data):
+        
+        # Constraints that are always true (in this application)
+        constraints = [('a_Temp_Model','>0'),
+                       ('b_Temp_Model','>0'),
+                       ('T1_Temp_Model','>0'),
+                       ('T2_Temp_Model','>0')]
+        
+        # Formulate constraints depending on data, such as maximal time constant
+        # and maximal coefficients depending on signal energy
+        
+        
+
+            
+
+    
+
+
+
+
+
+        
+        
+    def test(self,a):
+        
+        return a+1
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        

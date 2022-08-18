@@ -700,6 +700,10 @@ def split_charges_to_trainval_data(path,charges,split,del_outl):
             cyc_t = list(set([*cycles[-3:-1]]))
             cyc_v = list(set([cycles[-1]]))
 
+        elif split == 'random':
+            cyc_v = list(np.random.choice(cycles,1,False))
+            cyc_t = list(set(cycles)-set(cyc_v))
+            
         cycles_train_label.extend(cyc_t)
         cycles_val_label.extend(cyc_v)
         
@@ -868,20 +872,39 @@ def LoadSetpointData(path,charges, split):
     return data_train,data_val  
 
 
-def MinMaxScale(df,columns,*args):
+def MinMaxScale(df,columns,**kwargs):
     
-    try:
-        col_min = args[0]
-        col_max = args[1]
+    # Unnormalize data
     
-    except:
-        col_min = df[columns].min()
-        col_max = df[columns].max()
+    reverse = kwargs.pop('reverse',False)
+     
+    if reverse:
+        col_min = kwargs['minmax'][0]
+        col_max = kwargs['minmax'][1]
         
-
-    df_norm = 2*(df[columns] - col_min) / (col_max - col_min) - 1 
+        df_rev = df* (col_max - col_min) + col_min
         
+        return df_rev
         
+    # Normalize data
+    else:
+    
+        try:
+            col_min = kwargs['minmax'][0]
+            col_max = kwargs['minmax'][1]
+        
+        except:
+            col_min = df[columns].min()
+            col_max = df[columns].max()
+            
+        # Scale to -1,1
+        # df_norm = 2*(df[columns] - col_min) / (col_max - col_min) - 1 
+       
+        # Scale to 0,1   
+        df_norm = (df[columns] - col_min) / (col_max - col_min)
+    
+    
+    
     return df_norm,(col_min,col_max)
 
     

@@ -101,9 +101,18 @@ def CreateSymbolicVariables(Parameters):
         
     return opti_vars
 
+def AddOptimConstraints(opti,params_opti,constraints):
+    
+    for constraint in constraints:
+        
+        expression = "params_opti['"+constraint[0]+"']" + constraint[1]        
+        opti.subject_to(eval(expression))
+
+    
+    return opti
 
 def ModelTraining(model,data_train,data_val,initializations=10, BFR=False, 
-                  p_opts=None, s_opts=None,mode='parallel'):
+                  p_opts=None, s_opts=None,mode='parallel',**kwargs):
     
    
     results = [] 
@@ -111,7 +120,8 @@ def ModelTraining(model,data_train,data_val,initializations=10, BFR=False,
     for i in range(0,initializations):
         
         model.ParameterInitialization()
-        res = TrainingProcedure(model, data_train,data_val, p_opts, s_opts, mode)
+        res = TrainingProcedure(model, data_train,data_val, p_opts, s_opts,
+                                mode,**kwargs)
                
         # save parameters and performance in list
         results.append(res)
@@ -120,7 +130,8 @@ def ModelTraining(model,data_train,data_val,initializations=10, BFR=False,
                         'model','params_train','params_val'])
     return results
 
-def TrainingProcedure(model, data_train, data_val, p_opts, s_opts, mode):
+def TrainingProcedure(model, data_train, data_val, p_opts, s_opts, 
+                      mode,**kwargs):
     
     # initialize model to make sure given initial parameters are assigned
     
@@ -129,7 +140,8 @@ def TrainingProcedure(model, data_train, data_val, p_opts, s_opts, mode):
     
     # Estimate Parameters on training data
     params_train,params_val,loss_train,loss_val = \
-        ModelParameterEstimation(model,data_train,data_val,p_opts,s_opts,mode)
+        ModelParameterEstimation(model,data_train,data_val,p_opts,s_opts,mode,
+                                 **kwargs)
     
     # save parameters and performance in list
     result = [loss_train,loss_val,model.name,params_train,params_val]
@@ -474,7 +486,7 @@ def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel
 
 
 def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
-                             s_opts=None,mode='parallel'):
+                             s_opts=None,mode='parallel',**kwargs):
     """
     
 
@@ -536,6 +548,8 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
         p_opts = {"expand":False}
     if s_opts is None:
         s_opts = {"max_iter": 1000, "print_level":1}
+
+
         
     # Create Solver
     opti.solver("ipopt",p_opts, s_opts)
@@ -559,6 +573,14 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
 
     # Callback
     opti.callback(val_results.callback)
+    
+    
+    # Constraints
+    constraints = kwargs.pop('constraints',None)
+    
+    if constraints is not None:
+        opti = AddOptimConstraints(opti,params_opti,constraints) 
+
     
     
     # Set initial values of Opti Variables as current Model Parameters

@@ -25,6 +25,8 @@ sys.path.insert(0, path_dim.as_posix())
 from DIM.miscellaneous.PreProcessing import LoadFeatureData
 from functions import estimate_polynomial
 
+# plt.close('all')
+
 days = [list(range(1,652+1)), list(range(653,1302+1)), \
         list(range(1303,2052+1)),  list(range(2053,2782+1)) ]
 
@@ -38,6 +40,9 @@ inputs = ['Düsentemperatur', 'Werkzeugtemperatur',
             'x_0']
 targets = ['Durchmesser_innen']
 
+est_label = [label+'_est' for label in targets]
+e_label = [label+'_error' for label in targets]
+
 train_all,val_all  = LoadFeatureData(path_data.as_posix(),list(range(1,275)),
                                      'all', True)
 
@@ -50,8 +55,8 @@ res_all = estimate_polynomial(4,inputs,targets,train_all,val_all)
 # Vergleiche Residuen
 fig1,ax1 = plt.subplots(2,2)
 
-sns.scatterplot(data = res_all['predict_val'],x='y_true',y='y_est',ax=ax1[0,0])
-sns.scatterplot(data = res_all['predict_val'],x='y_est',y='e',ax=ax1[0,1])
+sns.scatterplot(data = res_all['predict_val'],x=targets[0],y=est_label[0],ax=ax1[0,0])
+sns.scatterplot(data = res_all['predict_val'],x=targets[0],y=e_label[0],ax=ax1[0,1])
 ax1[0,0].plot([27.25,27.9],[27.25,27.9])
 
 # Klatsche Trainings- und Validierungsergebnisse zusammen und plotte nach Tagen
@@ -69,8 +74,8 @@ for day in days:
     # sns.scatterplot(data = pred_all.loc[idx],x='y_true',y='y_est',ax=ax1[1,0])
     # sns.scatterplot(data = pred_all.loc[idx],x='y_true',y='e',ax=ax1[1,1])
 
-    sns.scatterplot(data = pred_all.loc[idx],x='cycle',y='y_est',ax=ax1[1,0])
-    sns.scatterplot(data = pred_all.loc[idx],x='cycle',y='e',ax=ax1[1,1])
+    sns.scatterplot(data = pred_all.loc[idx],x='cycle',y=est_label[0],ax=ax1[1,0])
+    sns.scatterplot(data = pred_all.loc[idx],x='cycle',y=e_label[0],ax=ax1[1,1])
     
     print(pred_all.loc[idx].mean())
 
@@ -88,17 +93,62 @@ charge6 = data_all.loc[51:60,['T_wkz_0','p_inj_0','x_0','Durchmesser_innen','cyc
 fig2,ax2 = plt.subplots(2,1)
 
 
+pd.plotting.parallel_coordinates(frame=charge1,
+                                 class_column = 'cycle',
+                                 colormap='Set1',
+                                 ax=ax2[0])
+
 pd.plotting.parallel_coordinates(frame=charge6,
                                  class_column = 'cycle',
                                  colormap='Set1',
                                  ax=ax2[1])
 
+################
 
+# Di for each charge over cavity temperature
 
+fig3,ax3 = plt.subplots(5,5)
 
-
-clust_1 = train_all.loc[train_all['Durchmesser_innen']<27.4]
+counter = 0
+for charge in set(data_all['Charge']): # [131,144]:#
     
-clust_2 = train_all.loc[(train_all['Durchmesser_innen']<27.55) &
-                        (train_all['Durchmesser_innen']>27.44)]
+    data_plot = data_all.loc[data_all['Charge']==charge]
+    
+    ax3.flat[counter].plot(data_plot['T_wkz_0'],
+                           data_plot['Durchmesser_innen'],
+                           linestyle='None', marker='o')
+    
+    counter = counter + 1
+    
+
+
+
+# estimate polynomial for every single setpoint and take a look at coefficients
+
+
+
+
+fig3,ax3 = plt.subplots(1,1)
+
+plt.hist([float(result['BFR_val']) for result in res])
+plt.hist([float(result['BFR_train']) for result in res])
+
+
+
+# %%
+# plt.close('all')
+# fig4,ax4 = plt.subplots(1,1)
+x = np.arange(0,0.2,1/1000)
+
+T1 = 12.82861547485901
+T2 = 2*T1
+a = 0.08236384898638958
+b = 0.19759018643495319
+
+D = a*np.exp(-T1*(x)) - b*np.exp(-T2*(x))
+ax4.plot(x,D)
+
+# ax4.plot(x,np.exp(-0.1*(x)))
+# ax4.plot(x,-np.exp(-1.0*(x)))
+
 
