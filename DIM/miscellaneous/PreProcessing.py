@@ -668,65 +668,72 @@ def eliminate_outliers(doe_plan):
 
 def split_charges_to_trainval_data(path,charges,split,del_outl):
     
-    # Load Versuchsplan to find cycles that should be considered for modelling
-    data = pkl.load(open(path+'/Versuchsplan.pkl','rb'))
+	# Load Versuchsplan to find cycles that should be considered for modelling
+	data = pkl.load(open(path+'/Versuchsplan.pkl','rb'))
     
-    if del_outl is True:
-        data = eliminate_outliers(data)
+	if del_outl is True:
+		data = eliminate_outliers(data)
+    
+	# Delete outliers rudimentary
+	# Cycles for parameter estimation
+	cycles_train_label = []
+	cycles_val_label = []
+    
+	charge_train_label = []
+	charge_val_label = []
 
-    
-    # Delete outliers rudimentary
-    
-    # Cycles for parameter estimation
-    cycles_train_label = []
-    cycles_val_label = []
-    
-    charge_train_label = []
-    charge_val_label = []
-    
-    for charge in charges:
-               
-        cycles = data[data['Charge']==charge].index.values
-
-        if split == 'part':
-            cyc_t = list(set([*cycles[0:2],*cycles[-2:]]))
-            cyc_v = list(set([cycles[2],cycles[-4]]))
-            
-        elif split == 'all':
-            cyc_t = list(set([*cycles[0:2],*cycles[3:-4],*cycles[-3:]]))
-            cyc_v = list(set([cycles[2],cycles[-4]]))
+	for charge in charges:
         
-        elif split == 'process':
-            cyc_t = list(set([*cycles[-3:-1]]))
-            cyc_v = list(set([cycles[-1]]))
-
-        elif split == 'random':
-            cyc_v = list(np.random.choice(cycles,1,False))
-            cyc_t = list(set(cycles)-set(cyc_v))
-            
-        cycles_train_label.extend(cyc_t)
-        cycles_val_label.extend(cyc_v)
+		cycles = data[data['Charge']==charge].index.values
+		
+		remove_cycles = [767,764,753]
+    
+		for rem in remove_cycles:	
+			try:
+				cycles.remove(rem) 
+			except:
+				pass
         
-        charge_train_label.extend([charge]*len(cyc_t))
-        charge_val_label.extend([charge]*len(cyc_v))
+		if split == 'part':
+			cyc_t = list(set([*cycles[0:2],*cycles[-2:]]))
+			cyc_v = list(set([cycles[2],cycles[-4]]))
+            
+		elif split == 'all':
+			cyc_t = list(set([*cycles[0:2],*cycles[3:-4],*cycles[-3:]]))
+			cyc_v = list(set([cycles[2],cycles[-4]]))
+        
+		elif split == 'process':
+			cyc_t = list(set([*cycles[-3:-1]]))
+			cyc_v = list(set([cycles[-1]]))
 
-    # print(len(charge_train_label))
-    # print(len(charge_val_label))
+		elif split == 'random':
+			cyc_v = list(np.random.choice(cycles,1,False))
+			cyc_t = list(set(cycles)-set(cyc_v))
+
+		elif split == 'inner':
+			cyc_v = list(np.random.choice(cycles[1:-1],1,False))
+			cyc_t = list(set(cycles)-set(cyc_v))
+        
+		cycles_train_label.extend(cyc_t)
+		cycles_val_label.extend(cyc_v)
+        
+		charge_train_label.extend([charge]*len(cyc_t))
+		charge_val_label.extend([charge]*len(cyc_v))
+ 
+	cycles_train_label = np.hstack(cycles_train_label)
+	cycles_val_label = np.hstack(cycles_val_label)
+	# print(len(cycles_val_label))
+	# Delete cycles that for some reason don't exist
+	charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 767)) 
+	cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
+
+	charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 764)) 
+	cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 764)) 
+
+	charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 753)) 
+	cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 753))     
     
-    cycles_train_label = np.hstack(cycles_train_label)
-    cycles_val_label = np.hstack(cycles_val_label)
-    # print(len(cycles_val_label))
-    # Delete cycles that for some reason don't exist
-    charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 767)) 
-    cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 767)) 
-
-    charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 764)) 
-    cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 764)) 
-
-    charge_train_label = np.delete(charge_train_label, np.where(cycles_train_label == 753)) 
-    cycles_train_label = np.delete(cycles_train_label, np.where(cycles_train_label == 753))     
-    
-    return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
+	return cycles_train_label, charge_train_label, cycles_val_label, charge_val_label
 
     
 def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl):

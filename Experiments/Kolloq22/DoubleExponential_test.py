@@ -5,7 +5,7 @@ Created on Thu Aug 18 10:38:18 2022
 @author: alexa
 """
 
-import h5py
+# import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -32,40 +32,27 @@ from DIM.optim.param_optim import ModelTraining, static_mode
 cross_val = False
 normalize = True
 
-charge = 25
+# charge_ = 25
 
-data = pkl.load(open('data_minmax.pkl','rb'))
+data = pkl.load(open('data_doubleExp.pkl','rb'))
 
 data_train = data['data_train']
 data_test = data['data_test']
 
-data_train=data_train.loc[data_train['Charge']==charge]
-data_test=data_test.loc[data_test['Charge']==charge]
+# data_train=data_train.loc[data_train['Charge']==charge_]
+# data_test=data_test.loc[data_test['Charge']==charge_]
 
-data_all = pd.concat([data_train,data_test])
+# data_all = pd.concat([data_train,data_test])
 
-inputs = ['T_wkz_0']
-targets = ['Durchmesser_innen']
+T = ['T_wkz_0']
+Di = ['Durchmesser_innen']
 
-est_label = [label+'_est' for label in targets]
-e_label = [label+'_error' for label in targets]
+setpoints_lab = ['Düsentemperatur', 'Werkzeugtemperatur', 
+                 'Einspritzgeschwindigkeit', 'Umschaltpunkt', 'Nachdruckhöhe',
+                 'Nachdruckzeit', 'Staudruck','Kühlzeit']
 
-Temp_Model = DoubleExponential(dim_u=1,dim_out=1,name='Temp_Model',
-                               u_label=inputs, y_label = targets)
-
-# b=1
-
-# c = Temp_Model.test(b)
-
-# data_train_norm = Temp_Model.scale_data(data_train)
-# data_test_norm = Temp_Model.scale_data(data_test)
-
-# data_all_norm = pd.concat([data_train_norm,data_test_norm])
-
-data_train_norm = Temp_Model.scale_data(data_all)
-data_test_norm = data_train_norm
-
-Temp_Model.data_initializtion(data_train_norm)
+est_label = [label+'_est' for label in Di]
+e_label = [label+'_error' for label in Di]
 
 
 constraints = [('a_Temp_Model','>0'),
@@ -77,21 +64,61 @@ constraints = [('a_Temp_Model','>0'),
                ('T1_Temp_Model','>0'),
                ('T2_Temp_Model','>0')]
 
-res = ModelTraining(Temp_Model,data_train_norm,data_test_norm,
-                    initializations=1,mode='static',constraints=constraints)
+
+# Dictionary for storing estimated models
+Temp_Models = {}
+
+# pandas dataframe as lookup table 
+setpoints = pd.DataFrame(data=[], columns = setpoints_lab)
+
+for charge in list(set((data_train['Charge']))):
+    
+    # data_train_norm = Temp_Model.scale_data(data_train)
+    # data_test_norm = Temp_Model.scale_data(data_test)
+    
+    data_charge = data_train.loc[data_train['Charge']==charge]
+
+    setpoint = data_charge.iloc[[0]][setpoints_lab]
+    setpoint.index = [charge]
+    setpoints = pd.concat([setpoints,setpoint])
+    
+    
+    Temp_Model = DoubleExponential(dim_u=1,dim_out=1,name='Temp_Model',
+                               u_label=T, y_label = Di)
+
+    data_charge = Temp_Model.scale_data(data_charge)
+
+    InitialParams = Temp_Model.data_initialization(data_charge)
+    Temp_Model.Parameters = InitialParams
+
+    res = ModelTraining(Temp_Model,data_charge,data_charge,
+                    initializations=1,mode='static',
+                    constraints=constraints)
+
+    Temp_Model.Parameters = res.loc[0,'params_val']
+
+    Temp_Models[charge] = Temp_Model
+    
+
+save = {'setpoints':setpoints,
+        'Temp_Models':Temp_Models}
+
+pkl.dump(save,open('Temp_Models.mdl','wb'))
+
+# _,pred = static_mode(Temp_Models[charge_],data_charge)
 
 
-Temp_Model.Parameters = res.loc[0,'params_val']
+# fig, ax = plt.subplots(1,1)
+# ax.plot(data_charge.index.values,data_charge[Di].values)
+# ax.plot(pred.index.values,pred[Di].values)
 
-print(Temp_Model.Parameters )
 
-data_test_norm = pd.DataFrame(data = np.arange(0,0.4,1/1000),columns=inputs)
 
-_,y_est = static_mode(Temp_Model,data_test_norm)
 
-fig,ax = plt.subplots(1,1)
 
-ax.plot(data_train_norm[inputs].values,data_train_norm[targets].values,
-        linestyle = 'None', marker='o')
-ax.plot(data_test_norm[inputs].values,y_est[targets].values,
-        linestyle = 'None', marker='x')
+
+
+
+    
+
+

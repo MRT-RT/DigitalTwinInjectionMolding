@@ -361,3 +361,121 @@ class QualityModel():
             system.SetParameters(params)
             self.Parameters.update(system.Parameters)
 
+class staticQualityModel():
+    '''
+    Container for the model which estimates the quality of the part given 
+    trajectories of the process variables
+    '''
+    def __init__(self,setpoint_model,temp_model,lookup,name):
+        """
+        Initialization routine for the QualityModel class. 
+    
+        Parameters
+        ----------
+        subsystems : list,
+             list of models, each model describing a disctinct phase of the
+             injection molding process 
+        name : string, name of the model
+    
+        Returns
+        -------    
+        """
+              
+        self.setpoint_model = setpoint_model
+        self.temp_model = temp_model
+        
+        self.lookup=lookup
+        self.name = name
+        self.frozen_params = []
+        
+        # dim_c = []
+        # dim_out = []
+        self.u_label = setpoint_model.u_label + \
+                        temp_model[lookup.index[0]].u_label
+        self.y_label = setpoint_model.y_label + \
+                        temp_model[lookup.index[0]].y_label
+               
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Re-Initializes each of the subsystems according to its own 
+        initialization routine. Model structure parameters for re-initialization
+        are taken from the attributes of the QualityModel instance. This
+        routine is called during multi-start parameter optimization when random
+        initialization of the subsystems is necessary.
+        
+        Parameters
+        ----------
+    
+        Returns
+        ----
+        """
+        
+              
+        self.setpoint_model.Initialize()
+        
+        for key,mod in self.temp_model.items():
+            mod.Initialize()
+                   
+        self.ParameterInitialization()
+        
+        return None
+    
+    def OneStepPrediction(self,u,params=None):
+        """
+        Simulates the quality model for a given input trajectory u and an initial
+        hidden state (cell state of RNN) 
+    
+        Parameters
+        ----------
+        c0 : array-like,
+             Initial hidden state (cell state), i.e. the internal state of the 
+             GRU or LSTM, e.g. if dim_c = 2 then c0 is a 2x1 vector
+        u : array-like with dimension [N,self.dim_u]
+            trajectory of input signal, i.e. a vector with dimension N x dim_u
+    
+        Returns
+        -------
+        c : array-like,
+            Vector containing trajectory of simulated hidden cell state, e.g.
+            for a simulation over N time steps and dim_c = 2 c is a Nx2 vector
+        y : array-like,
+            Vector containing trajectory of simulated output, e.g. for
+            a simulation over N time steps and dim_out = 3 y is a Nx3 vector
+    
+        """
+        
+        setpoint_model = self.setpoint_model
+        temp_model = self.temp_model 
+        
+        p = setpoint_model.OneStepPrediction(u)
+        
+        # Lookup which setpoint is used and normalize data accordingly
+        
+        y = temp_model.OneStepPrediction(u,p)
+        
+  
+
+        y = cs.vcat(y)  
+     
+            
+        return y  
+    
+    def ParameterInitialization(self):
+        
+        self.Parameters = {}
+        self.frozen_params = []
+        
+        for system in self.subsystems:
+            system.ParameterInitialization()
+            self.Parameters.update(system.Parameters)                                  # append subsystems parameters
+            self.frozen_params.extend(system.frozen_params)
+
+    def SetParameters(self,params):
+        
+        self.Parameters = {}
+        
+        for system in self.subsystems:
+            system.SetParameters(params)
+            self.Parameters.update(system.Parameters)

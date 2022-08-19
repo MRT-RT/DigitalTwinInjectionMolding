@@ -93,6 +93,7 @@ class static():
             except:
                 continue
         
+        u0 = u0[self.u_label].values
         y = self.Function(u0,*params_new)     
                               
         return y
@@ -1618,7 +1619,7 @@ class DoubleExponential(static):
         
         return data
 
-    def data_initializtion(self,data):
+    def data_initialization(self,data):
         
         u_label = self.u_label[0]
         y_label = self.y_label[0] 
@@ -1634,9 +1635,15 @@ class DoubleExponential(static):
         a = np.sqrt(signal_energy/exp_energy)
         
         b = a - data.loc[data[u_label].idxmin(),y_label]
-       
         
-        return None
+        Parameters = {}
+        
+        Parameters['a_'+self.name] = np.array([[a]])
+        Parameters['b_'+self.name] = np.array([[b]])
+        Parameters['T1_'+self.name] = np.array([[T1]])
+        Parameters['T2_'+self.name] = np.array([[T2]])
+        
+        return Parameters
         
     def data_constraints(self,data):
         

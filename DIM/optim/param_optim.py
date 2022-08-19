@@ -681,14 +681,17 @@ def static_mode(model,data,params=None):
     
     y_est = []
    
-    u = data[model.u_label].values
+    # u = data[model.u_label].values
+    u = data[model.u_label]
     
     # If parameters are not given only calculate model prediction    
     if params is None:
         
         # One-Step prediction
         for k in range(u.shape[0]):  
-            y_new = model.OneStepPrediction(u[k,:],params)
+            # y_new = model.OneStepPrediction(u[k,:],params)
+            y_new = model.OneStepPrediction(u.iloc[k],params)
+            
             y_est.append(y_new)
         
         y_est = np.array(y_est).reshape((-1,len(model.y_label)))
@@ -706,8 +709,9 @@ def static_mode(model,data,params=None):
         loss = 0
         e = [] 
         # One-Step prediction
-        for k in range(u.shape[0]):  
-            y_new = model.OneStepPrediction(u[k,:],params)
+        for k in range(u.shape[0]):
+            y_new = model.OneStepPrediction(u.iloc[k],params)
+            # y_new = model.OneStepPrediction(u[k,:],params)
             y_est.append(y_new)
             e.append(y_ref[k,:]-y_new)
             loss = loss + cs.sumsqr(e[-1])
