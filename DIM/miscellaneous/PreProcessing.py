@@ -746,11 +746,11 @@ def LoadDynamicData(path,charges,split,y_lab,u_lab,mode,del_outl):
     cycles_val = []
     
     for c in cycles_train_label:
-        cycles_train.append(pkl.load(open(path+'cycle'+str(c)+'.pkl',
+        cycles_train.append(pkl.load(open(path+'/cycle'+str(c)+'.pkl',
                                           'rb')))
     
     for c in cycles_val_label:
-        cycles_val.append(pkl.load(open(path+'cycle'+str(c)+'.pkl',
+        cycles_val.append(pkl.load(open(path+'/cycle'+str(c)+'.pkl',
                                           'rb')))      
         
             
@@ -855,16 +855,16 @@ def LoadFeatureData(path,charges, split,del_outl):
     
     return data_train,data_val
 
-def LoadSetpointData(path,charges, split):
+def LoadSetpointData(path,charges, split,del_outl):
     
     cycles_train_label, charge_train_label, cycles_val_label, charge_val_label = \
-    split_charges_to_trainval_data(path,charges,split)    
+    split_charges_to_trainval_data(path,charges,split,del_outl)    
         
     # Load cycle data and extract features
     cycles_train = []
     cycles_val = []
     
-    doe_plan = pkl.load(open(path+'Versuchsplan.pkl','rb'))
+    doe_plan = pkl.load(open(path+'/Versuchsplan.pkl','rb'))
     
     # setpoints=list(doe_plan.columns[1:9])
     
@@ -882,7 +882,6 @@ def LoadSetpointData(path,charges, split):
 def MinMaxScale(df,columns,**kwargs):
     
     # Unnormalize data
-    
     reverse = kwargs.pop('reverse',False)
      
     if reverse:
@@ -905,13 +904,14 @@ def MinMaxScale(df,columns,**kwargs):
             col_max = df[columns].max()
             
         # Scale to -1,1
-        # df_norm = 2*(df[columns] - col_min) / (col_max - col_min) - 1 
-       
+        df_norm = 2*(df[columns] - col_min) / (col_max - col_min) - 1 
+        
+        df.loc[:,columns] = df_norm
         # Scale to 0,1   
-        df_norm = (df[columns] - col_min) / (col_max - col_min)
+        # df_norm = (df[columns] - col_min) / (col_max - col_min)
     
     
     
-    return df_norm,(col_min,col_max)
+    return df,(col_min,col_max)
 
     

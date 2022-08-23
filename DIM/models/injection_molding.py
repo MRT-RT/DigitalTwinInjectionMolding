@@ -366,6 +366,7 @@ class staticQualityModel():
     Container for the model which estimates the quality of the part given 
     trajectories of the process variables
     '''
+    
     def __init__(self,setpoint_model,temp_model,lookup,name):
         """
         Initialization routine for the QualityModel class. 
@@ -392,8 +393,7 @@ class staticQualityModel():
         # dim_out = []
         self.u_label = setpoint_model.u_label + \
                         temp_model[lookup.index[0]].u_label
-        self.y_label = setpoint_model.y_label + \
-                        temp_model[lookup.index[0]].y_label
+        self.y_label = temp_model[lookup.index[0]].y_label
                
         self.Initialize()
 
@@ -448,34 +448,70 @@ class staticQualityModel():
         
         setpoint_model = self.setpoint_model
         temp_model = self.temp_model 
+        lookup = self.lookup
         
-        p = setpoint_model.OneStepPrediction(u)
+        # Find temperature model that belongs to this setpoint
+        u_series = u[list(lookup.keys())].squeeze(0)
+        set_idx = (lookup==u_series).all(axis='columns')
+        set_idx = lookup.loc[set_idx].index
+        
+        t_model = temp_model[set_idx[0]]
         
         # Lookup which setpoint is used and normalize data accordingly
+        u_norm = t_model.scale_data(u)       
         
-        y = temp_model.OneStepPrediction(u,p)
+        # predict parameters of temp model
+        temp_params = setpoint_model.OneStepPrediction(u,params)
+                
+        if params is None:    
+            # convert to numpy dict
+            temp_params = np.array(cs.DM(temp_params))
         
-  
+        # write parameters estimated by setpoint model in dictionary
+        est_params = temp_model[set_idx[0]].Parameters.copy()
+        
+        est_params = {key:temp_params[p] for key,p in 
+                      zip(est_params.keys(),range(0,5))}   
+        
+        t_model.Parameters = est_params
 
-        y = cs.vcat(y)  
-     
+        y = t_model.OneStepPrediction(u_norm)
+        
+        # rescale output 
+        y = y + temp_model[set_idx[0]].norm_y
             
-        return y  
+         
+            
+           
+        return y
     
     def ParameterInitialization(self):
-        
+        '''
+        Routine for parameter initialization. Takes input_names from the Casadi-
+        Function defining the model equations self.Function and defines a 
+        dictionary with input_names as keys. According to the initialization
+        procedure defined in self.init_proc each key contains 
+        a numpy array of appropriate shape
+
+        Returns
+        -------
+        None.
+
+        '''
         self.Parameters = {}
         self.frozen_params = []
         
-        for system in self.subsystems:
-            system.ParameterInitialization()
-            self.Parameters.update(system.Parameters)                                  # append subsystems parameters
-            self.frozen_params.extend(system.frozen_params)
-
+        self.setpoint_model.ParameterInitialization()
+        self.Parameters.update(self.setpoint_model.Parameters)  
+        self.frozen_params.extend(self.setpoint_model.frozen_params)
+        
+        for key,mod in self.temp_model.items():
+            mod.ParameterInitialization()
+            
     def SetParameters(self,params):
         
         self.Parameters = {}
         
-        for system in self.subsystems:
-            system.SetParameters(params)
-            self.Parameters.update(system.Parameters)
+        self.setpoint_model.Parameters = params
+        self.Parameters.update(params)
+

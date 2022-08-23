@@ -93,7 +93,8 @@ class static():
             except:
                 continue
         
-        u0 = u0[self.u_label].values
+        u0 = np.array(u0[self.u_label].values,dtype=float)
+        
         y = self.Function(u0,*params_new)     
                               
         return y
@@ -1608,14 +1609,15 @@ class DoubleExponential(static):
                 idx_T_max = pd.to_numeric(data[u_label]).idxmax()
                 norm_y = data.loc[idx_T_max,y_label]                
                 self.norm_y = norm_y
-
-            
+                
             norm_col_u = pd.to_numeric(data.loc[:,u_label]) - norm_u
             data.loc[:,u_label] = norm_col_u
             
-        
-            norm_col_y = pd.to_numeric(data.loc[:,y_label]) - norm_y
-            data.loc[:,y_label] = norm_col_y
+            scale_output = kwargs.pop('scale_output',False)
+            
+            if scale_output:           
+                norm_col_y = pd.to_numeric(data.loc[:,y_label]) - norm_y
+                data.loc[:,y_label] = norm_col_y
         
         return data
 

@@ -690,7 +690,7 @@ def static_mode(model,data,params=None):
         # One-Step prediction
         for k in range(u.shape[0]):  
             # y_new = model.OneStepPrediction(u[k,:],params)
-            y_new = model.OneStepPrediction(u.iloc[k],params)
+            y_new = model.OneStepPrediction(u.iloc[[k]],params)
             
             y_est.append(y_new)
         
@@ -710,7 +710,7 @@ def static_mode(model,data,params=None):
         e = [] 
         # One-Step prediction
         for k in range(u.shape[0]):
-            y_new = model.OneStepPrediction(u.iloc[k],params)
+            y_new = model.OneStepPrediction(u.iloc[[k]],params)
             # y_new = model.OneStepPrediction(u[k,:],params)
             y_est.append(y_new)
             e.append(y_ref[k,:]-y_new)
@@ -824,3 +824,4 @@ def AddParameterUpdate(parameter_dict,update,frozen_parameters=[]):
         
         
     return Parameters_new
+
