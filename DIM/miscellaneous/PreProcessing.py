@@ -683,7 +683,8 @@ def split_charges_to_trainval_data(path,charges,split,del_outl):
 	charge_val_label = []
 
 	for charge in charges:
-        
+		if charge==26:
+			print('huhu')
 		cycles = data[data['Charge']==charge].index.values
 		
 		remove_cycles = [767,764,753]

@@ -4,6 +4,8 @@ Created on Wed Dec 15 16:45:55 2021
 
 @author: alexa
 """
+# %% Load libraries
+
 import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
@@ -300,15 +302,30 @@ plt.tight_layout()
 # plt.savefig('T0_e_scatter.png', bbox_inches='tight',dpi=600)
 
 # %% Plot cycle 131 144 (same setpoints)
-fig7,ax7 = plt.subplots(1,1)
+fig7,ax7 = plt.subplots(2,1)
+
+kwargs_true = {'linestyle':'None','marker':'d','markersize':6}
 
 charge_131 = data_all.loc[data_all['Charge']==131]
 charge_144 = data_all.loc[data_all['Charge']==144]
 
-ax7.plot(charge_131['T_wkz_0'].values,charge_131['Durchmesser_innen'],
+ax7[0].plot(charge_131['T_wkz_0'].values,charge_131['Durchmesser_innen'],
                     color='grey', **kwargs_true)
 
-ax7.plot(charge_144['T_wkz_0'].values,charge_144['Durchmesser_innen'],
+ax7[0].plot(charge_144['T_wkz_0'].values,charge_144['Durchmesser_innen'],
                     color='blue', **kwargs_true)
 
-fig7.set_size_inches((15/2.54,6/2.54))
+
+ax7[1].plot(charge_131['T_wkz_0'].values,charge_131['Gewicht'],
+                    color='grey', **kwargs_true)
+
+ax7[1].plot(charge_144['T_wkz_0'].values,charge_144['Gewicht'],
+                    color='blue', **kwargs_true)
+
+ax7[0].set_ylabel('$D_{\mathrm{i}}$')
+ax7[1].set_ylabel('$m$')
+ax7[1].set_xlabel('${\circ}C$')
+
+fig7.set_size_inches((15/2.54,12/2.54))
+plt.tight_layout()
+plt.savefig('Di_T0_plot.png', bbox_inches='tight',dpi=600)
