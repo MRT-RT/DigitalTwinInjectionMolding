@@ -36,13 +36,15 @@ MLP_1layer_p0 = pkl.load(open('MLP_1layer_p0/Pred_MLP_1layer_p0_h10_init9.pkl','
 MLP_2layers_p0 = pkl.load(open('MLP_2layers_p0/Pred_MLP_2layers_p0_h10_init13.pkl','rb'))
 
 MLP_2layers_static = pkl.load(open('MLP_2layers_static/Pred_MLP_2layers_static_h10_init7.pkl','rb'))
-# %%
+
+Models = [MLP_1layer_T0,MLP_2layers_T0,MLP_1layer_p0,MLP_2layers_p0,
+          MLP_2layers_static]
+
+# %% Plot predictions
 
 Di = ['Durchmesser_innen']
 Di_est = ['Durchmesser_innen_est']
 
-
-# %% Plot predictions
 
 plt.close('all')
 color_map = sns.color_palette()
@@ -53,54 +55,113 @@ kwargs_est = {'linestyle':'None','marker':'o','markersize':2}
 
 i = 0
 
-for M in [MLP_1layer_T0,MLP_2layers_T0,MLP_1layer_p0,MLP_2layers_p0,
-          MLP_2layers_static]:
+for M in Models:
 
-    ax[i].plot(MLP_1layer_T0['results_train']['pred'].index,
-               MLP_1layer_T0['results_train']['pred'][Di].values,
+    ax[i].plot(M['results_train']['pred'].index,
+               M['results_train']['pred'][Di].values,
                color='grey',**kwargs_true)
-    ax[i].plot(MLP_1layer_T0['results_train']['pred'].index,
-               MLP_1layer_T0['results_train']['pred'][Di_est].values,
+    ax[i].plot(M['results_train']['pred'].index,
+               M['results_train']['pred'][Di_est].values,
                color = color_map[i],**kwargs_est)
     
-    ax[i].plot(MLP_1layer_T0['results_val']['pred'].index,
-               MLP_1layer_T0['results_val']['pred'][Di].values,
+    ax[i].plot(M['results_val']['pred'].index,
+               M['results_val']['pred'][Di].values,
                color='red',**kwargs_true)
-    ax[i].plot(MLP_1layer_T0['results_val']['pred'].index,
-               MLP_1layer_T0['results_val']['pred'][Di_est].values,
+    ax[i].plot(M['results_val']['pred'].index,
+               M['results_val']['pred'][Di_est].values,
                color = color_map[i],**kwargs_est)
 
     i = i + 1
 
-
-# %%
 for a in ax:
     a.set_xlim([0,100])#([1800,1900])
     a.set_ylim([27.2,28])
-    a.set_xlabel('$c$')
-    a.set_ylabel('$D_{\mathrm{i}}$ in $\mathrm{mm}$')
+    a.set_xlabel(None)
+    a.set_ylabel(None)
+    a.set_xticklabels([])
 
-
-# %%
-ax[0].set_xticklabels([])
-ax[1].set_xticklabels([])
-ax[2].set_xticklabels([])
-ax[3].set_xlabel('$c$')
-
-# %%
-
-ax[0].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
-'$\mathrm{ID}^{4}_{3}$'])
-ax[1].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
-'$\mathrm{MLP}^{10}_{\mathrm{s}}$'])
-ax[2].legend(['$\mathcal{D}_{\mathrm{train}}$','$\mathcal{D}_{\mathrm{val}}$',
-'$\mathrm{PR}^{4}_{\mathrm{s}}$' + ' with ' + '$x_{0}$'])
 
 fig.set_size_inches((15/2.54,12/2.54))
 
 plt.tight_layout()
 
-# plt.savefig('Di_MLP_predict.png', bbox_inches='tight',dpi=600)  
+plt.savefig('Di_MLP_predict.png', bbox_inches='tight',dpi=600)  
+
+
+# %% Plot only Charge 131 and 144 (same setpoints)
+
+fig2,ax2 = plt.subplots(2,1)
+
+Di = ['Durchmesser_innen']
+Di_est = ['Durchmesser_innen_est']
+
+
+plt.close('all')
+color_map = sns.color_palette()
+fig,ax = plt.subplots(5,1)
+
+kwargs_true = {'linestyle':'None','marker':'d','markersize':4}
+kwargs_est = {'linestyle':'None','marker':'o','markersize':2}
+
+i = 0
+
+for M in Models:
+    
+    M_train = M['results_train']['pred']
+    M_val = M['results_val']['pred']
+    
+    M_train = M_train.loc[(M_train['Charge']==131) | (M_train['Charge']==144)]
+    M_val = M_val.loc[(M_val['Charge']==131) | (M_val['Charge']==144)]
+    
+    
+    ax[i].plot(M_train.index,
+               M_train[Di].values,
+               color='grey',**kwargs_true)
+    ax[i].plot(M_train.index,
+               M_train[Di_est].values,
+               color = color_map[i],**kwargs_est)
+    
+    ax[i].plot(M_val.index,
+               M_val[Di].values,
+               color='red',**kwargs_true)
+    ax[i].plot(M_val.index,
+               M_val[Di_est].values,
+               color = color_map[i],**kwargs_est)
+
+    i = i + 1
+
+for a in ax:
+    a.set_xlim([0,100])#([1800,1900])
+    a.set_ylim([27.2,28])
+    a.set_xlabel(None)
+    a.set_ylabel(None)
+    a.set_xticklabels([])
+
+
+fig.set_size_inches((15/2.54,12/2.54))
+
+plt.tight_layout()
+plt.savefig('Di_MLP_predict_Charge131_144.png', bbox_inches='tight',dpi=600) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # %% Plot error histogram
 fig2,ax2 = plt.subplots(1,3)

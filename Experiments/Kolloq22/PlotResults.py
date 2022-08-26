@@ -5,7 +5,7 @@ matplotlib.rcParams['text.usetex'] = True
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Result of models copy and pasted from Eval_..._.py
+# %% Load data
 
 
 MLP_1layer_T0 = pkl.load(open('./MLP_1layer_T0/Results_MLP_1layer_T0.pkl','rb'))
@@ -17,6 +17,7 @@ MLP_2layers_static = pkl.load(open('./MLP_2layers_static/Results_MLP_2layers_sta
 res = pd.concat([MLP_1layer_T0,MLP_2layers_T0,MLP_1layer_p0,
                  MLP_2layers_p0,MLP_2layers_static])
 
+# %% Plot predictions
 
 # Plot results static models
 plt.close('all')
@@ -57,3 +58,4 @@ ax.set_ylim([0.7,1])
 plt.tight_layout()
 plt.savefig('Results_Deckel_Di_MLP_zoom.png', bbox_inches='tight',dpi=600)
 
+# %% Plot charge 131 144 (same setpoints)
