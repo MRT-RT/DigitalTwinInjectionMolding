@@ -96,12 +96,24 @@ Di = ['Durchmesser_innen']
 Di_est = ['Durchmesser_innen_est']
 
 
+data = pkl.load(open('data_doubleExp.pkl','rb'))
+data_train = data['data_train']
+data_val = data['data_test']
+
+data_train = data_train.loc[data_train.index.isin(list(range(1313,1323))+\
+                                         list(range(1473,1483)))]
+
+data_val = data_val.loc[data_val.index.isin(list(range(1313,1323))+\
+                                         list(range(1473,1483)))]
+
+
+
 plt.close('all')
 color_map = sns.color_palette()
 fig,ax = plt.subplots(5,1)
 
-kwargs_true = {'linestyle':'None','marker':'d','markersize':4}
-kwargs_est = {'linestyle':'None','marker':'o','markersize':2}
+kwargs_true = {'linestyle':'None','marker':'d','markersize':6}
+kwargs_est = {'linestyle':'None','marker':'o','markersize':4}
 
 i = 0
 
@@ -110,32 +122,36 @@ for M in Models:
     M_train = M['results_train']['pred']
     M_val = M['results_val']['pred']
     
-    M_train = M_train.loc[(M_train['Charge']==131) | (M_train['Charge']==144)]
-    M_val = M_val.loc[(M_val['Charge']==131) | (M_val['Charge']==144)]
+    M_train = M_train.loc[M_train.index.isin(list(range(1313,1323))+\
+                                             list(range(1473,1483)))]
+    M_val = M_val.loc[M_val.index.isin(list(range(1313,1323))+ \
+                                         list(range(1473,1483)))]
     
     
-    ax[i].plot(M_train.index,
+    ax[i].plot(data_train['T_wkz_0'].values,
                M_train[Di].values,
                color='grey',**kwargs_true)
-    ax[i].plot(M_train.index,
+    ax[i].plot(data_train['T_wkz_0'].values,
                M_train[Di_est].values,
                color = color_map[i],**kwargs_est)
     
-    ax[i].plot(M_val.index,
+    ax[i].plot(data_val['T_wkz_0'].values,
                M_val[Di].values,
                color='red',**kwargs_true)
-    ax[i].plot(M_val.index,
+    ax[i].plot(data_val['T_wkz_0'].values,
                M_val[Di_est].values,
-               color = color_map[i],**kwargs_est)
+               color = color_map[i],linestyle='None',marker='x',
+               markersize=4)
 
     i = i + 1
 
 for a in ax:
-    a.set_xlim([0,100])#([1800,1900])
-    a.set_ylim([27.2,28])
+    # a.set_xlim([0,100])#([1800,1900])
+    # a.set_ylim([27.2,28])
     a.set_xlabel(None)
     a.set_ylabel(None)
-    a.set_xticklabels([])
+
+[a.set_xticklabels([]) for a in ax[0:4]]
 
 
 fig.set_size_inches((15/2.54,12/2.54))

@@ -31,7 +31,7 @@ fig,ax = plt.subplots(1,1)
 # hue=res_best['model'],legend=False,ax=ax)
 
 stripplot = sns.boxplot(x = res['complexity'],y=res['BFR'],hue=res['model'],
-                          dodge=True,ax=ax,palette=color[0:4])
+                          dodge=True,ax=ax,palette=color[0:5])
 
 legend = stripplot.get_legend()
 legend.set_title(None)
@@ -56,6 +56,6 @@ ax.set_ylim([0.7,1])
 # ax.set_xticks(range(1,11))
 
 plt.tight_layout()
-plt.savefig('Results_Deckel_Di_MLP_zoom.png', bbox_inches='tight',dpi=600)
+plt.savefig('Results_Deckel_Di_MLP.png', bbox_inches='tight',dpi=600)
 
 # %% Plot charge 131 144 (same setpoints)
