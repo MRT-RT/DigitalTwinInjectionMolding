@@ -696,8 +696,13 @@ def static_mode(model,data,params=None):
         
         y_est = np.array(y_est).reshape((-1,len(model.y_label)))
         
-        df = pd.DataFrame(data=y_est, columns=model.y_label,
-                          index=data.index)
+        
+        # Rename columns to distinguish estimate from true value
+        # cols = [label + '_est' for label in model.y_label]
+        
+        cols = model.y_label
+        
+        df = pd.DataFrame(data=y_est, columns=cols, index=data.index)
         
         loss = None
     

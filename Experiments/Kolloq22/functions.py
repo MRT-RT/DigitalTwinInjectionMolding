@@ -11,8 +11,54 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.preprocessing import PolynomialFeatures
+from DIM.miscellaneous.PreProcessing import MinMaxScale
 
 from DIM.optim.common import BestFitRate
+
+from DIM.optim.param_optim import static_mode
+
+def Eval_MLP(model,data_train,data_val,minmax):
+    
+    data_train_norm,_ = MinMaxScale(data_train,minmax=minmax)
+    data_val_norm,_ = MinMaxScale(data_val,minmax=minmax)      
+    
+    # Evaluate model on training data
+    _,pred = static_mode(model,data_train_norm)
+    
+    # Unnormalize prediction
+    pred = MinMaxScale(pred,minmax=minmax,reverse=True)
+    
+    true = data_train[model.y_label]
+    
+    error = true-pred
+    
+    BFR = BestFitRate(true,pred)/100
+    
+    pred.rename(columns={lab:lab+'_est' for lab in model.y_label},inplace = True)
+    error.rename(columns={lab:lab+'_error' for lab in model.y_label},inplace = True)
+    
+    results_train = {'pred':pd.concat([pred,true,error],axis=1),
+                     'BFR':BFR}
+        
+    # Evaluate model on validation data
+    _,pred = static_mode(model,data_val_norm)
+    
+    # Unnormalize prediction
+    pred = MinMaxScale(pred,minmax=minmax,reverse=True)
+    
+    true = data_val[model.y_label]
+    
+    error = true-pred
+    
+    BFR = BestFitRate(true,pred)/100
+    
+    pred.rename(columns={lab:lab+'_est' for lab in model.y_label},inplace = True)
+    error.rename(columns={lab:lab+'_error' for lab in model.y_label},inplace = True)
+    
+    results_val = {'pred':pd.concat([pred,true,error],axis=1),
+                     'BFR':BFR}
+
+    return results_train,results_val
 
 def cycles_dates(hdf5):
     

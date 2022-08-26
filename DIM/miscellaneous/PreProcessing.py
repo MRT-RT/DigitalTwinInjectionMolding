@@ -880,18 +880,33 @@ def LoadSetpointData(path,charges, split,del_outl):
     return data_train,data_val  
 
 
-def MinMaxScale(df,columns,**kwargs):
+def MinMaxScale(df,**kwargs):
+    
+    df = df.copy()
     
     # Unnormalize data
     reverse = kwargs.pop('reverse',False)
      
     if reverse:
+        
         col_min = kwargs['minmax'][0]
         col_max = kwargs['minmax'][1]
         
-        df_rev = df* (col_max - col_min) + col_min
+        if all(col_min.keys()==col_max.keys()):
+            cols = col_min.keys()
+
+        cols = [col for col in cols if col in df.columns]
         
-        return df_rev
+        # Unscale from 0,1
+        # df_rev = df[cols]* (col_max - col_min) + col_min
+        
+        # Unscale from -1,1
+        df_rev = 1/2* ( (df[cols] + 1) * (col_max - col_min)) + col_min
+        
+        
+        df.loc[:,cols] = df_rev
+        
+        return df
         
     # Normalize data
     else:
@@ -899,15 +914,23 @@ def MinMaxScale(df,columns,**kwargs):
         try:
             col_min = kwargs['minmax'][0]
             col_max = kwargs['minmax'][1]
-        
+            
+            if all(col_min.keys()==col_max.keys()):
+                cols = col_min.keys()
+            
+            cols = [col for col in cols if col in df.columns]
+            
         except:
-            col_min = df[columns].min()
-            col_max = df[columns].max()
+            
+            cols = kwargs['columns']
+           
+            col_min = df[cols].min()
+            col_max = df[cols].max()
             
         # Scale to -1,1
-        df_norm = 2*(df[columns] - col_min) / (col_max - col_min) - 1 
+        df_norm = 2*(df[cols] - col_min) / (col_max - col_min) - 1 
         
-        df.loc[:,columns] = df_norm
+        df.loc[:,cols] = df_norm
         # Scale to 0,1   
         # df_norm = (df[columns] - col_min) / (col_max - col_min)
     

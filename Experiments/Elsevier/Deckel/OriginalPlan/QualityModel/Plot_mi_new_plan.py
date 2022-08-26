@@ -31,7 +31,7 @@ from DIM.optim.common import BestFitRate
 path_1 = path_dim / 'data/Stoergroessen/20220504/Versuchsplan'
 path_2 = path_dim / 'data/Stoergroessen/20220504/Umschaltpkt_Stoerung'
 path_3 = path_dim / 'data/Stoergroessen/20220506/Rezyklat_Stoerung'
-
+path_4 =  path_dim / 'data/Stoergroessen/20220505/T_wkz_Stoerung'
 # plan = pkl.load(open(path.as_posix() + '/Versuchsplan.pkl','rb'))
 
 # data_train,data_val = LoadFeatureData(path.as_posix(),list(range(1,275)),
@@ -39,6 +39,14 @@ path_3 = path_dim / 'data/Stoergroessen/20220506/Rezyklat_Stoerung'
 
 data_plan = pd.concat(LoadFeatureData(path_1.as_posix(),list(range(1,26)),
                                       'all',True))
+data_switch = pd.concat(LoadFeatureData(path_2.as_posix(),list(range(1,2)),
+                                      'all',True))
+data_recyc = pd.concat(LoadFeatureData(path_3.as_posix(),list(range(1,2)),
+                                      'all',True))
+data_Twkz = pd.DataFrame(data=[8.124,8.116,8.111,8.115,8.114,8.115,8.114,
+                               8.113,8.111,8.110,8.113,8.113,8.116,8.114,
+                               8.117,8.114,8.118,8.115,8.116,8.118],
+                         columns=['Gewicht'],index=range(1,21))
 # 
 # data_all = pd.concat([data_train,data_val])
 
@@ -47,6 +55,45 @@ data_plan = pd.concat(LoadFeatureData(path_1.as_posix(),list(range(1,26)),
 
 plt.close('all')
 
+
+
+# %% Plot data from same setpoints over different days
+fig7,ax7 = plt.subplots(1,1)
+
+kwargs_true = {'linestyle':'None','marker':'d','markersize':6}
+
+charge_17 = data_plan.loc[data_plan['Charge']==17]
+switch_nom1 = data_switch.loc[252:282]
+switch_nom2 = data_switch.loc[372::]
+recyc_nom = data_recyc.loc[2:20]
+
+ax7.plot(charge_17['T_wkz_0'].values,charge_17['Gewicht'],
+                    color='black', **kwargs_true)
+
+ax7.plot(switch_nom1['T_wkz_0'].values,switch_nom1['Gewicht'],
+                    color='green', **kwargs_true)
+
+ax7.plot(switch_nom2['T_wkz_0'].values,switch_nom2['Gewicht'],
+                    color='blue', **kwargs_true)
+
+ax7.plot(data_Twkz['T_wkz_0'].values,data_Twkz['Gewicht'],
+                    color='purple', **kwargs_true)
+
+ax7.plot(recyc_nom['T_wkz_0'].values,recyc_nom['Gewicht'],
+                    color='red', **kwargs_true)
+
+
+
+
+# ax7.plot(charge_144['T_wkz_0'].values,charge_144['Gewicht'],
+#                     color='blue', **kwargs_true)
+
+ax7.set_ylabel('$m$')
+ax7.set_xlabel('${\circ}C$')
+
+fig7.set_size_inches((15/2.54,6/2.54))
+plt.tight_layout()
+plt.savefig('mi_T0_plot.png', bbox_inches='tight',dpi=600)
 
 # # Load Predictions of models
 # GRU = pkl.load(open('./GRU/Durchmesser_innen/GRU_4c_pred.pkl','rb'))
@@ -306,31 +353,3 @@ fig.set_size_inches((15/2.54,6/2.54))
 plt.tight_layout()
 # plt.savefig('T0_e_scatter.png', bbox_inches='tight',dpi=600)
 
-# %% Plot cycle 131 144 (same setpoints)
-fig7,ax7 = plt.subplots(2,1)
-
-kwargs_true = {'linestyle':'None','marker':'d','markersize':6}
-
-charge_131 = data_all.loc[data_all['Charge']==131]
-charge_144 = data_all.loc[data_all['Charge']==144]
-
-ax7[0].plot(charge_131['T_wkz_0'].values,charge_131['Durchmesser_innen'],
-                    color='grey', **kwargs_true)
-
-ax7[0].plot(charge_144['T_wkz_0'].values,charge_144['Durchmesser_innen'],
-                    color='blue', **kwargs_true)
-
-
-ax7[1].plot(charge_131['T_wkz_0'].values,charge_131['Gewicht'],
-                    color='grey', **kwargs_true)
-
-ax7[1].plot(charge_144['T_wkz_0'].values,charge_144['Gewicht'],
-                    color='blue', **kwargs_true)
-
-ax7[0].set_ylabel('$D_{\mathrm{i}}$')
-ax7[1].set_ylabel('$m$')
-ax7[1].set_xlabel('${\circ}C$')
-
-fig7.set_size_inches((15/2.54,12/2.54))
-plt.tight_layout()
-plt.savefig('Di_T0_plot.png', bbox_inches='tight',dpi=600)
