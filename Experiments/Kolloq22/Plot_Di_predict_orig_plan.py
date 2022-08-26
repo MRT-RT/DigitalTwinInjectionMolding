@@ -75,7 +75,7 @@ for M in Models:
 
 for a in ax:
     a.set_xlim([0,100])#([1800,1900])
-    a.set_ylim([27.2,28])
+    a.set_ylim([27.2,27.9])
     a.set_xlabel(None)
     a.set_ylabel(None)
     a.set_xticklabels([])

@@ -56,6 +56,6 @@ ax.set_ylim([0.7,1])
 # ax.set_xticks(range(1,11))
 
 plt.tight_layout()
-plt.savefig('Results_Deckel_Di_MLP.png', bbox_inches='tight',dpi=600)
+plt.savefig('Results_Deckel_Di_MLP_zoom.png', bbox_inches='tight',dpi=600)
 
 # %% Plot charge 131 144 (same setpoints)
