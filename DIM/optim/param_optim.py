@@ -26,6 +26,144 @@ from .common import OptimValues_to_dict,BestFitRate
 
 import multiprocessing
 
+class Optimizer():
+    """
+    Offline Optimizer for models of type Recurrent, Static, QualityModel
+    """
+
+    def __init__(self,model,data_train,data_val,initializations,**kwargs):
+        
+        self.model = model
+        self.data_train = data_train
+        self.data_val = data_val
+        
+        self.initializations = kwargs.pop('initializations',10)   
+        self.s_opts = kwargs.pop('s_opts',{"max_iter": 1000, "print_level":1})
+        self.p_opts = kwargs.pop('s_opts',{"expand":False})
+        self.mode = kwargs.pop('mode','parallel') 
+        self.n_pool = kwargs.pop('n_pool',5)     
+        self.constraints = kwargs.pop('constraints',None)
+        # Create Instance of the Optimization Problem
+        self.opti = cs.Opti()
+        
+        # Create dictionary of all non-frozen parameters to create Opti Variables of 
+        OptiParameters = self.model.Parameters.copy()
+        
+        for frozen_param in model.frozen_params:
+            OptiParameters.pop(frozen_param)
+        
+        
+        self.CreateOptimVariables(OptiParameters)          
+
+
+    def optimize(self):
+              
+        # # Create dictionary of all non-frozen parameters to create Opti Variables of 
+        # OptiParameters = self.model.Parameters.copy()
+        
+        # for frozen_param in self.model.frozen_params:
+        #     OptiParameters.pop(frozen_param)
+            
+        
+        # params_opti = CreateOptimVariables(opti, OptiParameters)   
+        
+        # Evaluate on model on data
+        
+        if self.mode == 'parallel':
+            loss_train,_ = self.model.parallel_mode(self.data_train,self.opti_vars)
+            loss_val,_ = self.model.parallel_mode(self.data_val,self.opti_vars)
+            
+        elif self.mode == 'static':
+            loss_train,_ = self.model.static_mode(self.data_train,self.opti_vars)  
+            loss_val,_ = self.model.static_mode(self.data_val,self.opti_vars)
+                    
+        elif self.mode == 'series':      
+            loss_train,_ = self.model.series_parallel_mode(self.data_train,self.opti_vars)
+            loss_val,_ = self.model.series_parallel_mode(self.data_val,self.opti_vars)
+        
+        loss_val = cs.Function('loss_val',[*list(self.opti_vars.values())],
+                             [loss_val],list(self.opti_vars.keys()),['F'])
+         
+        self.opti.minimize(loss_train)
+            
+        # Create Solver
+        self.opti.solver("ipopt",self.p_opts, self.s_opts)
+        
+        opti_vars = self.opti_vars
+        opti = self.opti 
+        
+        class intermediate_results():
+            def __init__(self):
+                self.F_val = np.inf
+                self.params_val = {}
+                
+            def callback(self,i):
+                params_val_new = OptimValues_to_dict(opti_vars,opti.debug)
+                
+                F_val_new = loss_val(*list(params_val_new.values()))
+
+                if F_val_new < self.F_val:
+                    self.F_val = F_val_new
+                    self.params_val = params_val_new
+                    print('Validation loss: ' + str(self.F_val))
+        
+        val_results = intermediate_results()
+
+        # Callback
+        self.opti.callback(val_results.callback)
+               
+        if self.constraints is not None:
+            self.opti = AddOptimConstraints(self.opti,self.opti_vars,self.constraints) 
+
+        # Set initial values of Opti Variables as current Model Parameters
+        for key in self.opti_vars:
+            self.opti.set_initial(self.opti_vars[key], self.model.Parameters[key])
+
+        # Solve NLP, if solver does not converge, use last solution from opti.debug
+        try: 
+            sol = self.opti.solve()
+        except:
+            sol = self.opti.debug
+            
+        params = OptimValues_to_dict(self.opti_vars,sol)
+        F_train = sol.value(self.opti.f)        
+
+        params_val = val_results.params_val
+        F_val = val_results.F_val
+        
+                
+        return params,params_val,float(F_train),float(F_val)        
+
+    def CreateOptimVariables(self,OptiParameters):
+        '''
+        Beschreibung der Funktion
+    
+        Parameters
+        ----------
+        opti : Dict
+            DESCRIPTION.
+        Parameters : TYPE
+            DESCRIPTION.
+    
+        Returns
+        -------
+        opti_vars : TYPE
+            DESCRIPTION.
+    
+        '''
+            
+        # Create empty dictionary
+        opti_vars = {}
+        
+        for param in OptiParameters.keys():
+            dim0 = OptiParameters[param].shape[0]
+            dim1 = OptiParameters[param].shape[1]
+            
+            opti_vars[param] = self.opti.variable(dim0,dim1)
+        
+        self.opti_vars = opti_vars
+        
+        return None
 
 def ControlInput(ref_trajectories,opti_vars,k):
     """
@@ -395,19 +533,19 @@ def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel
         x0_train = data['init_state_train']
         x0_val = data['init_state_val']
         
-        loss_train,_,_,_ = parallel_mode(model,u_train,y_ref_train,x0_train,
+        loss_train,_,_,_ = model.parallel_mode(u_train,y_ref_train,x0_train,
                                          switch_train,params_opti) 
         
-        loss_val,_,_,_ = parallel_mode(model,u_val,y_ref_val,x0_val,
+        loss_val,_,_,_ = model.parallel_mode(u_val,y_ref_val,x0_val,
                                        switch_val,params_opti)
         
     elif mode == 'static':
-        loss_train,_,_ = static_mode(model,u_train,y_ref_train,params_opti)   
-        loss_val,_,_ = static_mode(model,u_val,y_ref_val,params_opti) 
+        loss_train,_,_ = model.static_mode(u_train,y_ref_train,params_opti)   
+        loss_val,_,_ = model.static_mode(u_val,y_ref_val,params_opti) 
                 
     elif mode == 'series':
         x0 = data['init_state_train']
-        loss_train,_,_ = series_parallel_mode(model,u,y_ref,x0,params_opti)
+        loss_train,_,_ = model.series_parallel_mode(u,y_ref,x0,params_opti)
     
      
     
@@ -527,16 +665,16 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
     # Evaluate on model on data
     
     if mode == 'parallel':
-        loss_train,_ = parallel_mode(model,data_train,params_opti)
-        loss_val,_ = parallel_mode(model,data_val,params_opti)
+        loss_train,_ = model.parallel_mode(data_train,params_opti)
+        loss_val,_ = model.parallel_mode(data_val,params_opti)
         
     elif mode == 'static':
-        loss_train,_ = static_mode(model,data_train,params_opti)  
-        loss_val,_ = static_mode(model,data_val,params_opti)
+        loss_train,_ = model.static_mode(data_train,params_opti)  
+        loss_val,_ = model.static_mode(data_val,params_opti)
                 
     elif mode == 'series':      
-        loss_train,_ = series_parallel_mode(model,data_train,params_opti)
-        loss_val,_ = series_parallel_mode(model,data_val,params_opti)
+        loss_train,_ = model.series_parallel_mode(data_train,params_opti)
+        loss_val,_ = model.series_parallel_mode(data_val,params_opti)
     
     loss_val = cs.Function('loss_val',[*list(params_opti.values())],
                          [loss_val],list(params_opti.keys()),['F'])
@@ -604,198 +742,198 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
 
 
     
-def parallel_mode(model,data,params=None):
+# def parallel_mode(model,data,params=None):
       
-    loss = 0
+#     loss = 0
 
     
-    simulation = []
+#     simulation = []
     
-    # Loop over all batches 
-    for i in range(0,len(data['data'])):
+#     # Loop over all batches 
+#     for i in range(0,len(data['data'])):
         
-        io_data = data['data'][i]
-        x0 = data['init_state'][i]
-        try:
-            switch = data['switch'][i]
-            # switch = [io_data.index.get_loc(s) for s in switch]
-            kwargs = {'switching_instances':switch}
+#         io_data = data['data'][i]
+#         x0 = data['init_state'][i]
+#         try:
+#             switch = data['switch'][i]
+#             # switch = [io_data.index.get_loc(s) for s in switch]
+#             kwargs = {'switching_instances':switch}
                         
-            # print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
-        except KeyError:
-            switch = None
+#             # print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
+#         except KeyError:
+#             switch = None
         
         
-        u = io_data.iloc[0:-1][model.u_label]
-        # u = io_data[model.u_label]
+#         u = io_data.iloc[0:-1][model.u_label]
+#         # u = io_data[model.u_label]
 
         
-        # Simulate Model        
-        pred = model.Simulation(x0,u,params,**kwargs)
+#         # Simulate Model        
+#         pred = model.Simulation(x0,u,params,**kwargs)
         
         
-        y_ref = io_data[model.y_label].values
+#         y_ref = io_data[model.y_label].values
         
         
-        if isinstance(pred, tuple):           
-            x_est= pred[0]
-            y_est= pred[1]
-        else:
-            y_est = pred
+#         if isinstance(pred, tuple):           
+#             x_est= pred[0]
+#             y_est= pred[1]
+#         else:
+#             y_est = pred
             
-        # Calculate simulation error            
-        # Check for the case, where only last value is available
+#         # Calculate simulation error            
+#         # Check for the case, where only last value is available
         
-        if np.all(np.isnan(y_ref[1:])):
+#         if np.all(np.isnan(y_ref[1:])):
             
-            y_ref = y_ref[[0]]
-            y_est=y_est[-1,:]
-            e= y_ref - y_est
-            loss = loss + cs.sumsqr(e)
+#             y_ref = y_ref[[0]]
+#             y_est=y_est[-1,:]
+#             e= y_ref - y_est
+#             loss = loss + cs.sumsqr(e)
             
-            idx = [i]
+#             idx = [i]
     
-        else :
+#         else :
             
-            y_ref = y_ref[1:1+y_est.shape[0],:]                                                 # first observation cannot be predicted
+#             y_ref = y_ref[1:1+y_est.shape[0],:]                                                 # first observation cannot be predicted
             
-            e = y_ref - y_est
-            loss = loss + cs.sumsqr(e)
+#             e = y_ref - y_est
+#             loss = loss + cs.sumsqr(e)
             
-            idx = io_data.index
+#             idx = io_data.index
         
-        if params is None:
-            y_est = np.array(y_est)
+#         if params is None:
+#             y_est = np.array(y_est)
             
-            df = pd.DataFrame(data=y_est, columns=model.y_label,
-                              index=idx)
+#             df = pd.DataFrame(data=y_est, columns=model.y_label,
+#                               index=idx)
             
-            simulation.append(df)
-        else:
-            simulation = None
+#             simulation.append(df)
+#         else:
+#             simulation = None
             
-    return loss,simulation
+#     return loss,simulation
 
-def static_mode(model,data,params=None):
+# def static_mode(model,data,params=None):
     
     
-    y_est = []
+#     y_est = []
    
-    # u = data[model.u_label].values
-    u = data[model.u_label]
+#     # u = data[model.u_label].values
+#     u = data[model.u_label]
     
-    # If parameters are not given only calculate model prediction    
-    if params is None:
+#     # If parameters are not given only calculate model prediction    
+#     if params is None:
         
-        # One-Step prediction
-        for k in range(u.shape[0]):  
-            # y_new = model.OneStepPrediction(u[k,:],params)
-            y_new = model.OneStepPrediction(u.iloc[[k]],params)
+#         # One-Step prediction
+#         for k in range(u.shape[0]):  
+#             # y_new = model.OneStepPrediction(u[k,:],params)
+#             y_new = model.OneStepPrediction(u.iloc[[k]],params)
             
-            y_est.append(y_new)
+#             y_est.append(y_new)
         
-        y_est = np.array(y_est).reshape((-1,len(model.y_label)))
+#         y_est = np.array(y_est).reshape((-1,len(model.y_label)))
         
         
-        # Rename columns to distinguish estimate from true value
-        # cols = [label + '_est' for label in model.y_label]
+#         # Rename columns to distinguish estimate from true value
+#         # cols = [label + '_est' for label in model.y_label]
         
-        cols = model.y_label
+#         cols = model.y_label
         
-        df = pd.DataFrame(data=y_est, columns=cols, index=data.index)
+#         df = pd.DataFrame(data=y_est, columns=cols, index=data.index)
         
-        loss = None
+#         loss = None
     
-    # else calulate loss
-    else:
+#     # else calulate loss
+#     else:
         
-        y_ref = data[model.y_label].values
+#         y_ref = data[model.y_label].values
         
-        loss = 0
-        e = [] 
-        # One-Step prediction
-        for k in range(u.shape[0]):
-            y_new = model.OneStepPrediction(u.iloc[[k]],params)
-            # y_new = model.OneStepPrediction(u[k,:],params)
-            y_est.append(y_new)
-            e.append(y_ref[k,:]-y_new)
-            loss = loss + cs.sumsqr(e[-1])
+#         loss = 0
+#         e = [] 
+#         # One-Step prediction
+#         for k in range(u.shape[0]):
+#             y_new = model.OneStepPrediction(u.iloc[[k]],params)
+#             # y_new = model.OneStepPrediction(u[k,:],params)
+#             y_est.append(y_new)
+#             e.append(y_ref[k,:]-y_new)
+#             loss = loss + cs.sumsqr(e[-1])
             
-        df = None
+#         df = None
         
-    return loss,df
+#     return loss,df
 
 
-def series_parallel_mode(model,data,params=None):
+# def series_parallel_mode(model,data,params=None):
   
-    loss = 0
+#     loss = 0
     
-    x = []
+#     x = []
     
-    prediction = []
+#     prediction = []
 
-    # if None is not None:
+#     # if None is not None:
         
-    #     print('This is not implemented properly!!!')
+#     #     print('This is not implemented properly!!!')
         
-    #     for i in range(0,len(u)):
-    #         x_batch = []
-    #         y_batch = []
+#     #     for i in range(0,len(u)):
+#     #         x_batch = []
+#     #         y_batch = []
             
-    #         # One-Step prediction
-    #         for k in range(u[i].shape[0]-1):
+#     #         # One-Step prediction
+#     #         for k in range(u[i].shape[0]-1):
                 
                 
                 
-    #             x_new,y_new = model.OneStepPrediction(x_ref[i][k,:],u[i,k,:],
-    #                                                   params)
-    #             x_batch.append(x_new)
-    #             y_batch.append(y_new)
+#     #             x_new,y_new = model.OneStepPrediction(x_ref[i][k,:],u[i,k,:],
+#     #                                                   params)
+#     #             x_batch.append(x_new)
+#     #             y_batch.append(y_new)
                 
-    #             loss = loss + cs.sumsqr(y_ref[i][k,:]-y_new) + \
-    #                 cs.sumsqr(x_ref[i,k+1,:]-x_new) 
+#     #             loss = loss + cs.sumsqr(y_ref[i][k,:]-y_new) + \
+#     #                 cs.sumsqr(x_ref[i,k+1,:]-x_new) 
             
-    #         x.append(x_batch)
-    #         y.append(y_batch)
+#     #         x.append(x_batch)
+#     #         y.append(y_batch)
         
-    #     return loss,x,y 
+#     #     return loss,x,y 
     
-    # else:
-    for i in range(0,len(data['data'])):
+#     # else:
+#     for i in range(0,len(data['data'])):
         
-        io_data = data['data'][i]
-        x0 = data['init_state'][i]
-        switch = data['switch'][i]
+#         io_data = data['data'][i]
+#         x0 = data['init_state'][i]
+#         switch = data['switch'][i]
         
-        y_est = []
-        # One-Step prediction
-        for k in range(0,io_data.shape[0]-1):
+#         y_est = []
+#         # One-Step prediction
+#         for k in range(0,io_data.shape[0]-1):
             
-            uk = io_data.iloc[k][model.u_label].values.reshape((-1,1))
-            yk = io_data.iloc[k][model.y_label].values.reshape((-1,1))
+#             uk = io_data.iloc[k][model.u_label].values.reshape((-1,1))
+#             yk = io_data.iloc[k][model.y_label].values.reshape((-1,1))
             
-            ykplus = io_data.iloc[k+1][model.y_label].values.reshape((-1,1))
+#             ykplus = io_data.iloc[k+1][model.y_label].values.reshape((-1,1))
             
-            # predict x1 and y1 from x0 and u0
-            y_new = model.OneStepPrediction(yk,uk,params)
+#             # predict x1 and y1 from x0 and u0
+#             y_new = model.OneStepPrediction(yk,uk,params)
             
-            loss = loss + cs.sumsqr(ykplus-y_new)        
+#             loss = loss + cs.sumsqr(ykplus-y_new)        
             
-            y_est.append(y_new.T)
+#             y_est.append(y_new.T)
         
-        y_est = cs.vcat(y_est)
+#         y_est = cs.vcat(y_est)
         
-        if params is None:
-            y_est = np.array(y_est)
+#         if params is None:
+#             y_est = np.array(y_est)
             
-            df = pd.DataFrame(data=y_est, columns=model.y_label,
-                              index=io_data.index[1::])
+#             df = pd.DataFrame(data=y_est, columns=model.y_label,
+#                               index=io_data.index[1::])
             
-            prediction.append(df)
-        else:
-            prediction = None
+#             prediction.append(df)
+#         else:
+#             prediction = None
         
-    return loss,prediction
+#     return loss,prediction
 
 def AddParameterUpdate(parameter_dict,update,frozen_parameters=[]):
     '''

@@ -16,7 +16,7 @@ sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding
 
 from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.models.model_structures import Static_Multi_MLP
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ModelTraining,Optimizer
 
 import multiprocessing
 
@@ -42,12 +42,18 @@ def Fit_MLP(dim_hidden,data_train,data_val):
     
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
     
-    result = ModelTraining(model,data_train,data_val,initializations=20,
-                           p_opts=None,s_opts=s_opts,mode='static')
+    optimizer = Optimizer(model,data_train,data_val,initializations=20,
+                           mode='static')
+    
+    results = optimizer.optimize()
+    # result = ModelTraining(model,data_train,data_val,initializations=20,
+    #                        p_opts=None,s_opts=s_opts,mode='static')
 
-    result['dim_hidden'] = dim_hidden
+    
 
-    return {'model':model,'est_params':result,'minmax':minmax}
+    # result['dim_hidden'] = dim_hidden
+
+    return None#{'model':model,'est_params':result,'minmax':minmax}
 
 data = pkl.load(open('data_doubleExp.pkl','rb'))
 
