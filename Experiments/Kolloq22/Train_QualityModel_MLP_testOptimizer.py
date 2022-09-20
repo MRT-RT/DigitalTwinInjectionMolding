@@ -56,7 +56,6 @@ def Fit_MLP(dim_hidden,data_train,data_val):
     return None#{'model':model,'est_params':result,'minmax':minmax}
 
 data = pkl.load(open('data_doubleExp.pkl','rb'))
-
 data_train = data['data_train']
 data_test = data['data_test']
 

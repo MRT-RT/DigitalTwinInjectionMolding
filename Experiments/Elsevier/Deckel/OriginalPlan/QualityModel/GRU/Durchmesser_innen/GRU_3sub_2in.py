@@ -33,8 +33,8 @@ def Fit_GRU(dim_c,initial_params=None):
     mode='quality'
     
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
-    # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
+    path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
        
    
     u_inj= ['p_wkz_ist','T_wkz_ist']
@@ -49,11 +49,11 @@ def Fit_GRU(dim_c,initial_params=None):
     data_train,data_val = \
     LoadDynamicData(path,charges,split,y_lab,u_lab,mode,norm_cycle)
     
-    # c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data['u_train']))]
-    # c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data['u_val']))]    
+    c0_train = [np.zeros((dim_c,1)) for i in range(0,len(data_train['data']))]
+    c0_val = [np.zeros((dim_c,1)) for i in range(0,len(data_val['data']))]    
     
-    # data['init_state_train'] = c0_train
-    # data['init_state_val'] = c0_val
+    data_train['init_state'] = c0_train
+    data_val['init_state'] = c0_val
     
     
     inj_model = GRU(dim_u=2,dim_c=dim_c,dim_hidden=1,
