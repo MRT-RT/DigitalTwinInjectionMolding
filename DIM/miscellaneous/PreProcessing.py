@@ -6,6 +6,105 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pickle as pkl
 from scipy import stats
+import h5py
+
+
+class PIM_Data():
+    
+    def __init__(self,source_hdf5, target_hdf5,charts,scalar):
+        
+        self.source_hdf5 = source_hdf5
+        self.target_hdf5 = target_hdf5
+        
+        self.charts = charts
+        self.scalar = scalar
+        
+        self.read_source_cycles = []
+        
+        
+        # Check if file exists?
+        # Create target hdf5 file
+        target_file = h5py.File(target_hdf5,'w')
+        target_file.create_group('overview')
+        target_file.create_group('process_values')
+        target_file.close()
+        
+    def get_cycle_data(self):
+               
+        with h5py.File(self.source_hdf5, 'r') as file:
+            
+            source_cycles = file.keys()
+            new_source_cycles = list(set(source_cycles)-\
+                                     set(self.read_source_cycles))
+            
+            
+            target_file = h5py.File(self.target_hdf5,'r+')
+            
+            for cycle in new_source_cycles:
+                
+                new_data = file[cycle]
+ 
+                # read monitoring charts
+                r = self.read_charts(new_data)
+                
+                # g = target_file['process_values'].create_group(cycle)
+                
+                r.to_hdf(self.target_hdf5, 'process_values/'+cycle)
+                # r.to_hdf(self.target_file, cycle)
+                
+                # save to target hdf5
+                s = self.read_scalars(new_data)
+                # read setpoints
+                
+                # save to target hdf5
+                
+                # read quality data
+                # save to target hdf5
+        return r,s
+  
+    def read_charts(self,cycle_data):
+        
+        charts = [] 
+        
+        for chart in self.charts:
+            
+            data = [np.array(cycle_data[key]['block0_values']) for
+                    key in chart['keys']]
+        
+            data = np.vstack(data)
+            
+            df = pd.DataFrame(data=data, columns = chart['values'])
+            df = df.set_index('timestamp')
+            
+            charts.append(df)
+            
+        charts = pd.concat(charts,axis=1)
+            
+        return charts
+        
+        
+    def read_scalars(self,cycle_data):
+        
+        scalars = {}
+        
+        for key,value in self.scalar.items():
+            
+            try:
+                scalars[value] = np.array(cycle_data[key]['block0_values'][:])
+                scalars[value] = scalars[value].flatten()
+            except:
+                scalars[value] = None
+                print(key + ' could not be read from file')
+        
+        scalars = pd.DataFrame.from_dict(scalars)
+        
+        scalars = scalars.set_index('Zyklus')
+        
+        return scalars
+        
+    def read_quality(self):   
+        return None
+        
 
 def klemann_convert_hdf5(a,b):
     '''
