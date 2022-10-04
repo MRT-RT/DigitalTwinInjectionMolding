@@ -11,13 +11,18 @@ import h5py
 
 class PIM_Data():
     
-    def __init__(self,source_hdf5, target_hdf5,charts,scalar):
+    def __init__(self,source_hdf5, target_hdf5,charts,scalar,scalar_dtype,
+                 features,features_dtype):
         
         self.source_hdf5 = source_hdf5
         self.target_hdf5 = target_hdf5
         
         self.charts = charts
         self.scalar = scalar
+        self.features = features
+        
+        self.scalar_dtype = scalar_dtype
+        self.features_dtype = features_dtype
         
         self.read_source_cycles = []
         
@@ -27,7 +32,19 @@ class PIM_Data():
         target_file = h5py.File(target_hdf5,'w')
         target_file.create_group('overview')
         target_file.create_group('process_values')
+        target_file.create_group('features')        
         target_file.close()
+        
+        df_scalar = pd.DataFrame(data = [],
+                         columns = [scalar[key] for key in scalar.keys()])
+        df_scalar = df_scalar.set_index('Zyklus')
+        df_scalar.to_hdf(target_hdf5,'overview')
+
+        df_feat = pd.DataFrame(data = [],columns = [f for f in features])
+        df_feat.index = df_scalar.index
+        df_feat.to_hdf(target_hdf5,'features')
+        
+        
         
     def get_cycle_data(self):
                
@@ -38,29 +55,60 @@ class PIM_Data():
                                      set(self.read_source_cycles))
             
             
-            target_file = h5py.File(self.target_hdf5,'r+')
+            # target_file = h5py.File(self.target_hdf5,'r+')
             
-            for cycle in new_source_cycles:
+            scalars = []
+            features = []
+            
+            if new_source_cycles:
+            
+                for cycle in new_source_cycles[0:5]:
+                    
+                    new_data = file[cycle]
+     
+                    # read monitoring charts
+                    df_chart = self.read_charts(new_data)
+                                   
+                    df_chart.to_hdf(self.target_hdf5, 'process_values/'+cycle)
+                    # r.to_hdf(self.target_file, cycle)
+                    
+                    # save to target hdf5
+                    df_scalar = self.read_scalars(new_data)
+                    scalars.append(df_scalar)
+                    
+                    # read setpoints
+                    df_feat = self.calc_features(df_chart,df_scalar)
+                    features.append(df_feat)
+                    # save to target hdf5
+                    
+                    # read quality data
+                    # save to target hdf5
                 
-                new_data = file[cycle]
- 
-                # read monitoring charts
-                r = self.read_charts(new_data)
+                # Concatenate list to pd.DataFrame
+                df_scalar = pd.concat(scalars)
+                df_feat = pd.concat(features)
                 
-                # g = target_file['process_values'].create_group(cycle)
+                # Load data saved in hdf5
+                df_scalar_old = pd.read_hdf(self.target_hdf5, 'overview')
+                df_feat_old = pd.read_hdf(self.target_hdf5, 'features')
                 
-                r.to_hdf(self.target_hdf5, 'process_values/'+cycle)
-                # r.to_hdf(self.target_file, cycle)
+                # Concat new and old data
+                df_scalar = pd.concat([df_scalar_old,df_scalar])
+                df_feat = pd.concat([df_feat_old,df_feat])
                 
-                # save to target hdf5
-                s = self.read_scalars(new_data)
-                # read setpoints
+                # recast because pandas is stupid
+                for col in df_scalar.columns:
+                    df_scalar[col] = df_scalar[col].astype(self.scalar_dtype[col])
                 
-                # save to target hdf5
+                for col in df_feat.columns:
+                    df_feat[col] = df_feat[col].astype(self.features_dtype[col])
+                    
+                # Save concatenated data
+                df_scalar.to_hdf(self.target_hdf5,'overview')
+                df_feat.to_hdf(self.target_hdf5,'features')
+                 
                 
-                # read quality data
-                # save to target hdf5
-        return r,s
+        return None
   
     def read_charts(self,cycle_data):
         
@@ -90,21 +138,35 @@ class PIM_Data():
         for key,value in self.scalar.items():
             
             try:
-                scalars[value] = np.array(cycle_data[key]['block0_values'][:])
+                scalars[value] = cycle_data[key]['block0_values'][:]
                 scalars[value] = scalars[value].flatten()
             except:
                 scalars[value] = None
                 print(key + ' could not be read from file')
         
-        scalars = pd.DataFrame.from_dict(scalars)
+        df_scalar = pd.DataFrame.from_dict(scalars)
         
-        scalars = scalars.set_index('Zyklus')
+        for col in df_scalar.columns:
+            df_scalar[col] = df_scalar[col].astype(self.scalar_dtype[col])
+            
+        df_scalar = df_scalar.set_index('Zyklus')
         
-        return scalars
-        
+        return df_scalar
+
     def read_quality(self):   
         return None
+    
+    def calc_features(self,df_chart,df_scalar):
         
+        T_wkz_0 = df_chart.loc[0,'T_wkz_ist']
+        
+        df_feat = pd.DataFrame(data=[T_wkz_0],columns = self.features,
+                               index = df_scalar.index)
+
+        for col in df_feat.columns:
+            df_feat[col] = df_feat[col].astype(self.features_dtype[col])
+
+        return df_feat            
 
 def klemann_convert_hdf5(a,b):
     '''
