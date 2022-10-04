@@ -12,7 +12,7 @@ import h5py
 class PIM_Data():
     
     def __init__(self,source_hdf5, target_hdf5,charts,scalar,scalar_dtype,
-                 features,features_dtype):
+                 features,features_dtype,quals,quals_dtype):
         
         self.source_hdf5 = source_hdf5
         self.target_hdf5 = target_hdf5
@@ -20,9 +20,11 @@ class PIM_Data():
         self.charts = charts
         self.scalar = scalar
         self.features = features
+        self.quals = quals
         
         self.scalar_dtype = scalar_dtype
         self.features_dtype = features_dtype
+        self.quals_dtype = quals_dtype
         
         self.read_source_cycles = []
         
@@ -32,7 +34,8 @@ class PIM_Data():
         target_file = h5py.File(target_hdf5,'w')
         target_file.create_group('overview')
         target_file.create_group('process_values')
-        target_file.create_group('features')        
+        target_file.create_group('features') 
+        target_file.create_group('quality_meas')
         target_file.close()
         
         df_scalar = pd.DataFrame(data = [],
@@ -40,10 +43,13 @@ class PIM_Data():
         df_scalar = df_scalar.set_index('Zyklus')
         df_scalar.to_hdf(target_hdf5,'overview')
 
-        df_feat = pd.DataFrame(data = [],columns = [f for f in features])
+        df_feat = pd.DataFrame(data = [],columns = features)
         df_feat.index = df_scalar.index
         df_feat.to_hdf(target_hdf5,'features')
         
+        df_qual = pd.DataFrame(data=[],columns=quals)
+        df_qual.index.rename('Zyklus',inplace=True)
+        df_qual.to_hdf(target_hdf5,'quality_meas')
         
         
     def get_cycle_data(self):
@@ -59,10 +65,11 @@ class PIM_Data():
             
             scalars = []
             features = []
+            quals = []
             
             if new_source_cycles:
             
-                for cycle in new_source_cycles[0:5]:
+                for cycle in new_source_cycles[0:1]:
                     
                     new_data = file[cycle]
      
@@ -82,19 +89,27 @@ class PIM_Data():
                     # save to target hdf5
                     
                     # read quality data
+                    df_qual = pd.read_hdf(self.source_hdf5,cycle+'/add_data')
+                    quals.append(df_qual)
+                    
                     # save to target hdf5
-                
+                    
+                    
                 # Concatenate list to pd.DataFrame
                 df_scalar = pd.concat(scalars)
                 df_feat = pd.concat(features)
+                df_qual = pd.concat(quals)
                 
                 # Load data saved in hdf5
                 df_scalar_old = pd.read_hdf(self.target_hdf5, 'overview')
                 df_feat_old = pd.read_hdf(self.target_hdf5, 'features')
+                df_qual_old = pd.read_hdf(self.target_hdf5, 'quality_meas')
                 
                 # Concat new and old data
                 df_scalar = pd.concat([df_scalar_old,df_scalar])
                 df_feat = pd.concat([df_feat_old,df_feat])
+                df_qual = pd.concat([df_qual_old,df_qual])
+                
                 
                 # recast because pandas is stupid
                 for col in df_scalar.columns:
@@ -102,11 +117,16 @@ class PIM_Data():
                 
                 for col in df_feat.columns:
                     df_feat[col] = df_feat[col].astype(self.features_dtype[col])
+                
+                for col in df_qual.columns:
+                    df_qual[col] = df_qual[col].astype(self.quals_dtype[col])
                     
                 # Save concatenated data
                 df_scalar.to_hdf(self.target_hdf5,'overview')
                 df_feat.to_hdf(self.target_hdf5,'features')
-                 
+                df_qual.to_hdf(self.target_hdf5,'quality_meas')
+                
+                self.read_source_cycles.extend(new_source_cycles)
                 
         return None
   
@@ -153,7 +173,11 @@ class PIM_Data():
         
         return df_scalar
 
-    def read_quality(self):   
+    def read_quality(self,cycle_data):
+        
+        
+        
+        
         return None
     
     def calc_features(self,df_chart,df_scalar):
