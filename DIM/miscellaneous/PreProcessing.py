@@ -69,7 +69,7 @@ class PIM_Data():
             
             if new_source_cycles:
             
-                for cycle in new_source_cycles[0:1]:
+                for cycle in new_source_cycles:
                     
                     new_data = file[cycle]
      

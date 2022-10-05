@@ -18,7 +18,11 @@ sys.path.insert(0, path_dim.as_posix())
 from DIM.miscellaneous.PreProcessing import PIM_Data
 
 
-source_hdf5 = Path('/home/alexander/Downloads/Temperaturgangmessung-20221002.h5')
+# source_hdf5 = Path('/home/alexander/Downloads/Temperaturgangmessung-20221002.h5')
+
+source_hdf5 = Path('C:/Users/LocalAdmin/Downloads/Temperaturgangmessung-20221002.h5')
+
+# source_hdf5 = Path('Y:/Klute/DIM_Temperaturgang/OPC_UA_Arburg/Temperaturgangmessung-20221003.h5')
 
 target_hdf5 = 'test.h5'
 
