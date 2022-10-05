@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import pickle as pkl
 from scipy import stats
 import h5py
+import time
 
 
 class PIM_Data():
@@ -71,29 +72,34 @@ class PIM_Data():
             
                 for cycle in new_source_cycles:
                     
-                    new_data = file[cycle]
-     
-                    # read monitoring charts
-                    df_chart = self.read_charts(new_data)
-                                   
-                    df_chart.to_hdf(self.target_hdf5, 'process_values/'+cycle)
-                    # r.to_hdf(self.target_file, cycle)
+                    print(cycle)
                     
-                    # save to target hdf5
-                    df_scalar = self.read_scalars(new_data)
-                    scalars.append(df_scalar)
-                    
-                    # read setpoints
-                    df_feat = self.calc_features(df_chart,df_scalar)
-                    features.append(df_feat)
-                    # save to target hdf5
-                    
-                    # read quality data
-                    df_qual = pd.read_hdf(self.source_hdf5,cycle+'/add_data')
+                    try:
+                        new_data = file[cycle]
+         
+                        # read monitoring charts
+                        df_chart = self.read_charts(new_data)
+                                       
+                        df_chart.to_hdf(self.target_hdf5, 'process_values/'+cycle)
+                        # r.to_hdf(self.target_file, cycle)
+                        
+                        # save to target hdf5
+                        df_scalar = self.read_scalars(new_data)
+
+                        # read setpoints
+                        df_feat = self.calc_features(df_chart,df_scalar)
+
+                        # read quality data
+                        df_qual = pd.read_hdf(self.source_hdf5,cycle+'/add_data')
+                        
+
+
+                    except:
+                        pass
+                
+                    scalars.append(df_scalar)                        
+                    features.append(df_feat)                        
                     quals.append(df_qual)
-                    
-                    # save to target hdf5
-                    
                     
                 # Concatenate list to pd.DataFrame
                 df_scalar = pd.concat(scalars)

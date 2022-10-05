@@ -38,20 +38,18 @@ df_plot.index.rename = 'Zyklus'
 
 colormap = sns.color_palette(n_colors=10)
 
-charges = np.vstack((0*np.ones((30,1),int),1*np.ones((30,1),int),2*np.ones((30,1),int),
+charges = np.vstack((0*np.ones((35,1),int),1*np.ones((31,1),int),2*np.ones((24,1),int),
                     3*np.ones((30,1),int),4*np.ones((30,1),int),5*np.ones((30,1),int),
                     6*np.ones((30,1),int),7*np.ones((30,1),int),8*np.ones((30,1),int),
                     9*np.ones((30,1),int)))
 
-indices = np.arange(1,31,1)
-
-cyc = 1
-
 while True:
         
     # Parse new data to target hdf5 if available
+    # try:
     data_reader.get_cycle_data()
-
+    # except:
+    time.sleep(5)
     # Read data from target hdf5
     # df_overview = pd.read_hdf(data_reader.target_hdf5,key='overview')
     df_features = pd.read_hdf(data_reader.target_hdf5,key='features')   
@@ -63,6 +61,8 @@ while True:
     df_plot = pd.concat([df_features[['T_wkz_0']],
                          df_quality[['Durchmesser_innen','Gewicht']]],
                         axis=1)
+    
+
     
     df_plot['Charge'] = charges[0:len(df_plot)]
     
@@ -96,18 +96,17 @@ while True:
                  hue = 'Charge',
                  marker='o', markersize= 15,legend=False,ax = ax[1,0],
                  palette = colormap[0:len(charges_list)])
- 
+     
     sns.lineplot(data=df_plot,x = 'plot_index', y = 'Gewicht', 
                  hue = 'Charge',
                  marker='o', markersize= 15,legend=False,ax = ax[1,1],
                  palette = colormap[0:len(charges_list)])
     
-
     
-    cyc = cyc + 1 
     
-    # time.sleep(1)
-    # plt.pause(1)
+        
+    time.sleep(1)
+    plt.pause(20)
     
     
 # open taget file
