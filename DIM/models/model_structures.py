@@ -141,7 +141,8 @@ class Static(Model):
             except:
                 continue
         
-        u0 = np.array(u0[self.u_label].values,dtype=float)
+        if isinstance(u0,pd.DataFrame):
+            u0 = np.array(u0[self.u_label].values,dtype=float)
         
         y = self.Function(u0,*params_new)     
                               
@@ -161,7 +162,7 @@ class Static(Model):
             # One-Step prediction
             for k in range(u.shape[0]):  
                 # y_new = model.OneStepPrediction(u[k,:],params)
-                y_new = model.OneStepPrediction(u.iloc[[k]],params)
+                y_new = self.OneStepPrediction(u.iloc[[k]],params)
                 
                 y_est.append(y_new)
             
@@ -175,7 +176,7 @@ class Static(Model):
             
             df = pd.DataFrame(data=y_est, columns=cols, index=data.index)
             
-            loss = None
+            loss = np.sum((data[self.y_label]-df[self.y_label]).values**2)
         
         # else calulate loss
         else:

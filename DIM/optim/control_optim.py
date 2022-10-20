@@ -53,6 +53,56 @@ from .common import OptimValues_to_dict
                           
 #     return x_new
 
+
+class StaticProcessOptimizer():
+    
+    def __init__(self,model,fix_inputs=[]):
+        
+        self.model = model
+        self.fix_inputs = fix_inputs
+         
+        
+        # Define the function to be minimized as casadi function
+        
+        # define inputs as symbolic variables
+        U = [cs.MX.sym(u,1,1) for u in model.u_label]
+        Q = [cs.MX.sym(y,1,1) for y in model.y_label]
+        
+        
+        Q_pred = model.OneStepPrediction(cs.vcat(U))
+        
+        loss = cs.sumsqr(Q_pred-cs.vcat(Q))
+        
+        self.LossFunc = cs.Function('loss',U+Q, [loss], 
+                                    model.u_label+model.y_label,['loss'])
+        
+        
+        
+    def optimize(self,Q_target,inputs):
+        
+        # Create Instance of the optimization problem
+        opti = cs.Opti()       
+        
+        # create opti variables 
+        U = {label:opti.variable() for label in self.model.u_label if \
+             label not in self.fix_inputs}
+
+        opti.minimize(self.LossFunc(**U,**Q_target))
+        
+        #Choose solver
+        opti.solver('ipopt')
+        
+        # Get solution
+        sol = opti.solve()
+        
+        # Extract real values from solution
+        # values = OptimValues_to_dict(ref_params_opti,sol)
+        # values['X'] = sol.value(X)
+        
+        return sol
+        
+
+
 def ControlInput(reference,opti_vars,k):
     """
     Übersetzt durch Maschinenparameter parametrierte
