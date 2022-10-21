@@ -26,7 +26,7 @@ from .common import OptimValues_to_dict,BestFitRate
 
 import multiprocessing
 
-class Optimizer():
+class ParamOptimizer():
     """
     Offline Optimizer for models of type Recurrent, Static, QualityModel
     """
@@ -38,25 +38,73 @@ class Optimizer():
         self.data_val = data_val
         
         self.initializations = kwargs.pop('initializations',10)   
-        self.s_opts = kwargs.pop('s_opts',{"max_iter": 1000, "print_level":1})
+        self.s_opts = kwargs.pop('s_opts',{"max_iter": 1000, "print_level":1,
+                                           "hessian_approximation":'limited-memory'})
         self.p_opts = kwargs.pop('s_opts',{"expand":False})
         self.mode = kwargs.pop('mode','parallel') 
-        self.n_pool = kwargs.pop('n_pool',5)     
+        self.n_pool = kwargs.pop('n_pool',None)     
         self.constraints = kwargs.pop('constraints',None)
-        # Create Instance of the Optimization Problem
-        self.opti = cs.Opti()
-        
-        # Create dictionary of all non-frozen parameters to create Opti Variables of 
-        OptiParameters = self.model.Parameters.copy()
-        
-        for frozen_param in model.frozen_params:
-            OptiParameters.pop(frozen_param)
         
         
-        self.CreateOptimVariables(OptiParameters)          
-
 
     def optimize(self):
+        
+        results = [] 
+        
+        if self.n_pool is None:
+            for i in range(0,self.initializations):
+                
+                self.model.ParameterInitialization()
+                
+                res = self.param_est(self.model,self.data_train,self.data_val,
+                                     self.p_opts,self.s_opts,self.mode,
+                                     self.constraints)
+                       
+                # save parameters and performance in list
+                results.append(res)
+                   
+            results = pd.DataFrame(data = results, columns = ['params_train',
+                                'params_val','loss_train','loss_val'])
+        else:
+            
+            
+            
+            
+            data_train = [copy.deepcopy(self.data_train) for i in range(0,self.initializations)]
+            data_val = [copy.deepcopy(self.data_val) for i in range(0,self.initializations)]
+            models = [copy.deepcopy(self.model) for i in range(0,self.initializations)]
+            p_opts = [copy.deepcopy(self.p_opts) for i in range(0,self.initializations)]
+            s_opts = [copy.deepcopy(self.s_opts) for i in range(0,self.initializations)]
+            mode = [copy.deepcopy(self.mode) for i in range(0,self.initializations)]
+            constraints = [copy.deepcopy(self.constraints) for i in range(0,self.initializations)]
+            
+            # Hilft nicht:
+            # models = [model.__class__(**model.__dict__) for i in range(0,initializations)]
+            
+            # Hilft nicht:    
+            # Bug Fix: For some reason, although models are reinitialized in 
+            # TrainingProcedure, exactly n_pool models ended up with the exact
+            # same parameters. Therefore models are reinitialized here again before 
+            # processes are created
+            
+            for model in models:
+                model.ParameterInitialization()
+            
+            
+            pool = multiprocessing.Pool(self.n_pool)
+            results = pool.starmap(self.param_est, zip(models, data_train, data_val, 
+                                                          p_opts, s_opts, mode,
+                                                          constraints))        
+            results = pd.DataFrame(data = results, columns = ['params_train',
+                                'params_val','loss_train','loss_val'])
+            
+            pool.close() 
+            pool.join()      
+                
+        return results
+
+    def param_est(self,model,data_train,data_val,p_opts,s_opts,mode,
+                         constraints):
               
         # # Create dictionary of all non-frozen parameters to create Opti Variables of 
         # OptiParameters = self.model.Parameters.copy()
@@ -69,28 +117,39 @@ class Optimizer():
         
         # Evaluate on model on data
         
-        if self.mode == 'parallel':
-            loss_train,_ = self.model.parallel_mode(self.data_train,self.opti_vars)
-            loss_val,_ = self.model.parallel_mode(self.data_val,self.opti_vars)
-            
-        elif self.mode == 'static':
-            loss_train,_ = self.model.static_mode(self.data_train,self.opti_vars)  
-            loss_val,_ = self.model.static_mode(self.data_val,self.opti_vars)
-                    
-        elif self.mode == 'series':      
-            loss_train,_ = self.model.series_parallel_mode(self.data_train,self.opti_vars)
-            loss_val,_ = self.model.series_parallel_mode(self.data_val,self.opti_vars)
+        # Create Instance of the Optimization Problem
+        opti = cs.Opti()
         
-        loss_val = cs.Function('loss_val',[*list(self.opti_vars.values())],
-                             [loss_val],list(self.opti_vars.keys()),['F'])
+        # Create dictionary of all non-frozen parameters to create Opti Variables of 
+        OptiParameters = model.Parameters.copy()
+        
+        for frozen_param in model.frozen_params:
+            OptiParameters.pop(frozen_param)
+        
+        
+        opti_vars = CreateOptimVariables(opti,OptiParameters)  
+        
+                
+        if mode == 'parallel':
+            loss_train,_ = model.parallel_mode(data_train,opti_vars)
+            loss_val,_ = model.parallel_mode(data_val,opti_vars)
+            
+        elif mode == 'static':
+            loss_train,_ = model.static_mode(data_train,opti_vars)  
+            loss_val,_ = model.static_mode(data_val,opti_vars)
+                    
+        elif mode == 'series':      
+            loss_train,_ = model.series_parallel_mode(data_train,opti_vars)
+            loss_val,_ = model.series_parallel_mode(data_val,opti_vars)
+        
+        loss_val = cs.Function('loss_val',[*list(opti_vars.values())],
+                             [loss_val],list(opti_vars.keys()),['F'])
          
-        self.opti.minimize(loss_train)
+        opti.minimize(loss_train)
             
         # Create Solver
-        self.opti.solver("ipopt",self.p_opts, self.s_opts)
+        opti.solver("ipopt",p_opts, s_opts)
         
-        opti_vars = self.opti_vars
-        opti = self.opti 
         
         class intermediate_results():
             def __init__(self):
@@ -110,23 +169,24 @@ class Optimizer():
         val_results = intermediate_results()
 
         # Callback
-        self.opti.callback(val_results.callback)
-               
-        if self.constraints is not None:
-            self.opti = AddOptimConstraints(self.opti,self.opti_vars,self.constraints) 
+        opti.callback(val_results.callback)
+        
+        # Add constraints to optimization problem
+        if constraints is not None:
+            opti = AddOptimConstraints(opti,opti_vars,constraints) 
 
         # Set initial values of Opti Variables as current Model Parameters
-        for key in self.opti_vars:
-            self.opti.set_initial(self.opti_vars[key], self.model.Parameters[key])
+        for key in opti_vars:
+            opti.set_initial(opti_vars[key], model.Parameters[key])
 
         # Solve NLP, if solver does not converge, use last solution from opti.debug
         try: 
-            sol = self.opti.solve()
+            sol = opti.solve()
         except:
-            sol = self.opti.debug
+            sol = opti.debug
             
-        params = OptimValues_to_dict(self.opti_vars,sol)
-        F_train = sol.value(self.opti.f)        
+        params = OptimValues_to_dict(opti_vars,sol)
+        F_train = sol.value(opti.f)        
 
         params_val = val_results.params_val
         F_val = val_results.F_val
@@ -134,7 +194,7 @@ class Optimizer():
                 
         return params,params_val,float(F_train),float(F_val)        
 
-    def CreateOptimVariables(self,OptiParameters):
+    def CreateOptimVariables(self,opti,OptiParameters):
         '''
         Beschreibung der Funktion
     
@@ -159,11 +219,10 @@ class Optimizer():
             dim0 = OptiParameters[param].shape[0]
             dim1 = OptiParameters[param].shape[1]
             
-            opti_vars[param] = self.opti.variable(dim0,dim1)
+            opti_vars[param] = opti.variable(dim0,dim1)
         
-        self.opti_vars = opti_vars
         
-        return None
+        return opti_vars
 
 def ControlInput(ref_trajectories,opti_vars,k):
     """

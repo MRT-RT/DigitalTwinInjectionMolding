@@ -52,6 +52,64 @@ class Model():
         self.frozen_params = frozen_params
         self.init_proc = init_proc
 
+    def MinMaxScale(self,df,**kwargs):
+        
+        df = df.copy()
+        
+        # Unnormalize data
+        reverse = kwargs.pop('reverse',False)
+         
+        if reverse:
+            
+            col_min = self.minmax[0]
+            col_max = self.minmax[1]
+            
+            if all(col_min.keys()==col_max.keys()):
+                cols = col_min.keys()
+    
+            cols = [col for col in cols if col in df.columns]
+            
+            # Unscale from 0,1
+            # df_rev = df[cols]* (col_max - col_min) + col_min
+            
+            # Unscale from -1,1
+            df_rev = 1/2* ( (df[cols] + 1) * (col_max - col_min)) + col_min
+            
+            
+            df.loc[:,cols] = df_rev
+        
+        # Normalize data
+        else:
+        
+            try:
+                col_min = self.minmax[0]
+                col_max = self.minmax[1]
+                
+                if all(col_min.keys()==col_max.keys()):
+                    cols = col_min.keys()
+                
+                cols = [col for col in cols if col in df.columns]
+                
+            except:
+                
+                cols = self.u_label + self.y_label
+               
+                col_min = df[cols].min()
+                col_max = df[cols].max()
+                
+                self.minmax = (col_min,col_max)
+                
+            # Scale to -1,1
+            df_norm = 2*(df[cols] - col_min) / (col_max - col_min) - 1 
+            
+            df.loc[:,cols] = df_norm
+            # Scale to 0,1   
+            # df_norm = (df[columns] - col_min) / (col_max - col_min)
+        
+        
+        
+        return df
+
 class Static(Model):
     """
     Base implementation of a static model.
@@ -176,8 +234,12 @@ class Static(Model):
             
             df = pd.DataFrame(data=y_est, columns=cols, index=data.index)
             
-            loss = np.sum((data[self.y_label]-df[self.y_label]).values**2)
-        
+            try:
+                loss = np.sum((data[self.y_label]-df[self.y_label]).values**2)
+            except:
+                print('No output data given to calculate loss.')
+                loss = None
+                    
         # else calulate loss
         else:
             
