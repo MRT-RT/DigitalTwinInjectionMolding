@@ -31,7 +31,7 @@ class ParamOptimizer():
     Offline Optimizer for models of type Recurrent, Static, QualityModel
     """
 
-    def __init__(self,model,data_train,data_val,initializations,**kwargs):
+    def __init__(self,model,data_train,data_val,**kwargs):
         
         self.model = model
         self.data_train = data_train
@@ -54,7 +54,8 @@ class ParamOptimizer():
         if self.n_pool is None:
             for i in range(0,self.initializations):
                 
-                self.model.ParameterInitialization()
+                if i > 0:
+                    self.model.ParameterInitialization()
                 
                 res = self.param_est(self.model,self.data_train,self.data_val,
                                      self.p_opts,self.s_opts,self.mode,
@@ -66,10 +67,7 @@ class ParamOptimizer():
             results = pd.DataFrame(data = results, columns = ['params_train',
                                 'params_val','loss_train','loss_val'])
         else:
-            
-            
-            
-            
+
             data_train = [copy.deepcopy(self.data_train) for i in range(0,self.initializations)]
             data_val = [copy.deepcopy(self.data_val) for i in range(0,self.initializations)]
             models = [copy.deepcopy(self.model) for i in range(0,self.initializations)]
@@ -316,7 +314,10 @@ def ModelTraining(model,data_train,data_val,initializations=10, BFR=False,
     
     for i in range(0,initializations):
         
-        model.ParameterInitialization()
+        # Initialize with the current model parameter during first initiali-
+        # zation and randomly during subsequent initializations
+        if i > 0:
+            model.ParameterInitialization()
         res = TrainingProcedure(model, data_train,data_val, p_opts, s_opts,
                                 mode,**kwargs)
                

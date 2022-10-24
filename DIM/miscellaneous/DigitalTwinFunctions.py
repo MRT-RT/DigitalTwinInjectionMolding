@@ -15,13 +15,18 @@ import matplotlib.pyplot as plt
 import seaborn as sn
 import pandas as pd
 import numpy as np
+import seaborn as sns
+from multiprocessing import Process, Pool
+import copy
 
 
 path_dim = Path.cwd()
 sys.path.insert(0, path_dim.as_posix())
 
 from DIM.miscellaneous.PreProcessing import PIM_Data
-from DIM.optim.param_optim import ModelTraining
+from DIM.optim.param_optim import ParamOptimizer
+
+from DIM.optim.control_optim import StaticProcessOptimizer
 
 class model_bank():
     def __init__(self,model_paths):
@@ -29,26 +34,19 @@ class model_bank():
         
         self.load_models()
         
-        self.loss = [np.nan for m in self.models]
-        self.pred = [None for m in self.models]
+        self.stp_loss = [np.nan for m in self.models]
+        self.stp_pred = [None for m in self.models]
+        
+        self.rec_pred = [None for m in self.models]
+        
     
     def load_models(self):
         
         self.models = [pkl.load(open(path,'rb')) for path in self.model_paths]
         
         
-def config_data_manager(source_hdf5,target_hdf5):
-    # source_hdf5 = Path('/home/alexander/Downloads/Temperaturgangmessung-20221002.h5')
-    
-    
-    # source_hdf5 = Path('C:/Users/LocalAdmin/Documents/DIM_Data/Messung 5.10/DIM_Temperaturgang_fixed.h5')
-    # source_hdf5 = Path.cwd()/'live_data.h5'
-    # source_hdf5 = Path('C:/Users/LocalAdmin/Documents/DIM_Data/Messung 6.10/Temperaturgangmessung-20221004.h5')
-    # source_hdf5 = Path('C:/Users/LocalAdmin/Documents/DIM_Data/Messung 7.10/Temperaturgangmessung-20221005.h5')
-    
-    # target_hdf5 = Path.cwd()/'TGang_051022.h5'
-    # target_hdf5 = Path.cwd()/'TGang_061022.h5'
-    # target_hdf5 = Path.cwd()/'TGang_071022.h5'
+def config_data_manager(source_hdf5,target_hdf5,setpoints):
+
     
     charts = [{'keys':['f3113I_Value','f3213I_Value','f3313I_Value'],
                'values':['p_wkz_ist','p_hyd_ist','T_wkz_ist','p_hyd_soll',
@@ -145,7 +143,7 @@ def config_data_manager(source_hdf5,target_hdf5):
                    'ProjError':'bool'}
     
     # Process/machine parameters that can be influenced by the operator
-    setpoints = ['T_zyl5_soll','v_inj_soll','V_um_soll','T_wkz_soll']
+    setpoints = setpoints
     
     # initialize data reader
     data_manager = PIM_Data(source_hdf5,target_hdf5,charts,scalar,scalar_dtype,
@@ -155,52 +153,251 @@ def config_data_manager(source_hdf5,target_hdf5):
     
 def predict_quality(data_manager, model_bank):
     
-    mod_data = pd.read_hdf(data_manager.target_hdf5, 'modelling_data')
+    dm = data_manager
+    mb = model_bank
     
-    for m in range(len(model_bank.models)):
+    # Load managed setpoint data    
+    mod_data = pd.read_hdf(dm.target_hdf5, 'modelling_data')
+    
+    # load most recent data, solely for plotting purposes
+    df_scalar = pd.read_hdf(dm.target_hdf5,'overview')
+    df_feat = pd.read_hdf(dm.target_hdf5,'features')
+    df_qual = pd.read_hdf(dm.target_hdf5,'quality_meas')
+    
+    # Sort dataframe
+    df_scalar = df_scalar.sort_index()
+    
+    # find most recent observations
+    idx_rec = df_scalar.index[-20::]
+    
+    rec_data = pd.concat([df_scalar.loc[idx_rec],
+                          df_feat.loc[idx_rec],
+                          df_qual.loc[idx_rec]],axis=1)
         
-        model = model_bank.models[m]
+    for m in range(len(mb.models)):
         
-        loss,pred = model.static_mode(mod_data)
         
-        model_bank.loss[m] = loss
-        model_bank.pred[m] = pred
+        # 1: Prediction of managed setpoint data. 
+        # predict data for managed observations over all setpoints
+        model = mb.models[m]
         
-    # Get "identification" data
-    
-    # Do a prediction for every model in the model_bank
-    
-    # Plot best prediction and info which model did it
-    
-    # sleep a while
-    
-    # plt.pause(0.0001)
+        # Normalize data
+        norm_data = model.MinMaxScale(mod_data)
+        
+        # Predict quality
+        loss,pred = model.static_mode(norm_data)
+        
+        # Reverse normalization
+        pred_un = model.MinMaxScale(pred,reverse=True)        
+        
+        # Rename columns
+        pred_cols = [col+'_pred' for col in pred_un.columns]
+        pred_un.columns = pred_cols
+        
+        # Concatenate measured data and prediction
+        stp_pred = pd.concat([mod_data,pred_un],axis=1)
+        
+        mb.stp_loss[m] = loss
+        mb.stp_pred[m] = stp_pred
+        
+        
+        # 2: Predcition over most recent 20 observations, solely for plotting
+        # purposes
+        norm_data = model.MinMaxScale(rec_data)
+
+        # Predict quality
+        _,pred = model.static_mode(norm_data)
+        
+        # Reverse normalization
+        pred_un = model.MinMaxScale(pred,reverse=True)        
+        
+        # Rename columns
+        pred_cols = [col+'_pred' for col in pred_un.columns]
+        pred_un.columns = pred_cols
+        
+        # Concatenate measured data and prediction
+        rec_pred = pd.concat([rec_data,pred_un],axis=1)
+        
+        mb.rec_pred[m] = rec_pred
+        
     
     return None
 
-def reestimate_models(ident_data, model,name):
-        
-    res = ModelTraining(model,ident_data,ident_data,initializations=1,
-                        mode='static')
-    
+def estimate_parallel(model,data,opts,path):
+    """
+    Helper function for reestimate_models() to realize parallelization
+
+    Parameters
+    ----------
+    model : TYPE
+        DESCRIPTION.
+    data : TYPE
+        DESCRIPTION.
+    opts : TYPE
+        DESCRIPTION.
+    path : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    data_norm = model.MinMaxScale(data)
+    param_optimizer = ParamOptimizer(model,data_norm,data_norm,**opts)
+    res = param_optimizer.optimize()
     model.Parameters = res.loc[0,'params_train']
+    pkl.dump(model,open(path,'wb'))        
+    print('Finish '+str(model.name),flush=True)
+
+def reestimate_models(data_manager, model_bank):
     
-    print('Finish '+str(m),flush=True)
+    dm = data_manager
+    mb = model_bank
     
-    pkl.dump(model,open(name+'.mod'))
-    # while loop infinite
+    ident_data = pd.read_hdf(dm.target_hdf5,key='modelling_data')
+   
+    opts = {'initializations':1,
+            's_opts':{"max_iter": 100, "print_level":1, 
+                     "hessian_approximation":'limited-memory'},
+            'mode' : 'static'}
     
-    # Check if reader_status is True
-    
-    # read in model bank from a file
-    
-    # Do a prediction for every model in the model_bank
-    
-    # Reestimate models whose error is CRITERIUM
-    
-    # Save models to file, mark best model
+    # Start a process for reestimation of each model 
+    for m in range(len(mb.models)):
+        p = Process(target=estimate_parallel,
+                    args=(mb.models[m],ident_data,opts,mb.model_paths[m]))
+        
+        p.start()
+        p.join()
     
     return None
- 
 
+def optimize_parallel(model,Q_target,fix_inputs,init_values,constraints):
+    
+    setpoint_Optimizer = StaticProcessOptimizer(model=model)
+    U_sol = setpoint_Optimizer.optimize(Q_target,fix_inputs,
+                                input_init=init_values,
+                                constraints=constraints)
+    U_sol_norm = model.MinMaxScale(U_sol,reverse=True)
+    
+    return U_sol_norm
+    
+
+def optimize_setpoints(data_manager,model_bank):
+
+    dm = data_manager
+    mb = model_bank
+    
+    # find best overall model
+    idx_mod = np.argmin(mb.stp_loss)
+    model = mb.models[idx_mod]
+
+    # load data used for modelling 
+    data = pd.read_hdf(dm.target_hdf5,key='modelling_data')
+    
+    # normalize data
+    data = model.MinMaxScale(data)
+    
+    # Get T_wkz_0 from most recent measurement
+    fix_inputs = data.loc[[data.index[-1]],['T_wkz_0']]
+        
+    # find unique setpoints and select only model inputs
+    stp_data = data.drop_duplicates(subset='Setpoint')
+    inputs = stp_data[model.u_label]
+    
+    # remove model inputs that can't be influenced
+    man_inputs = inputs.drop(columns=['T_wkz_0'])
+    
+    # derive constraints and initial values from data used for modelling 
+    init_values = [man_inputs.loc[[k]] for k in man_inputs.index]
+        
+    # get constraints from data
+    constraints = []
+    for u in man_inputs.columns:
+        
+        col_min = man_inputs[u].min()
+        col_max = man_inputs[u].max()
+        
+        if col_min == col_max:
+            col_min = col_min*0.9
+            col_max = col_max*1.1
+
+        constraints.append((u,'>'+str(col_min)))
+        constraints.append((u,'<'+str(col_max)))             
+    
+    
+    # Copy everything for parallel pool
+    n_init = len(init_values)
+    
+    Q_target =  pd.DataFrame.from_dict({'Durchmesser_innen': [27.4]})
+    
+    model = [copy.deepcopy(model) for i in range(n_init)]
+    Q_target = [copy.deepcopy(Q_target) for i in range(n_init)]
+    fix_inputs = [copy.deepcopy(fix_inputs) for i in range(n_init)]
+    constraints = [copy.deepcopy(constraints) for i in range(n_init)]
+   
+    pool = Pool(n_init)
+    
+    results = pool.starmap(optimize_parallel, zip(model, Q_target, fix_inputs,
+                                                  init_values,constraints))       
+
+    # close pool
+    pool.close() 
+    pool.join()  
+    
+    # cast results to pandas dataframe
+    results = pd.concat(results,axis=1)
+    
+    return results   
+
+def plot_meas_pred(fig,ax,data_manager,model_bank):
+    
+    dm = data_manager
+    mb = model_bank
+      
+    # Plot 1: Quality over Temperature in current setpoint
+    # find best model and load prediction
+    mod_idx = np.argmin(mb.stp_loss)            
+    pred_spt = mb.stp_pred[mod_idx]
+    
+    # find current setpoint (look for last measurement added)
+    spt = pred_spt.loc[max(pred_spt.index),'Setpoint']
+    
+    # find all cycles of that setpoint
+    cyc_idx = (pred_spt['Setpoint']==spt).index    
+
+    #plot setpoint data and prediction
+    ax[0].cla()     # Clear axis
+    opts = {'marker':'d','markersize':20}
+    
+    sns.lineplot(data=pred_spt.loc[cyc_idx],x = 'T_wkz_0',
+                 y = 'Durchmesser_innen',ax=ax[0], color='k',**opts) 
+    sns.lineplot(data=pred_spt.loc[cyc_idx],x = 'T_wkz_0',
+                 y = 'Durchmesser_innen_pred',ax=ax[0], color='b',**opts)             
+    
+    
+    # Plot 2: Quality over cycle number (last 20)
+    pred_rec = mb.rec_pred[mod_idx]
+
+    ax[1].cla()     # Clear axis
+    sns.lineplot(data=pred_rec,x = pred_rec.index,
+                 y = 'Durchmesser_innen',ax=ax[1],color='k',**opts) 
+    sns.lineplot(data=pred_rec,x = pred_rec.index,
+                 y = 'Durchmesser_innen_pred',ax=ax[1],color='b',**opts)
+    ax[1].set_xticks(pred_rec.index)
+
+    
+    ax[0].set_xlabel('T_wkz_0',fontsize = 22)
+    ax[1].set_xlabel('Zyklus',fontsize = 22)
+    
+    ax[0].set_ylabel('Durchmesser_innen',fontsize = 22)
+    ax[1].set_ylabel('Durchmesser_innen',fontsize = 22)
+    
+    
+    
+    [a.set_ylim([27,28]) for a in ax]
+    
+    
+    plt.tight_layout()
+    plt.pause(3)
     

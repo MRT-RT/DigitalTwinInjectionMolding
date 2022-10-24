@@ -56,7 +56,7 @@ class Model():
         
         df = df.copy()
         
-        # Unnormalize data
+        # Check if scaling is to be reversed
         reverse = kwargs.pop('reverse',False)
          
         if reverse:
@@ -78,13 +78,16 @@ class Model():
             
             df.loc[:,cols] = df_rev
         
-        # Normalize data
+        # Else scale data
         else:
-        
+            
+            # Check if column min and max already exist from previous
+            # scaling
             try:
                 col_min = self.minmax[0]
                 col_max = self.minmax[1]
                 
+                # 
                 if all(col_min.keys()==col_max.keys()):
                     cols = col_min.keys()
                 
@@ -92,11 +95,19 @@ class Model():
                 
             except:
                 
+                # If not calculate  column min and max from given data
                 cols = self.u_label + self.y_label
                
                 col_min = df[cols].min()
                 col_max = df[cols].max()
                 
+                
+                # Check if col_min equals col_max, fix  to avoid division by zero
+                for col in cols:
+                    if col_min[col] == col_max[col]:
+                        col_min[col] = 0.0
+            
+                # save for scaling of future data
                 self.minmax = (col_min,col_max)
                 
             # Scale to -1,1
@@ -228,14 +239,14 @@ class Static(Model):
             
             
             # Rename columns to distinguish estimate from true value
-            # cols = [label + '_est' for label in self.y_label]
+            # cols_pred = [label + '_est' for label in self.y_label]
             
             cols = self.y_label
             
-            df = pd.DataFrame(data=y_est, columns=cols, index=data.index)
+            df_pred = pd.DataFrame(data=y_est, columns=cols, index=data.index)
             
             try:
-                loss = np.sum((data[self.y_label]-df[self.y_label]).values**2)
+                loss = np.sum((data[self.y_label]-df_pred[self.y_label]).values**2)
             except:
                 print('No output data given to calculate loss.')
                 loss = None
@@ -255,9 +266,9 @@ class Static(Model):
                 e.append(y_ref[k,:]-y_new)
                 loss = loss + cs.sumsqr(e[-1])
                 
-            df = None
+            df_pred = None
             
-        return loss,df
+        return loss,df_pred
                       
     def AssignParameters(self,params):
         

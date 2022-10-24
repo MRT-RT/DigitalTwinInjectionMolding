@@ -81,6 +81,8 @@ class PIM_Data():
         
     def get_cycle_data(self):
         
+        new_data = False
+        
         with h5py.File(self.target_hdf5,mode='r') as target_file:
             read_cycles = set(target_file['process_values'].keys())
                 
@@ -92,6 +94,8 @@ class PIM_Data():
         new_source_cycles = list(new_source_cycles - set(self.failed_cycles))
         
         if new_source_cycles:
+            
+            new_data = True
             
             charts = {}
             scalars = []
@@ -187,7 +191,7 @@ class PIM_Data():
                 
             
                 
-        return True
+        return new_data
   
     def read_charts(self,cycle_key):
         
