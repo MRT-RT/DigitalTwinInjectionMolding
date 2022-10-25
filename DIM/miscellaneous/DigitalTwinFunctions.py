@@ -283,7 +283,7 @@ def optimize_parallel(model,Q_target,fix_inputs,init_values,constraints):
     return U_sol_norm
     
 
-def optimize_setpoints(data_manager,model_bank):
+def optimize_setpoints(data_manager,model_bank,Q_target):
 
     dm = data_manager
     mb = model_bank
@@ -329,8 +329,6 @@ def optimize_setpoints(data_manager,model_bank):
     # Copy everything for parallel pool
     n_init = len(init_values)
     
-    Q_target =  pd.DataFrame.from_dict({'Durchmesser_innen': [27.4]})
-    
     model = [copy.deepcopy(model) for i in range(n_init)]
     Q_target = [copy.deepcopy(Q_target) for i in range(n_init)]
     fix_inputs = [copy.deepcopy(fix_inputs) for i in range(n_init)]
@@ -340,7 +338,6 @@ def optimize_setpoints(data_manager,model_bank):
     
     results = pool.starmap(optimize_parallel, zip(model, Q_target, fix_inputs,
                                                   init_values,constraints))       
-
     # close pool
     pool.close() 
     pool.join()  
@@ -348,6 +345,8 @@ def optimize_setpoints(data_manager,model_bank):
     # cast results to pandas dataframe
     results = pd.concat(results,axis=1)
     
+    # Enumerate solutions for plotting purposes
+    results['Sol_Num'] = range(len(results))
     return results   
 
 def plot_meas_pred(fig,ax,data_manager,model_bank):
@@ -396,8 +395,62 @@ def plot_meas_pred(fig,ax,data_manager,model_bank):
     
     
     [a.set_ylim([27,28]) for a in ax]
+    plt.pause(0.01)
+    # fig.tight_layout()
+    # fig.canvas.flush_events() 
+    # plt.pause(0.01)
     
+def parallel_plot_setpoints(fig,ax,opti_setpoints):
     
-    plt.tight_layout()
-    plt.pause(3)
+    [a.cla() for a in ax]     # Clear axis
+    
+    # Calculate number of different solutions
+    n_sol = len(opti_setpoints)
+    
+    # get as many different colors
+    col_pal = sns.color_palette(n_colors = n_sol)
+    
+    # 
+    cols = opti_setpoints.columns
+    
+    order = [n for n in opti_setpoints['Sol_Num']]
+    
+    for c in range(len(cols)-1):
+        
+        col = cols[c]
+        
+        p = sns.stripplot(data=opti_setpoints,
+                     hue='Sol_Num',
+                     x=np.arange(0,1,1/n_sol),
+                     y=col,
+                     ax=ax[c],
+                     size=20,
+                     palette = col_pal,
+                     dodge=False)
+                     # order=order)
+                
+        ax[c].set_ylim([opti_setpoints[col].min()*0.95,
+                        opti_setpoints[col].max()*1.05])
+        
+        ax[c].set_yticks(opti_setpoints[col])
+        
+        ax[c].set_xticklabels([])
+        ax[c].set_xticks([])
+        
+        ax[c].set_title(col)
+        ax[c].set_ylabel(None)
+        ax[c].grid(axis='y')
+        
+        legend = ax[c].legend()
+        legend.remove()        
+        
+
+    plt.pause(0.01)
+    # fig.tight_layout()
+    # fig.canvas.flush_events() 
+    # plt.pause(0.01)
+    # plt.show(block=False)
+    
+
+    
     
