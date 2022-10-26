@@ -45,6 +45,8 @@ class ParamOptimizer():
         self.n_pool = kwargs.pop('n_pool',None)     
         self.constraints = kwargs.pop('constraints',None)
         
+        self.res_path = kwargs.pop('res_path',None)
+        
         
 
     def optimize(self):
@@ -97,7 +99,31 @@ class ParamOptimizer():
                                 'params_val','loss_train','loss_val'])
             
             pool.close() 
-            pool.join()      
+            pool.join()
+            
+            if self.res_path is not None:
+                
+                if not os.path.exists(self.res_path):
+                    os.makedirs(self.res_path)
+                    print('Created directory for results')
+                    
+                pkl.dump(results,open((self.res_path/'overview.pkl').as_posix(),
+                                      'wb'))
+                
+                # Assign parameters to model and save in a dictionary
+                models = {}
+                for i in results.index:
+                    models[i] = {}
+                    models[i]['train'] = copy.deepcopy(model)
+                    models[i]['train'].Parameters = results.loc[i,'params_train']
+                    models[i]['val'] = copy.deepcopy(model)
+                    models[i]['val'].Parameters = results.loc[i,'params_val']
+                    
+                pkl.dump(models,open((self.res_path/'models.pkl').as_posix(),
+                                      'wb'))
+                    
+                
+                
                 
         return results
 
@@ -125,7 +151,7 @@ class ParamOptimizer():
             OptiParameters.pop(frozen_param)
         
         
-        opti_vars = CreateOptimVariables(opti,OptiParameters)  
+        opti_vars = self.__create_opti_vars(opti,OptiParameters)  
         
                 
         if mode == 'parallel':
@@ -171,7 +197,7 @@ class ParamOptimizer():
         
         # Add constraints to optimization problem
         if constraints is not None:
-            opti = AddOptimConstraints(opti,opti_vars,constraints) 
+            opti = self.__add_opti_constraints(opti,opti_vars,constraints) 
 
         # Set initial values of Opti Variables as current Model Parameters
         for key in opti_vars:
@@ -191,8 +217,8 @@ class ParamOptimizer():
         
                 
         return params,params_val,float(F_train),float(F_val)        
-
-    def CreateOptimVariables(self,opti,OptiParameters):
+        
+    def __create_opti_vars(self,opti,OptiParameters):
         '''
         Beschreibung der Funktion
     
@@ -221,82 +247,8 @@ class ParamOptimizer():
         
         
         return opti_vars
-
-def ControlInput(ref_trajectories,opti_vars,k):
-    """
-    Übersetzt durch Maschinenparameter parametrierte
-    Führungsgrößenverläufe in optimierbare control inputs
-    """
     
-    control = []
-            
-    for key in ref_trajectories.keys():
-        control.append(ref_trajectories[key](opti_vars,k))
-    
-    control = cs.vcat(control)
-
-    return control   
-    
-def CreateOptimVariables(opti, Parameters):
-    '''
-    Beschreibung der Funktion
-
-    Parameters
-    ----------
-    opti : Dict
-        DESCRIPTION.
-    Parameters : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    opti_vars : TYPE
-        DESCRIPTION.
-
-    '''
-        
-    # Create empty dictionary
-    opti_vars = {}
-    
-    for param in Parameters.keys():
-        dim0 = Parameters[param].shape[0]
-        dim1 = Parameters[param].shape[1]
-        
-        opti_vars[param] = opti.variable(dim0,dim1)
-    
-    return opti_vars
-
-def CreateSymbolicVariables(Parameters):
-    '''
-    Beschreibung der Funktion
-
-    Parameters
-    ----------
-    opti : Dict
-        DESCRIPTION.
-    Parameters : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    opti_vars : TYPE
-        DESCRIPTION.
-
-    '''
-        
-    # Create empty dictionary
-    opti_vars = {}
-    opti_vars_vec = []
-    for param in Parameters.keys():
-        dim0 = Parameters[param].shape[0]
-        dim1 = Parameters[param].shape[1]
-        
-        opti_vars[param] = cs.MX.sym(param,dim0,dim1)
-        # opti_vars_vec.append(opti_vars[param].reshape((-1,1)))
-        
-    return opti_vars
-
-def AddOptimConstraints(opti,params_opti,constraints):
+def __add_opti_constraints(self,opti,params_opti,constraints):
     
     for constraint in constraints:
         
@@ -306,81 +258,165 @@ def AddOptimConstraints(opti,params_opti,constraints):
     
     return opti
 
-def ModelTraining(model,data_train,data_val,initializations=10, BFR=False, 
-                  p_opts=None, s_opts=None,mode='parallel',**kwargs):
+# def ControlInput(ref_trajectories,opti_vars,k):
+#     """
+#     Übersetzt durch Maschinenparameter parametrierte
+#     Führungsgrößenverläufe in optimierbare control inputs
+#     """
+    
+#     control = []
+            
+#     for key in ref_trajectories.keys():
+#         control.append(ref_trajectories[key](opti_vars,k))
+    
+#     control = cs.vcat(control)
+
+#     return control   
+    
+# def CreateOptimVariables(opti, Parameters):
+#     '''
+#     Beschreibung der Funktion
+
+#     Parameters
+#     ----------
+#     opti : Dict
+#         DESCRIPTION.
+#     Parameters : TYPE
+#         DESCRIPTION.
+
+#     Returns
+#     -------
+#     opti_vars : TYPE
+#         DESCRIPTION.
+
+#     '''
+        
+#     # Create empty dictionary
+#     opti_vars = {}
+    
+#     for param in Parameters.keys():
+#         dim0 = Parameters[param].shape[0]
+#         dim1 = Parameters[param].shape[1]
+        
+#         opti_vars[param] = opti.variable(dim0,dim1)
+    
+#     return opti_vars
+
+# def CreateSymbolicVariables(Parameters):
+#     '''
+#     Beschreibung der Funktion
+
+#     Parameters
+#     ----------
+#     opti : Dict
+#         DESCRIPTION.
+#     Parameters : TYPE
+#         DESCRIPTION.
+
+#     Returns
+#     -------
+#     opti_vars : TYPE
+#         DESCRIPTION.
+
+#     '''
+        
+#     # Create empty dictionary
+#     opti_vars = {}
+#     opti_vars_vec = []
+#     for param in Parameters.keys():
+#         dim0 = Parameters[param].shape[0]
+#         dim1 = Parameters[param].shape[1]
+        
+#         opti_vars[param] = cs.MX.sym(param,dim0,dim1)
+#         # opti_vars_vec.append(opti_vars[param].reshape((-1,1)))
+        
+#     return opti_vars
+
+# def AddOptimConstraints(opti,params_opti,constraints):
+    
+#     for constraint in constraints:
+        
+#         expression = "params_opti['"+constraint[0]+"']" + constraint[1]        
+#         opti.subject_to(eval(expression))
+
+    
+#     return opti
+
+# def ModelTraining(model,data_train,data_val,initializations=10, BFR=False, 
+#                   p_opts=None, s_opts=None,mode='parallel',**kwargs):
     
    
-    results = [] 
+#     results = [] 
     
-    for i in range(0,initializations):
+#     for i in range(0,initializations):
         
-        # Initialize with the current model parameter during first initiali-
-        # zation and randomly during subsequent initializations
-        if i > 0:
-            model.ParameterInitialization()
-        res = TrainingProcedure(model, data_train,data_val, p_opts, s_opts,
-                                mode,**kwargs)
+#         # Initialize with the current model parameter during first initiali-
+#         # zation and randomly during subsequent initializations
+#         if i > 0:
+#             model.ParameterInitialization()
+#         res = TrainingProcedure(model, data_train,data_val, p_opts, s_opts,
+#                                 mode,**kwargs)
                
-        # save parameters and performance in list
-        results.append(res)
+#         # save parameters and performance in list
+#         results.append(res)
            
-    results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
-                        'model','params_train','params_val'])
-    return results
+#     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
+#                         'model','params_train','params_val'])
+#     return results
 
-def TrainingProcedure(model, data_train, data_val, p_opts, s_opts, 
-                      mode,**kwargs):
+# def TrainingProcedure(model, data_train, data_val, p_opts, s_opts, 
+#                       mode,**kwargs):
     
-    # initialize model to make sure given initial parameters are assigned
+#     # initialize model to make sure given initial parameters are assigned
     
-    # Auskommen tieren hilft! 
-    # model.ParameterInitialization()
+#     # Auskommen tieren hilft! 
+#     # model.ParameterInitialization()
     
-    # Estimate Parameters on training data
-    params_train,params_val,loss_train,loss_val = \
-        ModelParameterEstimation(model,data_train,data_val,p_opts,s_opts,mode,
-                                 **kwargs)
+#     # Estimate Parameters on training data
+#     params_train,params_val,loss_train,loss_val = \
+#         ModelParameterEstimation(model,data_train,data_val,p_opts,s_opts,mode,
+#                                  **kwargs)
     
-    # save parameters and performance in list
-    result = [loss_train,loss_val,model.name,params_train,params_val]
+#     # save parameters and performance in list
+#     result = [loss_train,loss_val,model.name,params_train,params_val]
     
-    return result
+#     return result
 
-def ParallelModelTraining(model,data_train,data_val,initializations=10,
-                          BFR=False, p_opts=None, s_opts=None,mode='parallel',
-                          n_pool=5):
+# def ParallelModelTraining(model,data_train,data_val,initializations=10,
+#                           BFR=False, p_opts=None, s_opts=None,mode='parallel',
+#                           n_pool=5):
     
      
-    data_train = [copy.deepcopy(data_train) for i in range(0,initializations)]
-    data_val = [copy.deepcopy(data_val) for i in range(0,initializations)]
-    models = [copy.deepcopy(model) for i in range(0,initializations)]
-    p_opts = [copy.deepcopy(p_opts) for i in range(0,initializations)]
-    s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
-    mode = [copy.deepcopy(mode) for i in range(0,initializations)]
+#     data_train = [copy.deepcopy(data_train) for i in range(0,initializations)]
+#     data_val = [copy.deepcopy(data_val) for i in range(0,initializations)]
+#     models = [copy.deepcopy(model) for i in range(0,initializations)]
+#     p_opts = [copy.deepcopy(p_opts) for i in range(0,initializations)]
+#     s_opts = [copy.deepcopy(s_opts) for i in range(0,initializations)]
+#     mode = [copy.deepcopy(mode) for i in range(0,initializations)]
     
-    # Hilft nicht:
-    # models = [model.__class__(**model.__dict__) for i in range(0,initializations)]
+#     # Hilft nicht:
+#     # models = [model.__class__(**model.__dict__) for i in range(0,initializations)]
     
-    # Hilft nicht:    
-    # Bug Fix: For some reason, although models are reinitialized in 
-    # TrainingProcedure, exactly n_pool models ended up with the exact
-    # same parameters. Therefore models are reinitialized here again before 
-    # processes are created
+#     # Hilft nicht:    
+#     # Bug Fix: For some reason, although models are reinitialized in 
+#     # TrainingProcedure, exactly n_pool models ended up with the exact
+#     # same parameters. Therefore models are reinitialized here again before 
+#     # processes are created
     
-    for model in models:
-        model.ParameterInitialization()
+#     for model in models:
+#         model.ParameterInitialization()
     
     
-    pool = multiprocessing.Pool(n_pool)
-    results = pool.starmap(TrainingProcedure, zip(models, data_train, data_val, 
-                                                  p_opts, s_opts, mode))        
-    results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
-                        'model','params_train','params_val'])
+#     pool = multiprocessing.Pool(n_pool)
+#     results = pool.starmap(TrainingProcedure, zip(models, data_train, data_val, 
+#                                                   p_opts, s_opts, mode))        
+#     results = pd.DataFrame(data = results, columns = ['loss_train','loss_val',
+#                         'model','params_train','params_val'])
     
-    pool.close() 
-    pool.join()      
+#     pool.close() 
+#     pool.join()      
     
-    return results 
+#     return results 
 
 # def HyperParameterPSO(model,data,param_bounds,n_particles,options,
 #                       initializations=10,p_opts=None,s_opts=None):
@@ -542,263 +578,263 @@ def ParallelModelTraining(model,data_train,data_val,initializations=10,
     
 #     return hist
 
-def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel'):
-    """
+# def ModelParameterEstimationLM(model,data,p_opts=None,s_opts=None,mode='parallel'):
+#     """
     
 
-    Parameters
-    ----------
-    model : model
-        A model whose hyperparameters to be optimized are attributes of this
-        object and whose model equations are implemented as a casadi function.
-    data : dict
-        A dictionary with training and validation data, see ModelTraining()
-        for more information
-    p_opts : dict, optional
-        options to give to the optimizer, see Casadi documentation. The 
-        default is None.
-    s_opts : dict, optional
-        options to give to the optimizer, see Casadi documentation. The 
-        default is None.
+#     Parameters
+#     ----------
+#     model : model
+#         A model whose hyperparameters to be optimized are attributes of this
+#         object and whose model equations are implemented as a casadi function.
+#     data : dict
+#         A dictionary with training and validation data, see ModelTraining()
+#         for more information
+#     p_opts : dict, optional
+#         options to give to the optimizer, see Casadi documentation. The 
+#         default is None.
+#     s_opts : dict, optional
+#         options to give to the optimizer, see Casadi documentation. The 
+#         default is None.
 
-    Returns
-    -------
-    values : dict
-        dictionary with either the optimal parameters or if the solver did not
-        converge the last parameter estimate
+#     Returns
+#     -------
+#     values : dict
+#         dictionary with either the optimal parameters or if the solver did not
+#         converge the last parameter estimate
 
-    """
+#     """
     
-    max_iter = s_opts['max_iter']
-    step = s_opts['step']
+#     max_iter = s_opts['max_iter']
+#     step = s_opts['step']
     
-    # Create dictionary of all non-frozen parameters to create Opti Variables of 
-    # OptiParameters = model.Parameters.copy()
-    params_opti = CreateSymbolicVariables(model.Parameters)      
+#     # Create dictionary of all non-frozen parameters to create Opti Variables of 
+#     # OptiParameters = model.Parameters.copy()
+#     params_opti = CreateSymbolicVariables(model.Parameters)      
     
-    # Evaluate on model on data
-    u_train = data['u_train']
-    y_ref_train = data['y_train']
+#     # Evaluate on model on data
+#     u_train = data['u_train']
+#     y_ref_train = data['y_train']
 
-    u_val = data['u_val']
-    y_ref_val = data['y_val']
+#     u_val = data['u_val']
+#     y_ref_val = data['y_val']
     
-    try:
-        switch_train =  data['switch_train']
-        switch_val =  data['switch_val']
-    except KeyError:
-        switch = None
+#     try:
+#         switch_train =  data['switch_train']
+#         switch_val =  data['switch_val']
+#     except KeyError:
+#         switch = None
     
-    if mode == 'parallel':
-        x0_train = data['init_state_train']
-        x0_val = data['init_state_val']
+#     if mode == 'parallel':
+#         x0_train = data['init_state_train']
+#         x0_val = data['init_state_val']
         
-        loss_train,_,_,_ = model.parallel_mode(u_train,y_ref_train,x0_train,
-                                         switch_train,params_opti) 
+#         loss_train,_,_,_ = model.parallel_mode(u_train,y_ref_train,x0_train,
+#                                          switch_train,params_opti) 
         
-        loss_val,_,_,_ = model.parallel_mode(u_val,y_ref_val,x0_val,
-                                       switch_val,params_opti)
+#         loss_val,_,_,_ = model.parallel_mode(u_val,y_ref_val,x0_val,
+#                                        switch_val,params_opti)
         
-    elif mode == 'static':
-        loss_train,_,_ = model.static_mode(u_train,y_ref_train,params_opti)   
-        loss_val,_,_ = model.static_mode(u_val,y_ref_val,params_opti) 
+#     elif mode == 'static':
+#         loss_train,_,_ = model.static_mode(u_train,y_ref_train,params_opti)   
+#         loss_val,_,_ = model.static_mode(u_val,y_ref_val,params_opti) 
                 
-    elif mode == 'series':
-        x0 = data['init_state_train']
-        loss_train,_,_ = model.series_parallel_mode(u,y_ref,x0,params_opti)
+#     elif mode == 'series':
+#         x0 = data['init_state_train']
+#         loss_train,_,_ = model.series_parallel_mode(u,y_ref,x0,params_opti)
     
      
     
-    opti_vars_vec = cs.vcat([params_opti[p].reshape((-1,1)) for p in 
-                             params_opti.keys() if p not in model.frozen_params])
+#     opti_vars_vec = cs.vcat([params_opti[p].reshape((-1,1)) for p in 
+#                              params_opti.keys() if p not in model.frozen_params])
     
-    # LM Optimizer
-    grad = cs.gradient(loss_train,opti_vars_vec)
-    hess = cs.mtimes(grad,grad.T)
+#     # LM Optimizer
+#     grad = cs.gradient(loss_train,opti_vars_vec)
+#     hess = cs.mtimes(grad,grad.T)
 
-    train = cs.Function('loss_train',[*list(params_opti.values())],
-                         [loss_train,grad,hess],list(params_opti.keys()),
-                         ['F','G','H'])
-    val = cs.Function('loss_val',[*list(params_opti.values())],
-                         [loss_val],list(params_opti.keys()),['F'])
+#     train = cs.Function('loss_train',[*list(params_opti.values())],
+#                          [loss_train,grad,hess],list(params_opti.keys()),
+#                          ['F','G','H'])
+#     val = cs.Function('loss_val',[*list(params_opti.values())],
+#                          [loss_val],list(params_opti.keys()),['F'])
     
     
-    # replace frozen parameters in params_opti with numeric model parameters
-    # for p in model.frozen_params:
-    #     params_opti[p] = model.Parameters[p]      
+#     # replace frozen parameters in params_opti with numeric model parameters
+#     # for p in model.frozen_params:
+#     #     params_opti[p] = model.Parameters[p]      
 
-    lam = 1
-    params = model.Parameters.copy()
+#     lam = 1
+#     params = model.Parameters.copy()
     
-    nlp_val_hist = np.inf
+#     nlp_val_hist = np.inf
     
-    for i in range(0,max_iter):
+#     for i in range(0,max_iter):
 
-        FGH = train(**params)
-        F_val = val(**params)
+#         FGH = train(**params)
+#         F_val = val(**params)
         
-        F = FGH['F']
-        G = FGH['G']
-        H = FGH['H']  
+#         F = FGH['F']
+#         G = FGH['G']
+#         H = FGH['H']  
         
-        F_val = F_val['F']
+#         F_val = F_val['F']
         
-        print('Iteration: '+str(i) + '   loss_train: ' + str(F) + \
-              '   loss_val: ' + str(F_val) + '   lambda:' + str(lam))
+#         print('Iteration: '+str(i) + '   loss_train: ' + str(F) + \
+#               '   loss_val: ' + str(F_val) + '   lambda:' + str(lam))
             
 
         
-        improvement = False
+#         improvement = False
         
-        while improvement is False:
+#         while improvement is False:
             
-            d_theta = -step*cs.mtimes(cs.inv(H+lam*np.eye(H.shape[0])),G)*F
+#             d_theta = -step*cs.mtimes(cs.inv(H+lam*np.eye(H.shape[0])),G)*F
             
-            # new params
-            params_new =  AddParameterUpdate(params,d_theta,
-                                            model.frozen_params)
+#             # new params
+#             params_new =  AddParameterUpdate(params,d_theta,
+#                                             model.frozen_params)
             
-            # evaluate loss
-            f = train(**params_new)['F']
-            v = val(**params_new)['F']
+#             # evaluate loss
+#             f = train(**params_new)['F']
+#             v = val(**params_new)['F']
             
-            if f<F:
-                improvement = True
-                params = params_new
-                lam = max(lam/10,1e-10)
-            elif lam == 1e10:
-                print('Keine Verbesserung möglich, breche Optimierung ab!')
-                break
-            else:                    
-                lam = min(lam*10,1e10)
+#             if f<F:
+#                 improvement = True
+#                 params = params_new
+#                 lam = max(lam/10,1e-10)
+#             elif lam == 1e10:
+#                 print('Keine Verbesserung möglich, breche Optimierung ab!')
+#                 break
+#             else:                    
+#                 lam = min(lam*10,1e10)
                  
         
-        if v < nlp_val_hist:
-            nlp_val_hist = v
-            params_save = params.copy()
+#         if v < nlp_val_hist:
+#             nlp_val_hist = v
+#             params_save = params.copy()
 
             
             
-    return params,params_save,float(F),float(F_val)
+#     return params,params_save,float(F),float(F_val)
 
 
 
-def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
-                             s_opts=None,mode='parallel',**kwargs):
-    """
+# def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
+#                              s_opts=None,mode='parallel',**kwargs):
+#     """
     
 
-    Parameters
-    ----------
-    model : model
-        A model whose hyperparameters to be optimized are attributes of this
-        object and whose model equations are implemented as a casadi function.
-    data : dict
-        A dictionary with training and validation data, see ModelTraining()
-        for more information
-    p_opts : dict, optional
-        options to give to the optimizer, see Casadi documentation. The 
-        default is None.
-    s_opts : dict, optional
-        options to give to the optimizer, see Casadi documentation. The 
-        default is None.
+#     Parameters
+#     ----------
+#     model : model
+#         A model whose hyperparameters to be optimized are attributes of this
+#         object and whose model equations are implemented as a casadi function.
+#     data : dict
+#         A dictionary with training and validation data, see ModelTraining()
+#         for more information
+#     p_opts : dict, optional
+#         options to give to the optimizer, see Casadi documentation. The 
+#         default is None.
+#     s_opts : dict, optional
+#         options to give to the optimizer, see Casadi documentation. The 
+#         default is None.
 
-    Returns
-    -------
-    values : dict
-        dictionary with either the optimal parameters or if the solver did not
-        converge the last parameter estimate
+#     Returns
+#     -------
+#     values : dict
+#         dictionary with either the optimal parameters or if the solver did not
+#         converge the last parameter estimate
 
-    """
-    # Create Instance of the Optimization Problem
-    opti = cs.Opti()
+#     """
+#     # Create Instance of the Optimization Problem
+#     opti = cs.Opti()
     
-    # Create dictionary of all non-frozen parameters to create Opti Variables of 
-    OptiParameters = model.Parameters.copy()
+#     # Create dictionary of all non-frozen parameters to create Opti Variables of 
+#     OptiParameters = model.Parameters.copy()
     
-    for frozen_param in model.frozen_params:
-        OptiParameters.pop(frozen_param)
+#     for frozen_param in model.frozen_params:
+#         OptiParameters.pop(frozen_param)
         
     
-    params_opti = CreateOptimVariables(opti, OptiParameters)   
+#     params_opti = CreateOptimVariables(opti, OptiParameters)   
     
-    # Evaluate on model on data
+#     # Evaluate on model on data
     
-    if mode == 'parallel':
-        loss_train,_ = model.parallel_mode(data_train,params_opti)
-        loss_val,_ = model.parallel_mode(data_val,params_opti)
+#     if mode == 'parallel':
+#         loss_train,_ = model.parallel_mode(data_train,params_opti)
+#         loss_val,_ = model.parallel_mode(data_val,params_opti)
         
-    elif mode == 'static':
-        loss_train,_ = model.static_mode(data_train,params_opti)  
-        loss_val,_ = model.static_mode(data_val,params_opti)
+#     elif mode == 'static':
+#         loss_train,_ = model.static_mode(data_train,params_opti)  
+#         loss_val,_ = model.static_mode(data_val,params_opti)
                 
-    elif mode == 'series':      
-        loss_train,_ = model.series_parallel_mode(data_train,params_opti)
-        loss_val,_ = model.series_parallel_mode(data_val,params_opti)
+#     elif mode == 'series':      
+#         loss_train,_ = model.series_parallel_mode(data_train,params_opti)
+#         loss_val,_ = model.series_parallel_mode(data_val,params_opti)
     
-    loss_val = cs.Function('loss_val',[*list(params_opti.values())],
-                         [loss_val],list(params_opti.keys()),['F'])
+#     loss_val = cs.Function('loss_val',[*list(params_opti.values())],
+#                          [loss_val],list(params_opti.keys()),['F'])
      
-    opti.minimize(loss_train)
+#     opti.minimize(loss_train)
 
-    # Solver options
-    if p_opts is None:
-        p_opts = {"expand":False}
-    if s_opts is None:
-        s_opts = {"max_iter": 1000, "print_level":1}
+#     # Solver options
+#     if p_opts is None:
+#         p_opts = {"expand":False}
+#     if s_opts is None:
+#         s_opts = {"max_iter": 1000, "print_level":1}
 
 
         
-    # Create Solver
-    opti.solver("ipopt",p_opts, s_opts)
+#     # Create Solver
+#     opti.solver("ipopt",p_opts, s_opts)
         
-    class intermediate_results():
-        def __init__(self):
-            self.F_val = np.inf
-            self.params_val = {}
+#     class intermediate_results():
+#         def __init__(self):
+#             self.F_val = np.inf
+#             self.params_val = {}
             
-        def callback(self,i):
-            params_val_new = OptimValues_to_dict(params_opti,opti.debug)
+#         def callback(self,i):
+#             params_val_new = OptimValues_to_dict(params_opti,opti.debug)
             
-            F_val_new = loss_val(*list(params_val_new.values()))
+#             F_val_new = loss_val(*list(params_val_new.values()))
 
-            if F_val_new < self.F_val:
-                self.F_val = F_val_new
-                self.params_val = params_val_new
-                print('Validation loss: ' + str(self.F_val))
+#             if F_val_new < self.F_val:
+#                 self.F_val = F_val_new
+#                 self.params_val = params_val_new
+#                 print('Validation loss: ' + str(self.F_val))
     
-    val_results = intermediate_results()
+#     val_results = intermediate_results()
 
-    # Callback
-    opti.callback(val_results.callback)
+#     # Callback
+#     opti.callback(val_results.callback)
     
     
-    # Constraints
-    constraints = kwargs.pop('constraints',None)
+#     # Constraints
+#     constraints = kwargs.pop('constraints',None)
     
-    if constraints is not None:
-        opti = AddOptimConstraints(opti,params_opti,constraints) 
+#     if constraints is not None:
+#         opti = AddOptimConstraints(opti,params_opti,constraints) 
 
     
     
-    # Set initial values of Opti Variables as current Model Parameters
-    for key in params_opti:
-        opti.set_initial(params_opti[key], model.Parameters[key])
+#     # Set initial values of Opti Variables as current Model Parameters
+#     for key in params_opti:
+#         opti.set_initial(params_opti[key], model.Parameters[key])
 
-    # Solve NLP, if solver does not converge, use last solution from opti.debug
-    try: 
-        sol = opti.solve()
-    except:
-        sol = opti.debug
+#     # Solve NLP, if solver does not converge, use last solution from opti.debug
+#     try: 
+#         sol = opti.solve()
+#     except:
+#         sol = opti.debug
         
-    params = OptimValues_to_dict(params_opti,sol)
-    F_train = sol.value(opti.f)        
+#     params = OptimValues_to_dict(params_opti,sol)
+#     F_train = sol.value(opti.f)        
 
-    params_val = val_results.params_val
-    F_val = val_results.F_val
+#     params_val = val_results.params_val
+#     F_val = val_results.F_val
     
             
-    return params,params_val,float(F_train),float(F_val)
+#     return params,params_val,float(F_train),float(F_val)
 
 
     
@@ -995,36 +1031,36 @@ def ModelParameterEstimation(model,data_train,data_val,p_opts=None,
         
 #     return loss,prediction
 
-def AddParameterUpdate(parameter_dict,update,frozen_parameters=[]):
-    '''
-    Adds an increment to model parameters
+# def AddParameterUpdate(parameter_dict,update,frozen_parameters=[]):
+#     '''
+#     Adds an increment to model parameters
 
-    Parameters
-    ----------
-    update : array like, vector
-        DESCRIPTION.
+#     Parameters
+#     ----------
+#     update : array like, vector
+#         DESCRIPTION.
 
-    Returns
-    -------
-    None.       
-    '''                    
+#     Returns
+#     -------
+#     None.       
+#     '''                    
 
-    # Create empty dictionary
-    Parameters_new = parameter_dict.copy()
+#     # Create empty dictionary
+#     Parameters_new = parameter_dict.copy()
             
-    c = 0
+#     c = 0
     
-    for param in parameter_dict.keys():
+#     for param in parameter_dict.keys():
         
-        if param not in frozen_parameters:
-            dim0 = parameter_dict[param].shape[0]
-            dim1 = parameter_dict[param].shape[1]
+#         if param not in frozen_parameters:
+#             dim0 = parameter_dict[param].shape[0]
+#             dim1 = parameter_dict[param].shape[1]
         
-            Parameters_new[param] = parameter_dict[param] + \
-                update[c:c+dim0*dim1].reshape((dim0,dim1))
+#             Parameters_new[param] = parameter_dict[param] + \
+#                 update[c:c+dim0*dim1].reshape((dim0,dim1))
                     
-            c = c + dim0*dim1
+#             c = c + dim0*dim1
         
         
-    return Parameters_new
+#     return Parameters_new
 
