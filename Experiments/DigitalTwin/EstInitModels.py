@@ -21,9 +21,9 @@ import sys
 path_dim = Path.cwd().parents[1]
 sys.path.insert(0, path_dim.as_posix())
 
-from DIM.miscellaneous import DigitalTwinFunctions as dtf
-from DIM.models.model_structures import Static_MLP
-from DIM.optim.param_optim import ModelTraining
+from DIM.arburg470 import dt_functions as dtf
+from DIM.models.models import Static_MLP
+from DIM.optim.param_optim import ParamOptimizer
 
 # Load DataManager specifically for this machine
 source_hdf = Path('C:/Users/LocalAdmin/Documents/DIM_Data/Messung 5.10/hist_data.h5')
@@ -37,20 +37,26 @@ dm = dtf.config_data_manager(source_hdf,target_hdf,['v_inj_soll','V_um_soll'])
 # Get data for model parameter estimation
 modelling_data = pd.read_hdf(dm.target_hdf5, 'modelling_data')
 
-for i in range(0,10):
+
+if __name__ == '__main__':
     
+    freeze_support()       
+        
     MLP = Static_MLP(dim_u=2,dim_out=1,dim_hidden=5,u_label=['T_wkz_0','V_um_soll'],
-                      y_label=['Durchmesser_innen'],name='MLP'+str(i))
+                      y_label=['Durchmesser_innen'],name='MLP')
     
-    modelling_data_norm = MLP.MinMaxScale(modelling_data)
+    data_norm = MLP.MinMaxScale(modelling_data)
     
-    res = ModelTraining(MLP,modelling_data_norm,modelling_data_norm,mode='static',
-                        initializations=2)
+    opt = ParamOptimizer(MLP,data_norm,data_norm,mode='static',
+                        initializations=5,res_path=Path.cwd()/'results',
+                        n_pool=5)
     
-    idx = res['loss_val'].idxmin()
-    
-    MLP.Parameters = res.loc[idx,'params_val']
-    
-    pkl.dump(MLP,open('Models/'+MLP.name+'.mod','wb'))
+    results = opt.optimize()
+            
+        # idx = res['loss_val'].idxmin()
+        
+        # MLP.Parameters = res.loc[idx,'params_val']
+        
+        # pkl.dump(MLP,open('Models/'+MLP.name+'.mod','wb'))
     
     
