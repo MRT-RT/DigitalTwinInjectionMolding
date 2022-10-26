@@ -162,6 +162,76 @@ class ProcessModel():
             
         return x,y  
 
+    def parallel_mode(self,data,params=None):
+          
+        loss = 0
+    
+        simulation = []
+        
+        # Loop over all batches 
+        for i in range(0,len(data['data'])):
+            
+            io_data = data['data'][i]
+            x0 = data['init_state'][i]
+            try:
+                switch = data['switch'][i]
+                # switch = [io_data.index.get_loc(s) for s in switch]
+                kwargs = {'switching_instances':switch}
+                            
+                # print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
+            except KeyError:
+                switch = None
+            
+            
+            u = io_data.iloc[0:-1][self.u_label]
+            # u = io_data[self.u_label]
+    
+            
+            # Simulate Model        
+            pred = self.Simulation(x0,u,params,**kwargs)
+            
+            
+            y_ref = io_data[self.y_label].values
+            
+            
+            if isinstance(pred, tuple):           
+                x_est= pred[0]
+                y_est= pred[1]
+            else:
+                y_est = pred
+                
+            # Calculate simulation error            
+            # Check for the case, where only last value is available
+            
+            if np.all(np.isnan(y_ref[1:])):
+                
+                y_ref = y_ref[[0]]
+                y_est=y_est[-1,:]
+                e= y_ref - y_est
+                loss = loss + cs.sumsqr(e)
+                
+                idx = [i]
+        
+            else :
+                
+                y_ref = y_ref[1:1+y_est.shape[0],:]                                                 # first observation cannot be predicted
+                
+                e = y_ref - y_est
+                loss = loss + cs.sumsqr(e)
+                
+                idx = io_data.index
+            
+            if params is None:
+                y_est = np.array(y_est)
+                
+                df = pd.DataFrame(data=y_est, columns=self.y_label,
+                                  index=idx)
+                
+                simulation.append(df)
+            else:
+                simulation = None
+                
+        return loss,simulation
     
     def ParameterInitialization(self):
         
@@ -342,6 +412,77 @@ class QualityModel():
         c = cs.vcat(c)          
             
         return c,y  
+
+    def parallel_mode(self,data,params=None):
+          
+        loss = 0
+    
+        simulation = []
+        
+        # Loop over all batches 
+        for i in range(0,len(data['data'])):
+            
+            io_data = data['data'][i]
+            x0 = data['init_state'][i]
+            try:
+                switch = data['switch'][i]
+                # switch = [io_data.index.get_loc(s) for s in switch]
+                kwargs = {'switching_instances':switch}
+                            
+                # print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
+            except KeyError:
+                switch = None
+            
+            
+            u = io_data.iloc[0:-1][self.u_label]
+            # u = io_data[self.u_label]
+    
+            
+            # Simulate Model        
+            pred = self.Simulation(x0,u,params,**kwargs)
+            
+            
+            y_ref = io_data[self.y_label].values
+            
+            
+            if isinstance(pred, tuple):           
+                x_est= pred[0]
+                y_est= pred[1]
+            else:
+                y_est = pred
+                
+            # Calculate simulation error            
+            # Check for the case, where only last value is available
+            
+            if np.all(np.isnan(y_ref[1:])):
+                
+                y_ref = y_ref[[0]]
+                y_est=y_est[-1,:]
+                e= y_ref - y_est
+                loss = loss + cs.sumsqr(e)
+                
+                idx = [i]
+        
+            else :
+                
+                y_ref = y_ref[1:1+y_est.shape[0],:]                                                 # first observation cannot be predicted
+                
+                e = y_ref - y_est
+                loss = loss + cs.sumsqr(e)
+                
+                idx = io_data.index
+            
+            if params is None:
+                y_est = np.array(y_est)
+                
+                df = pd.DataFrame(data=y_est, columns=self.y_label,
+                                  index=idx)
+                
+                simulation.append(df)
+            else:
+                simulation = None
+                
+        return loss,simulation
     
     def ParameterInitialization(self):
         

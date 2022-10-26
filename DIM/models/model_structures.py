@@ -13,10 +13,127 @@ from scipy.stats import ortho_group
 from DIM.models.initializations import XavierInitialization, RandomInitialization, HeInitialization
 
 # from miscellaneous import *
-class static():
+class Model():
+    
+    def __init__(self,dim_u,dim_out,u_label,y_label,name,initial_params, 
+                 frozen_params, init_proc):
+        
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        u_label : 
+        y_label : 
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+        initial_params :
+        frozen_params :
+        init_proc :    
+        
+            Returns
+        -------
+        None.
+
+        """
+               
+        self.dim_u = dim_u
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
+
+    def MinMaxScale(self,df,**kwargs):
+        
+        df = df.copy()
+        
+        # Check if scaling is to be reversed
+        reverse = kwargs.pop('reverse',False)
+         
+        if reverse:
+            
+            col_min = self.minmax[0]
+            col_max = self.minmax[1]
+            
+            if all(col_min.keys()==col_max.keys()):
+                cols = col_min.keys()
+    
+            cols = [col for col in cols if col in df.columns]
+            
+            # Unscale from 0,1
+            # df_rev = df[cols]* (col_max - col_min) + col_min
+            
+            # Unscale from -1,1
+            df_rev = 1/2* ( (df[cols] + 1) * (col_max - col_min)) + col_min
+            
+            
+            df.loc[:,cols] = df_rev
+        
+        # Else scale data
+        else:
+            
+            # Check if column min and max already exist from previous
+            # scaling
+            try:
+                col_min = self.minmax[0]
+                col_max = self.minmax[1]
+                
+                # 
+                if all(col_min.keys()==col_max.keys()):
+                    cols = col_min.keys()
+                
+                cols = [col for col in cols if col in df.columns]
+                
+            except:
+                
+                # If not calculate  column min and max from given data
+                cols = self.u_label + self.y_label
+               
+                col_min = df[cols].min()
+                col_max = df[cols].max()
+                
+                
+                # Check if col_min equals col_max, fix  to avoid division by zero
+                for col in cols:
+                    if col_min[col] == col_max[col]:
+                        col_min[col] = 0.0
+            
+                # save for scaling of future data
+                self.minmax = (col_min,col_max)
+                
+            # Scale to -1,1
+            df_norm = 2*(df[cols] - col_min) / (col_max - col_min) - 1 
+            
+            df.loc[:,cols] = df_norm
+            # Scale to 0,1   
+            # df_norm = (df[columns] - col_min) / (col_max - col_min)
+        
+        
+        
+        return df
+
+class Static(Model):
     """
     Base implementation of a static model.
     """
+
+    def __init__(self,dim_u,dim_out,u_label,y_label,name,initial_params, 
+                 frozen_params, init_proc):
+        
+        Model.__init__(self,dim_u,dim_out,u_label,y_label,name,initial_params,
+                       frozen_params,init_proc)
+        
+        
+    
     def ParameterInitialization(self):
         '''
         Routine for parameter initialization. Takes input_names from the Casadi-
@@ -93,11 +210,65 @@ class static():
             except:
                 continue
         
-        u0 = np.array(u0[self.u_label].values,dtype=float)
+        if isinstance(u0,pd.DataFrame):
+            u0 = np.array(u0[self.u_label].values,dtype=float)
         
         y = self.Function(u0,*params_new)     
                               
         return y
+
+    def static_mode(self,data,params=None):
+        
+        
+        y_est = []
+       
+        # u = data[model.u_label].values
+        u = data[self.u_label]
+        
+        # If parameters are not given only calculate model prediction    
+        if params is None:
+            
+            # One-Step prediction
+            for k in range(u.shape[0]):  
+                # y_new = model.OneStepPrediction(u[k,:],params)
+                y_new = self.OneStepPrediction(u.iloc[[k]],params)
+                
+                y_est.append(y_new)
+            
+            y_est = np.array(y_est).reshape((-1,len(self.y_label)))
+            
+            
+            # Rename columns to distinguish estimate from true value
+            # cols_pred = [label + '_est' for label in self.y_label]
+            
+            cols = self.y_label
+            
+            df_pred = pd.DataFrame(data=y_est, columns=cols, index=data.index)
+            
+            try:
+                loss = np.sum((data[self.y_label]-df_pred[self.y_label]).values**2)
+            except:
+                print('No output data given to calculate loss.')
+                loss = None
+                    
+        # else calulate loss
+        else:
+            
+            y_ref = data[self.y_label].values
+            
+            loss = 0
+            e = [] 
+            # One-Step prediction
+            for k in range(u.shape[0]):
+                y_new = self.OneStepPrediction(u.iloc[[k]],params)
+                # y_new = self.OneStepPrediction(u[k,:],params)
+                y_est.append(y_new)
+                e.append(y_ref[k,:]-y_new)
+                loss = loss + cs.sumsqr(e[-1])
+                
+            df_pred = None
+            
+        return loss,df_pred
                       
     def AssignParameters(self,params):
         
@@ -211,6 +382,148 @@ class recurrent():
         y = y.T
 
         return x,y    
+
+    def parallel_mode(self,data,params=None):
+          
+        loss = 0
+    
+        simulation = []
+        
+        # Loop over all batches 
+        for i in range(0,len(data['data'])):
+            
+            io_data = data['data'][i]
+            x0 = data['init_state'][i]
+            try:
+                switch = data['switch'][i]
+                # switch = [io_data.index.get_loc(s) for s in switch]
+                kwargs = {'switching_instances':switch}
+                            
+                # print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
+            except KeyError:
+                switch = None
+            
+            
+            u = io_data.iloc[0:-1][self.u_label]
+            # u = io_data[self.u_label]
+    
+            
+            # Simulate Model        
+            pred = self.Simulation(x0,u,params,**kwargs)
+            
+            
+            y_ref = io_data[self.y_label].values
+            
+            
+            if isinstance(pred, tuple):           
+                x_est= pred[0]
+                y_est= pred[1]
+            else:
+                y_est = pred
+                
+            # Calculate simulation error            
+            # Check for the case, where only last value is available
+            
+            if np.all(np.isnan(y_ref[1:])):
+                
+                y_ref = y_ref[[0]]
+                y_est=y_est[-1,:]
+                e= y_ref - y_est
+                loss = loss + cs.sumsqr(e)
+                
+                idx = [i]
+        
+            else :
+                
+                y_ref = y_ref[1:1+y_est.shape[0],:]                                                 # first observation cannot be predicted
+                
+                e = y_ref - y_est
+                loss = loss + cs.sumsqr(e)
+                
+                idx = io_data.index
+            
+            if params is None:
+                y_est = np.array(y_est)
+                
+                df = pd.DataFrame(data=y_est, columns=self.y_label,
+                                  index=idx)
+                
+                simulation.append(df)
+            else:
+                simulation = None
+                
+        return loss,simulation
+
+    def series_parallel_mode(self,data,params=None):
+      
+        loss = 0
+        
+        x = []
+        
+        prediction = []
+    
+        # if None is not None:
+            
+        #     print('This is not implemented properly!!!')
+            
+        #     for i in range(0,len(u)):
+        #         x_batch = []
+        #         y_batch = []
+                
+        #         # One-Step prediction
+        #         for k in range(u[i].shape[0]-1):
+                    
+                    
+                    
+        #             x_new,y_new = self.OneStepPrediction(x_ref[i][k,:],u[i,k,:],
+        #                                                   params)
+        #             x_batch.append(x_new)
+        #             y_batch.append(y_new)
+                    
+        #             loss = loss + cs.sumsqr(y_ref[i][k,:]-y_new) + \
+        #                 cs.sumsqr(x_ref[i,k+1,:]-x_new) 
+                
+        #         x.append(x_batch)
+        #         y.append(y_batch)
+            
+        #     return loss,x,y 
+        
+        # else:
+        for i in range(0,len(data['data'])):
+            
+            io_data = data['data'][i]
+            x0 = data['init_state'][i]
+            switch = data['switch'][i]
+            
+            y_est = []
+            # One-Step prediction
+            for k in range(0,io_data.shape[0]-1):
+                
+                uk = io_data.iloc[k][self.u_label].values.reshape((-1,1))
+                yk = io_data.iloc[k][self.y_label].values.reshape((-1,1))
+                
+                ykplus = io_data.iloc[k+1][self.y_label].values.reshape((-1,1))
+                
+                # predict x1 and y1 from x0 and u0
+                y_new = self.OneStepPrediction(yk,uk,params)
+                
+                loss = loss + cs.sumsqr(ykplus-y_new)        
+                
+                y_est.append(y_new.T)
+            
+            y_est = cs.vcat(y_est)
+            
+            if params is None:
+                y_est = np.array(y_est)
+                
+                df = pd.DataFrame(data=y_est, columns=self.y_label,
+                                  index=io_data.index[1::])
+                
+                prediction.append(df)
+            else:
+                prediction = None
+            
+        return loss,prediction
     
     def SetParameters(self,params):
             
@@ -726,7 +1039,7 @@ class MLP():
             except:
                 pass           
 
-class Static_MLP(static):
+class Static_MLP(Static):
     """
     Implementation of a single-layered Feedforward Neural Network.
     """
@@ -811,7 +1124,7 @@ class Static_MLP(static):
         
         return None
    
-class Static_Multi_MLP(static):
+class Static_Multi_MLP(Static):
     """
     Implementation of a multi-layered Feedforward Neural Network.
     """
@@ -840,20 +1153,13 @@ class Static_Multi_MLP(static):
         None.
 
         """
-        self.dim_u = dim_u
+        
+        Static.__init__(self, dim_u, dim_out, u_label, y_label, name, 
+                        initial_params, frozen_params, init_proc)
+        
         self.dim_hidden = dim_hidden
         self.layers = layers
-        self.dim_out = dim_out
-        
-        self.u_label = u_label
-        self.y_label = y_label
-        self.name = name
-        
-        self.initial_params = initial_params
-        self.frozen_params = frozen_params
-        self.init_proc = init_proc
-        
-        
+          
         self.Initialize()
 
     def Initialize(self):
@@ -913,7 +1219,7 @@ class Static_Multi_MLP(static):
         return None
 
 
-class PolynomialModel(static):
+class PolynomialModel(Static):
     """
     Implementation of an n-th degree multivariate polynomial
     """
@@ -1492,7 +1798,7 @@ class LSS(recurrent):
         
         return None
     
-class DoubleExponential(static):
+class DoubleExponential(Static):
     """
     Implementation of a single-layered Feedforward Neural Network.
     """

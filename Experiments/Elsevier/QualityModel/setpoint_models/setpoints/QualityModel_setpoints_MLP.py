@@ -31,12 +31,12 @@ def Fit_MLP(dim_hidden):
     split = 'all'
     
     # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    # path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
-    path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    path = '/home/alexander/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
+    # path = 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/data/Stoergroessen/20220504/Versuchsplan/normalized/'
     
     # path = 'E:/GitHub/DigitalTwinInjectionMolding/data/Versuchsplan/'
     
-    data_train,data_val = LoadSetpointData(path,charges,split)
+    data_train,data_val = LoadSetpointData(path,charges,split,True)
     
     u_label = ['Düsentemperatur', 'Werkzeugtemperatur',
                'Einspritzgeschwindigkeit','Umschaltpunkt']
@@ -44,8 +44,8 @@ def Fit_MLP(dim_hidden):
     y_label = ['Gewicht']   
     
     # Normalize Data
-    data_train,minmax = MinMaxScale(data_train,u_label+y_label)
-    data_val,_ = MinMaxScale(data_val,u_label+y_label,minmax)
+    data_train,minmax = MinMaxScale(data_train,columns=u_label+y_label)
+    data_val,_ = MinMaxScale(data_val,columns=u_label+y_label,minmax=minmax)
     
     model = Static_MLP(dim_u=4, dim_out=1, dim_hidden=dim_hidden,u_label=u_label,
                         y_label=y_label,name='MLP', init_proc='xavier')

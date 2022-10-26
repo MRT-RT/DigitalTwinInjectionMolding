@@ -16,7 +16,7 @@ sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding
 
 from DIM.miscellaneous.PreProcessing import LoadFeatureData, MinMaxScale
 from DIM.models.model_structures import Static_Multi_MLP
-from DIM.optim.param_optim import ParallelModelTraining
+from DIM.optim.param_optim import ModelTraining
 
 import multiprocessing
 
@@ -42,8 +42,8 @@ def Fit_MLP(dim_hidden,data_train,data_val):
     
     s_opts = {"max_iter": 2000, 'hessian_approximation':'limited-memory'}
     
-    result = ParallelModelTraining(model,data_train,data_val,initializations=20,
-                           p_opts=None,s_opts=s_opts,mode='static',n_pool=5)
+    result = ModelTraining(model,data_train,data_val,initializations=20,
+                           p_opts=None,s_opts=s_opts,mode='static')
 
     result['dim_hidden'] = dim_hidden
 
@@ -59,10 +59,10 @@ if __name__ == '__main__':
     
     multiprocessing.freeze_support()
     
-    for i in range(1,11):
+    for i in range(10,11):
         res = Fit_MLP(i,data_train,data_test) 
         
-        pkl.dump(res,open('MLP_2layers_static/QM_MLP_Di_h'+str(i)+'.pkl','wb'))
+        # pkl.dump(res,open('MLP_2layers_static/QM_MLP_Di_h'+str(i)+'.pkl','wb'))
    
 
 

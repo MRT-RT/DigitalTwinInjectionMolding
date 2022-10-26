@@ -35,23 +35,156 @@ from .common import OptimValues_to_dict
 
 # from miscellaneous import *
 
-
-# def SimulateModel(model,x,u,params=None):
-#     # Casadi Function needs list of parameters as input
-#     if params==None:
-#         params = model.Parameters
+class Optimizer():
+    '''
+    Parent class for all optimizers with basic functionality
+    ''' 
     
-#     params_new = []
+    def AddOptimConstraints(self,opti,params_opti,constraints):
+        """
+        Adds constraints that are given as a list of tuples to an casadi
+        opti instance
         
-#     for name in  model.Function.name_in():
-#         try:
-#             params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
-#         except:
-#             continue
+        Parameters
+        ----------
+        opti : instance of casadi opti class
+        constraints : list of tuples
+            Each tuple has the form
+            ('<name_of_opti_variable>','<operator><value>')
+            e.g. ('Einspritzgeschwindigkeit','<10.0')
+
+        Returns
+        -------
+        opti : instance of opti class
+            instance of opti class updated with constraints
+        """
+        for constraint in constraints:
+            
+            expression = "params_opti['"+constraint[0]+"']" + constraint[1]        
+            opti.subject_to(eval(expression))
     
-#     x_new = model.Function(x,u,*params_new)     
-                          
-#     return x_new
+        
+        return opti
+
+
+
+class StaticProcessOptimizer(Optimizer):
+    
+    def __init__(self,model):
+        """
+        Defines the loss function to be minimized during numerical optimal
+        control as casadi function
+
+        Parameters
+        ----------
+        model : DIM.models.model_structures.Static
+            Instance of Static
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        self.model = model
+        
+        # Define the function to be minimized as casadi function
+        # define inputs as symbolic variables
+        U = [cs.MX.sym(u,1,1) for u in model.u_label]
+        Q = [cs.MX.sym(y,1,1) for y in model.y_label]
+        
+        
+        Q_pred = model.OneStepPrediction(cs.vcat(U))
+        
+        loss = cs.sumsqr(Q_pred-cs.vcat(Q))
+        
+        self.LossFunc = cs.Function('loss',U+Q, [loss], 
+                                    model.u_label+model.y_label,['loss'])
+        
+        
+        
+    def optimize(self,Q_target,fix_inputs,**kwargs):
+        """
+        
+
+        Parameters
+        ----------
+        Q_target : pd.DataFrame
+            Reference output for numerical control problem.
+        fix_inputs : pd.DataFrame
+            If any inputs should not be optimized, provide numerical values
+            for them here.
+        **kwargs : dict
+            input_init: pd.DataFrame with initial values for optimization problem
+            constraints: list of tuples with constraints, see AddOptimConstraints
+                            for documentation
+
+        Returns
+        -------
+        U_sol : pd.DataFrame
+            Optimal values found by IPOPT
+
+        """
+        
+        
+        input_init = kwargs.pop('input_init',None)
+        constraints = kwargs.pop('constraints',None)
+        
+        # Recast DataFrames as Dictionaries
+        Q_target_dic = Q_target.to_dict(orient='records')[0]
+        fix_inputs_dic = fix_inputs.to_dict(orient='records')[0]
+        
+        # Create Instance of the optimization problem
+        opti = cs.Opti()       
+        
+        # create opti variables 
+        U = {label:opti.variable() for label in self.model.u_label if \
+             label not in fix_inputs_dic}
+
+        # Add constraints
+        if constraints is not None:
+            opti = self.AddOptimConstraints(opti,U,constraints) 
+
+        # Set initial values for decision variables
+        if input_init is not None:
+            
+            # Cast into dictionary
+            input_init = input_init.to_dict(orient='records')[0]
+            
+            for key,value in input_init.items():
+                opti.set_initial(U[key],value)
+            
+        # inputs = [opti.variable for label in self.model.u_label]
+            
+        # Merge dictionaries for function call
+        inputs = {}
+        inputs.update(U)
+        inputs.update(fix_inputs_dic)
+        inputs.update(Q_target_dic)
+        
+        # Define self.LossFunc as target for minimization
+        opti.minimize(self.LossFunc(**inputs)['loss'])
+        
+        #Choose solver
+        opti.solver('ipopt')
+                
+        # Solve optmization problem
+        sol = opti.solve()
+        
+        # Extract real values from solution       
+        U_sol = {}
+        
+        for key,value in U.items():
+            U_sol[key] = [sol.value(value)]
+
+        # Append fixed inputs    
+        U_sol.update(fix_inputs_dic)
+        
+        U_sol = pd.DataFrame.from_dict(U_sol)
+        
+        return U_sol
+        
+
 
 def ControlInput(reference,opti_vars,k):
     """
