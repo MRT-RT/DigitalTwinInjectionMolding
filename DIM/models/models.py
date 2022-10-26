@@ -59,6 +59,13 @@ class State_MLP(Recurrent):
         
         
         self.Initialize()
+        
+        
+    # def __init__(self,dim_u,dim_out,u_label,y_label,name,initial_params, 
+    #              frozen_params, init_proc):
+        
+    #     Model.__init__(self,dim_u,dim_out,u_label,y_label,name,initial_params,
+    #                    frozen_params,init_proc)
 
     def Initialize(self):
         """

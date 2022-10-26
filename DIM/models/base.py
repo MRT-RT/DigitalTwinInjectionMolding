@@ -277,10 +277,18 @@ class Static(Model):
             self.Parameters[p_name] = params[p_name]
 
 
-class Recurrent():
+class Recurrent(Model):
     '''
-    Parent class for all Models
+    Parent class for all recurrent Models
     '''
+
+    def __init__(self,dim_u,dim_c,dim_out,u_label,y_label,name,initial_params, 
+                  frozen_params, init_proc):
+        
+        Model.__init__(self,dim_u,dim_out,u_label,y_label,name,initial_params,
+                        frozen_params,init_proc)
+        
+        self.dim_c = dim_c
     
     def ParameterInitialization(self):
         '''
@@ -396,13 +404,9 @@ class Recurrent():
             io_data = data['data'][i]
             x0 = data['init_state'][i]
             try:
-                switch = data['switch'][i]
-                # switch = [io_data.index.get_loc(s) for s in switch]
-                kwargs = {'switching_instances':switch}
-                            
-                # print('Kontrolliere ob diese Zeile gewünschte Indizes zurückgibt!!!')               
+                kwargs = {'switching_instances':data['switch'][i]}            
             except KeyError:
-                switch = None
+                kwargs = {'switching_instances':None} 
             
             
             u = io_data.iloc[0:-1][self.u_label]
@@ -413,7 +417,7 @@ class Recurrent():
             pred = self.Simulation(x0,u,params,**kwargs)
             
             
-            y_ref = io_data[self.y_label].values
+            y_ref = io_data[self.y_label]
             
             
             if isinstance(pred, tuple):           
@@ -427,7 +431,7 @@ class Recurrent():
             
             if np.all(np.isnan(y_ref[1:])):
                 
-                y_ref = y_ref[[0]]
+                y_ref = y_ref.iloc[0].values
                 y_est=y_est[-1,:]
                 e= y_ref - y_est
                 loss = loss + cs.sumsqr(e)
@@ -436,18 +440,16 @@ class Recurrent():
         
             else :
                 
-                y_ref = y_ref[1:1+y_est.shape[0],:]                                                 # first observation cannot be predicted
-                
-                e = y_ref - y_est
+                # y_ref = y_ref[1:1+y_est.shape[0],:]                             # first observation cannot be predicted
+                e = y_ref.iloc[1:].values - y_est
                 loss = loss + cs.sumsqr(e)
                 
-                idx = io_data.index
+                idx = y_ref.iloc[1:].index
             
             if params is None:
-                y_est = np.array(y_est)
-                
-                df = pd.DataFrame(data=y_est, columns=self.y_label,
-                                  index=idx)
+                df = pd.DataFrame(data = np.array(y_est),
+                                     columns=self.y_label,
+                                     index = idx)
                 
                 simulation.append(df)
             else:

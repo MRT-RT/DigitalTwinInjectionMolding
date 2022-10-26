@@ -1,1 +1,0 @@
-Best models from CCTA_GRU retrained on Stoergroessen Versuchsplan

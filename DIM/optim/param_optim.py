@@ -38,7 +38,7 @@ class ParamOptimizer():
         self.data_val = data_val
         
         self.initializations = kwargs.pop('initializations',10)   
-        self.s_opts = kwargs.pop('s_opts',{"max_iter": 1000, "print_level":1,
+        self.s_opts = kwargs.pop('s_opts',{"max_iter": 1000, "print_level":0,
                                            "hessian_approximation":'limited-memory'})
         self.p_opts = kwargs.pop('s_opts',{"expand":False})
         self.mode = kwargs.pop('mode','parallel') 
