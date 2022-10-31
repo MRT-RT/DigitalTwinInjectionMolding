@@ -139,7 +139,7 @@ class Data_Manager():
         self._target_hdf5 = target_hdf5
 
         
-    def get_cycle_data(self):
+    def get_cycle_data(self,delay=0.0):
         
         new_data = False
         
@@ -155,8 +155,8 @@ class Data_Manager():
         
         if new_source_cycles:
             
-            new_data = True
-            
+            time.sleep(delay)
+                        
             charts = {}
             scalars = []
             features = []
@@ -192,63 +192,69 @@ class Data_Manager():
                 features.append(df_feat)                        
                 quals.append(df_qual)
                                 
-            # Concatenate list to pd.DataFrame
-            df_scalar = pd.concat(scalars)
-            df_feat = pd.concat(features)
-            df_qual = pd.concat(quals)
-            
-            # If duplicates exist keep none
-            double_idx = df_scalar.index[df_scalar.index.duplicated(keep=False)]
-            unique_idx = df_scalar.index[~df_scalar.index.duplicated(keep=False)]
-            
-            if unique_idx.empty:
-                return False
-            
-            # Keep only unique cycle data
-            df_scalar = df_scalar.loc[unique_idx]
-            df_feat = df_feat.loc[unique_idx]
-            df_qual = df_qual.loc[unique_idx]  
-            [charts.pop(idx,None) for idx in double_idx] 
-            
-            # Update data used for modelling
-            df_modelling = pd.concat([df_scalar,df_feat,df_qual],axis=1)
-            self.__update_modelling_data(df_modelling)
-            
-            
-            # Load data saved in hdf5
-            df_scalar_old = pd.read_hdf(self.target_hdf5, 'overview')
-            df_feat_old = pd.read_hdf(self.target_hdf5, 'features')
-            df_qual_old = pd.read_hdf(self.target_hdf5, 'quality_meas')
-            
-            # Concat new and old data
-            df_scalar = pd.concat([df_scalar_old,df_scalar])
-            df_feat = pd.concat([df_feat_old,df_feat])
-            df_qual = pd.concat([df_qual_old,df_qual])
-            
-            
-            # recast because pandas is stupid
-            for col in df_scalar.columns:
-                df_scalar[col] = df_scalar[col].astype(self.scalar_dtype[col])
-            
-            for col in df_feat.columns:
-                df_feat[col] = df_feat[col].astype(self.features_dtype[col])
-            
-            for col in df_qual.columns:
-                df_qual[col] = df_qual[col].astype(self.quals_dtype[col])
-             
+            try:
+                # Concatenate list to pd.DataFrame
+                df_scalar = pd.concat(scalars)
+                df_feat = pd.concat(features)
+                df_qual = pd.concat(quals)
                 
-            try: 
-                # Save concatenated data
-                df_scalar.to_hdf(self.target_hdf5,'overview')
-                df_feat.to_hdf(self.target_hdf5,'features')
-                df_qual.to_hdf(self.target_hdf5,'quality_meas')
+                # If duplicates exist keep none
+                double_idx = df_scalar.index[df_scalar.index.duplicated(keep=False)]
+                unique_idx = df_scalar.index[~df_scalar.index.duplicated(keep=False)]
+                
+                if unique_idx.empty:
+                    return False
+                
+                # Keep only unique cycle data
+                df_scalar = df_scalar.loc[unique_idx]
+                df_feat = df_feat.loc[unique_idx]
+                df_qual = df_qual.loc[unique_idx]  
+                [charts.pop(idx,None) for idx in double_idx] 
+                
+                # Update data used for modelling
+                df_modelling = pd.concat([df_scalar,df_feat,df_qual],axis=1)
+                self.__update_modelling_data(df_modelling)
                 
                 
-                for key,value in charts.items():
-                    charts[key].to_hdf(self.target_hdf5, 'process_values/cycle_'+str(key))
+                # Load data saved in hdf5
+                df_scalar_old = pd.read_hdf(self.target_hdf5, 'overview')
+                df_feat_old = pd.read_hdf(self.target_hdf5, 'features')
+                df_qual_old = pd.read_hdf(self.target_hdf5, 'quality_meas')
+                
+                # Concat new and old data
+                df_scalar = pd.concat([df_scalar_old,df_scalar])
+                df_feat = pd.concat([df_feat_old,df_feat])
+                df_qual = pd.concat([df_qual_old,df_qual])
+                
+                
+                # recast because pandas is stupid
+                for col in df_scalar.columns:
+                    df_scalar[col] = df_scalar[col].astype(self.scalar_dtype[col])
+                
+                for col in df_feat.columns:
+                    df_feat[col] = df_feat[col].astype(self.features_dtype[col])
+                
+                for col in df_qual.columns:
+                    df_qual[col] = df_qual[col].astype(self.quals_dtype[col])
+                 
+                    
+                try: 
+                    # Save concatenated data
+                    df_scalar.to_hdf(self.target_hdf5,'overview')
+                    df_feat.to_hdf(self.target_hdf5,'features')
+                    df_qual.to_hdf(self.target_hdf5,'quality_meas')
+                    
+                    
+                    for key,value in charts.items():
+                        charts[key].to_hdf(self.target_hdf5, 'process_values/cycle_'+str(key))
+                except:
+                    print('Error during writing.')
+                
+                new_data = True
+                
             except:
-                print('Error during writing.')
-                
+                print('Error while parsing data')
+                new_data = False
             
                 
         return new_data
@@ -359,7 +365,7 @@ class Data_Manager():
                 set_idx = (df_new[self.setpoints] == df_unique.iloc[s]).all(axis=1)
                 df_new.loc[set_idx,'Setpoint'] = s
                 
-                if len(set_idx)>self.n_max:
+                if len(df_new.loc[set_idx])>self.n_max:
                     # If more than the maximal number of observations per 
                     # setpoint exist, keep observations with largest temperatur 
                     # difference
@@ -382,7 +388,7 @@ class Data_Manager():
                 
                 else:
                     # else keep all
-                    idx_mod.extend(list(set_idx.index))
+                    idx_mod.extend(list(df_new.loc[set_idx].index))
             
             # idx_mod = pd.concat(idx_mod,axis=0)
             
@@ -419,13 +425,10 @@ class Data_Manager():
                         #delete datum with closest temp
                         df_mod_old = df_mod_old.drop(index=del_row,axis=1)
                     
-                    df_mod = pd.concat([df_mod_old,df_new])
+                    df_mod = pd.concat([df_mod_old,df_new.loc[cyc]])
 
                     df_mod['Setpoint'] = df_mod['Setpoint'].astype('int16')
                     
-                    df_mod.to_hdf(self.target_hdf5,'modelling_data')
-            
-            # replace of add observation for this setpoint
-            # create new setpoint if it doesn't exist yet
-        
+                df_mod.to_hdf(self.target_hdf5,'modelling_data')
+                   
         return None

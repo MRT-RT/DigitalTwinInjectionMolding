@@ -49,12 +49,12 @@ def config_data_manager(source_hdf5,target_hdf5,setpoints):
 
     
     charts = [{'keys':['f3113I_Value','f3213I_Value','f3313I_Value'],
-               'values':['p_wkz_ist','p_hyd_ist','T_wkz_ist','p_hyd_soll',
+               'values':['p_wkz_ist','T_wkz_ist','p_hyd_soll','p_hyd_ist',
                          'state1']},
               {'keys':['f3103I_Value','f3203I_Value','f3303I_Value'],
-               'values':['V_screw_ist','state2']},
+               'values':['Q_inj_ist','state2']},
               {'keys':['f3403I_Value','f3503I_Value','f3603I_Value'],
-               'values':['Q_inj_ist','state3']}
+               'values':['V_screw_ist','state3']}
               ]
     
     
@@ -393,8 +393,11 @@ def plot_meas_pred(fig,ax,data_manager,model_bank):
     ax[1].set_ylabel('Durchmesser_innen',fontsize = 22)
     
     
+    # LIMIT ANPASSEN
+    # [a.set_ylim([27,28]) for a in ax]
+    ax[0].set_ylim([26,28])
+    ax[1].set_ylim([26,28])
     
-    [a.set_ylim([27,28]) for a in ax]
     plt.pause(0.01)
     # fig.tight_layout()
     # fig.canvas.flush_events() 

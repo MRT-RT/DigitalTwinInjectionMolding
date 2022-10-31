@@ -26,37 +26,35 @@ from DIM.models.models import Static_MLP
 from DIM.optim.param_optim import ParamOptimizer
 
 # Load DataManager specifically for this machine
-source_hdf = Path('C:/Users/LocalAdmin/Documents/DIM_Data/Messung 5.10/hist_data.h5')
-target_hdf = Path.cwd()/'all_data_05_10_22.h5'
-# target_hdf = Path.cwd()/'DOE_2_dm.h5'
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221029.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/31_10_setup.h5')
+
+setpoints = ['v_inj_soll','V_um_soll','p_pack2_soll']   
 
 
 # Load DataManager specifically for this machine
-dm = dtf.config_data_manager(source_hdf,target_hdf,['v_inj_soll','V_um_soll'])
+dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
 
 # Get data for model parameter estimation
+dm.get_cycle_data()
 modelling_data = pd.read_hdf(dm.target_hdf5, 'modelling_data')
 
+# %%
 
 if __name__ == '__main__':
     
     freeze_support()       
         
-    MLP = Static_MLP(dim_u=2,dim_out=1,dim_hidden=5,u_label=['T_wkz_0','V_um_soll'],
+    MLP = Static_MLP(dim_u=4,dim_out=1,dim_hidden=5,u_label=setpoints + ['T_wkz_0'],
                       y_label=['Durchmesser_innen'],name='MLP')
     
     data_norm = MLP.MinMaxScale(modelling_data)
     
     opt = ParamOptimizer(MLP,data_norm,data_norm,mode='static',
-                        initializations=5,res_path=Path.cwd()/'results',
+                        initializations=5,
+                        res_path=target_h5.parents[0]/'models',
                         n_pool=5)
     
     results = opt.optimize()
-            
-        # idx = res['loss_val'].idxmin()
-        
-        # MLP.Parameters = res.loc[idx,'params_val']
-        
-        # pkl.dump(MLP,open('Models/'+MLP.name+'.mod','wb'))
     
     
