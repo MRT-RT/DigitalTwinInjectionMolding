@@ -112,6 +112,8 @@ class Data_Manager():
         # Check if file exists
         if not (target_hdf5.exists() and target_hdf5.is_file()):
             
+            print('Target file is created.')
+            
             # Create target hdf5 file
             target_file = h5py.File(target_hdf5,'w')
             target_file.create_group('overview')
@@ -135,6 +137,8 @@ class Data_Manager():
             
             df_modelling = pd.concat([df_scalar,df_feat,df_qual],axis=1)
             df_modelling.to_hdf(target_hdf5,'modelling_data') 
+        else:
+            print('Target file already exists.')
             
         self._target_hdf5 = target_hdf5
 
@@ -186,78 +190,76 @@ class Data_Manager():
                     self.failed_cycles.append(cycle)
                     
                     continue
-                
+            
                 charts[cycle_number] = df_chart
                 scalars.append(df_scalar)                        
                 features.append(df_feat)                        
                 quals.append(df_qual)
-                                
-            try:
+                    
+            
+            if scalars:    
                 # Concatenate list to pd.DataFrame
                 df_scalar = pd.concat(scalars)
                 df_feat = pd.concat(features)
                 df_qual = pd.concat(quals)
                 
-                # If duplicates exist keep none
-                double_idx = df_scalar.index[df_scalar.index.duplicated(keep=False)]
-                unique_idx = df_scalar.index[~df_scalar.index.duplicated(keep=False)]
-                
-                if unique_idx.empty:
-                    return False
-                
-                # Keep only unique cycle data
-                df_scalar = df_scalar.loc[unique_idx]
-                df_feat = df_feat.loc[unique_idx]
-                df_qual = df_qual.loc[unique_idx]  
-                [charts.pop(idx,None) for idx in double_idx] 
-                
-                # Update data used for modelling
-                df_modelling = pd.concat([df_scalar,df_feat,df_qual],axis=1)
-                self.__update_modelling_data(df_modelling)
-                
-                
-                # Load data saved in hdf5
-                df_scalar_old = pd.read_hdf(self.target_hdf5, 'overview')
-                df_feat_old = pd.read_hdf(self.target_hdf5, 'features')
-                df_qual_old = pd.read_hdf(self.target_hdf5, 'quality_meas')
-                
-                # Concat new and old data
-                df_scalar = pd.concat([df_scalar_old,df_scalar])
-                df_feat = pd.concat([df_feat_old,df_feat])
-                df_qual = pd.concat([df_qual_old,df_qual])
-                
-                
-                # recast because pandas is stupid
-                for col in df_scalar.columns:
-                    df_scalar[col] = df_scalar[col].astype(self.scalar_dtype[col])
-                
-                for col in df_feat.columns:
-                    df_feat[col] = df_feat[col].astype(self.features_dtype[col])
-                
-                for col in df_qual.columns:
-                    df_qual[col] = df_qual[col].astype(self.quals_dtype[col])
-                 
-                    
-                try: 
-                    # Save concatenated data
-                    df_scalar.to_hdf(self.target_hdf5,'overview')
-                    df_feat.to_hdf(self.target_hdf5,'features')
-                    df_qual.to_hdf(self.target_hdf5,'quality_meas')
-                    
-                    
-                    for key,value in charts.items():
-                        charts[key].to_hdf(self.target_hdf5, 'process_values/cycle_'+str(key))
-                except:
-                    print('Error during writing.')
-                
-                new_data = True
-                
-            except:
-                print('Error while parsing data')
-                new_data = False
+            else:
+                print('New data is not valid.')
+                return False
             
+            # If duplicates exist, delete them
+            double_idx = df_scalar.index[df_scalar.index.duplicated(keep=False)]
+            unique_idx = df_scalar.index[~df_scalar.index.duplicated(keep=False)]
+            
+            if unique_idx.empty:
+                return False
+            
+            # Keep only unique cycle data
+            df_scalar = df_scalar.loc[unique_idx]
+            df_feat = df_feat.loc[unique_idx]
+            df_qual = df_qual.loc[unique_idx]  
+            [charts.pop(idx,None) for idx in double_idx] 
+            
+            # Update data used for modelling
+            df_modelling = pd.concat([df_scalar,df_feat,df_qual],axis=1)
+            self.__update_modelling_data(df_modelling)
+            
+            
+            # Load data saved in hdf5
+            df_scalar_old = pd.read_hdf(self.target_hdf5, 'overview')
+            df_feat_old = pd.read_hdf(self.target_hdf5, 'features')
+            df_qual_old = pd.read_hdf(self.target_hdf5, 'quality_meas')
+            
+            # Concat new and old data
+            df_scalar = pd.concat([df_scalar_old,df_scalar])
+            df_feat = pd.concat([df_feat_old,df_feat])
+            df_qual = pd.concat([df_qual_old,df_qual])
+            
+            
+            # recast because pandas is stupid
+            for col in df_scalar.columns:
+                df_scalar[col] = df_scalar[col].astype(self.scalar_dtype[col])
+            
+            for col in df_feat.columns:
+                df_feat[col] = df_feat[col].astype(self.features_dtype[col])
+            
+            for col in df_qual.columns:
+                df_qual[col] = df_qual[col].astype(self.quals_dtype[col])
+             
                 
-        return new_data
+            try: 
+                # Save concatenated data
+                df_scalar.to_hdf(self.target_hdf5,'overview')
+                df_feat.to_hdf(self.target_hdf5,'features')
+                df_qual.to_hdf(self.target_hdf5,'quality_meas')
+                
+                
+                for key,value in charts.items():
+                    charts[key].to_hdf(self.target_hdf5, 'process_values/cycle_'+str(key))
+            except:
+                print('Error during writing.')
+                
+        return True
   
     def __read_charts(self,cycle_key):
         

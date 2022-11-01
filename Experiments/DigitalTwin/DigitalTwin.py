@@ -105,7 +105,7 @@ if __name__ == '__main__':
     fig2,ax2 = plt.subplots(1,len(mb.models[0].u_label))
     
     mngr2 = plt.get_current_fig_manager()
-    mngr2.window.setGeometry(0, 400, 1920 , 350)
+    mngr2.window.setGeometry(0, 400, 1920 , 350)git st
     
     # Slider Setup
     # master = tk.Tk()
