@@ -174,6 +174,9 @@ class StaticProcessOptimizer(Optimizer):
         # Extract real values from solution       
         U_sol = {}
         
+        # Extract loss from solution
+        loss = sol.value(opti.f) 
+        
         for key,value in U.items():
             U_sol[key] = [sol.value(value)]
 
@@ -181,6 +184,10 @@ class StaticProcessOptimizer(Optimizer):
         U_sol.update(fix_inputs_dic)
         
         U_sol = pd.DataFrame.from_dict(U_sol)
+        
+        
+        U_sol['loss'] = loss
+        
         
         return U_sol
         

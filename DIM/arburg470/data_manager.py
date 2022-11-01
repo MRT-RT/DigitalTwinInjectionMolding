@@ -149,10 +149,13 @@ class Data_Manager():
         
         with h5py.File(self.target_hdf5,mode='r') as target_file:
             read_cycles = set(target_file['process_values'].keys())
-                
-        with h5py.File(self.source_hdf5, 'r') as file:
-            source_cycles = list(file.keys())
-            # source_cycles = ['cycle_119','cycle_120','cycle_122']
+        
+        try:
+            with h5py.File(self.source_hdf5, 'r') as file:
+                source_cycles = list(file.keys())
+        except OSError:
+            print('Source hdf5 could not be opened, trying again.')
+            return None
         
         new_source_cycles = set(source_cycles)-read_cycles
         new_source_cycles = list(new_source_cycles - set(self.failed_cycles))
@@ -357,7 +360,7 @@ class Data_Manager():
             num_setpts = list(range(len(df_unique)))
             
             # Add a column for setpoints number label
-            df_new['Setpoint'] = None 
+            df_new['Setpoint'] = -1 
             
             # index of rows that are kept for modelling
             idx_mod = []
@@ -408,7 +411,7 @@ class Data_Manager():
                 set_idx = (df_mod_old[self.setpoints] == df_new.loc[cyc,self.setpoints]).all(axis=1)    
                 
                 # Check if setpoint exist, if it doesn't append data
-                if set_idx.empty:
+                if df_mod_old.loc[set_idx].empty:
                     new_setpt = int(df_mod_old['Setpoint'].max() + 1)
                     df_new.loc[cyc,'Setpoint'] = new_setpt
                     
@@ -419,7 +422,7 @@ class Data_Manager():
                     setpt = df_mod_old.loc[set_idx,'Setpoint'].iloc[0]
                     df_new.loc[cyc,'Setpoint'] = int(setpt)
                     
-                    if len(set_idx) >= self.n_max:
+                    if len(df_mod_old.loc[set_idx]) >= self.n_max:
                         #if maximum is exceeded replace datum with closest temp
                         diff = abs(df_mod_old.loc[set_idx,'T_wkz_0']-\
                             df_new.loc[cyc,'T_wkz_0'])
@@ -427,7 +430,7 @@ class Data_Manager():
                         #delete datum with closest temp
                         df_mod_old = df_mod_old.drop(index=del_row,axis=1)
                     
-                    df_mod = pd.concat([df_mod_old,df_new.loc[cyc]])
+                    df_mod = pd.concat([df_mod_old,df_new.loc[[cyc]]])
 
                     df_mod['Setpoint'] = df_mod['Setpoint'].astype('int16')
                     

@@ -27,6 +27,7 @@ from DIM.arburg470.data_manager import Data_Manager
 from DIM.optim.param_optim import ParamOptimizer
 
 from DIM.optim.control_optim import StaticProcessOptimizer
+from DIM.optim.common import BestFitRate
 
 class model_bank():
     def __init__(self,model_paths):
@@ -38,6 +39,7 @@ class model_bank():
         self.stp_pred = [None for m in self.models]
         
         self.rec_pred = [None for m in self.models]
+        self.stp_bfr = [None for m in self.models]
         
     
     def load_models(self):
@@ -87,7 +89,8 @@ def config_data_manager(source_hdf5,target_hdf5,setpoints):
               't4015_Value':'t_dos_ist',
               't4018_Value':'t_inj_ist',
               't400_Value':'t_cool_soll',
-              'f071_Value': 'Zyklus',
+               # 'f071_Value': 'Zyklus',
+               'f9002_Value': 'Zyklus',
                'T_wkz_soll': 'T_wkz_soll'}
     
     scalar_dtype = {'T_zyl1_ist':'float16',
@@ -191,15 +194,20 @@ def predict_quality(data_manager, model_bank):
         pred_un = model.MinMaxScale(pred,reverse=True)        
         
         # Rename columns
+        orig_cols = [col for col in pred_un.columns]
         pred_cols = [col+'_pred' for col in pred_un.columns]
-        pred_un.columns = pred_cols
+        pred_un.columns = pred_cols       
         
         # Concatenate measured data and prediction
         stp_pred = pd.concat([mod_data,pred_un],axis=1)
         
+        # Calculate Best Fit Rate
+        bfr = BestFitRate(y_est=stp_pred[pred_cols],
+                          y_target=stp_pred[orig_cols])
+        
         mb.stp_loss[m] = loss
         mb.stp_pred[m] = stp_pred
-        
+        mb.stp_bfr[m] = bfr
         
         # 2: Predcition over most recent 20 observations, solely for plotting
         # purposes
@@ -258,18 +266,19 @@ def reestimate_models(data_manager, model_bank):
     ident_data = pd.read_hdf(dm.target_hdf5,key='modelling_data')
    
     opts = {'initializations':1,
-            's_opts':{"max_iter": 100, "print_level":1, 
+            's_opts':{"max_iter": 500, "print_level":1, 
                      "hessian_approximation":'limited-memory'},
             'mode' : 'static'}
     
     # Start a process for reestimation of each model 
+    print('Models are reestimated...')
     for m in range(len(mb.models)):
         p = Process(target=estimate_parallel,
                     args=(mb.models[m],ident_data,opts,mb.model_paths[m]))
         
         p.start()
         p.join()
-    
+    print('Estimation complete.')
     return None
 
 def optimize_parallel(model,Q_target,fix_inputs,init_values,constraints):
@@ -283,7 +292,7 @@ def optimize_parallel(model,Q_target,fix_inputs,init_values,constraints):
     return U_sol_norm
     
 
-def optimize_setpoints(data_manager,model_bank,Q_target):
+def optimize_setpoints(data_manager,model_bank,Q_target,num_sol):
 
     dm = data_manager
     mb = model_bank
@@ -336,18 +345,24 @@ def optimize_setpoints(data_manager,model_bank,Q_target):
    
     pool = Pool(n_init)
     
+    
+    print('Calculate optimal setpoints...')
     results = pool.starmap(optimize_parallel, zip(model, Q_target, fix_inputs,
                                                   init_values,constraints))       
     # close pool
     pool.close() 
     pool.join()  
+    print('Optimal setpoints calculated')
+    
     
     # cast results to pandas dataframe
-    results = pd.concat(results,axis=1)
+    results = pd.concat(results,axis=0)
     
     # Enumerate solutions for plotting purposes
-    results['Sol_Num'] = range(len(results))
-    return results   
+    results = results.sort_values(ascending=True,by='loss')
+    # results['Sol_Num'] = range(len(results))
+    
+    return results.iloc[0:num_sol]   
 
 def plot_meas_pred(fig,ax,data_manager,model_bank):
     
@@ -363,16 +378,17 @@ def plot_meas_pred(fig,ax,data_manager,model_bank):
     spt = pred_spt.loc[max(pred_spt.index),'Setpoint']
     
     # find all cycles of that setpoint
-    cyc_idx = (pred_spt['Setpoint']==spt).index    
+    cyc_idx = (pred_spt['Setpoint']==spt)   
 
     #plot setpoint data and prediction
     ax[0].cla()     # Clear axis
-    opts = {'marker':'d','markersize':20}
+    opts1 = {'marker':'d','markersize':20}
+    opts2 = {'marker':'d','markersize':15}
     
     sns.lineplot(data=pred_spt.loc[cyc_idx],x = 'T_wkz_0',
-                 y = 'Durchmesser_innen',ax=ax[0], color='k',**opts) 
+                 y = 'Durchmesser_innen',ax=ax[0], color='k',**opts1) 
     sns.lineplot(data=pred_spt.loc[cyc_idx],x = 'T_wkz_0',
-                 y = 'Durchmesser_innen_pred',ax=ax[0], color='b',**opts)             
+                 y = 'Durchmesser_innen_pred',ax=ax[0], color='b',**opts2)             
     
     
     # Plot 2: Quality over cycle number (last 20)
@@ -380,28 +396,33 @@ def plot_meas_pred(fig,ax,data_manager,model_bank):
 
     ax[1].cla()     # Clear axis
     sns.lineplot(data=pred_rec,x = pred_rec.index,
-                 y = 'Durchmesser_innen',ax=ax[1],color='k',**opts) 
+                 y = 'Durchmesser_innen',ax=ax[1],color='k',**opts1) 
     sns.lineplot(data=pred_rec,x = pred_rec.index,
-                 y = 'Durchmesser_innen_pred',ax=ax[1],color='b',**opts)
-    ax[1].set_xticks(pred_rec.index)
+                 y = 'Durchmesser_innen_pred',ax=ax[1],color='b',**opts2)
+    ax[1].set_xticks(pred_rec.index[0::2])
 
     
-    ax[0].set_xlabel('T_wkz_0',fontsize = 22)
-    ax[1].set_xlabel('Zyklus',fontsize = 22)
+    ax[0].set_xlabel('T_wkz_0',fontsize = 12)
+    ax[1].set_xlabel('Zyklus',fontsize = 12)
     
-    ax[0].set_ylabel('Durchmesser_innen',fontsize = 22)
-    ax[1].set_ylabel('Durchmesser_innen',fontsize = 22)
+    ax[0].set_ylabel('Durchmesser_innen',fontsize = 12)
+    ax[1].set_ylabel('Durchmesser_innen',fontsize = 12)
     
     
-    # LIMIT ANPASSEN
+    
     # [a.set_ylim([27,28]) for a in ax]
-    ax[0].set_ylim([26,28])
-    ax[1].set_ylim([26,28])
     
+    y_min0 = pred_spt['Durchmesser_innen'].min()*0.99
+    y_max0 = pred_spt['Durchmesser_innen'].max()*1.01
+    
+    y_min0 = pred_rec['Durchmesser_innen'].min()*0.99
+    y_max0 = pred_rec['Durchmesser_innen'].max()*1.01
+    
+    ax[0].set_ylim([y_min0,y_max0])
+    ax[1].set_ylim([y_min0,y_max0])
+    fig.tight_layout()
     plt.pause(0.01)
-    # fig.tight_layout()
-    # fig.canvas.flush_events() 
-    # plt.pause(0.01)
+    fig.canvas.draw()
     
 def parallel_plot_setpoints(fig,ax,opti_setpoints):
     
@@ -416,9 +437,11 @@ def parallel_plot_setpoints(fig,ax,opti_setpoints):
     # 
     cols = opti_setpoints.columns
     
+    opti_setpoints['Sol_Num'] = range(n_sol)
+    
     order = [n for n in opti_setpoints['Sol_Num']]
     
-    for c in range(len(cols)-1):
+    for c in range(len(cols)):
         
         col = cols[c]
         
@@ -432,8 +455,8 @@ def parallel_plot_setpoints(fig,ax,opti_setpoints):
                      dodge=False)
                      # order=order)
                 
-        ax[c].set_ylim([opti_setpoints[col].min()*0.95,
-                        opti_setpoints[col].max()*1.05])
+        ax[c].set_ylim([opti_setpoints[col].min()*0.99,
+                        opti_setpoints[col].max()*1.01])
         
         ax[c].set_yticks(opti_setpoints[col])
         
@@ -448,11 +471,9 @@ def parallel_plot_setpoints(fig,ax,opti_setpoints):
         legend.remove()        
         
 
+    fig.tight_layout()
     plt.pause(0.01)
-    # fig.tight_layout()
-    # fig.canvas.flush_events() 
-    # plt.pause(0.01)
-    # plt.show(block=False)
+    fig.canvas.draw()
     
 
     

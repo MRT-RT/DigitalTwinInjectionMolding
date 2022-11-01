@@ -37,10 +37,11 @@ from DIM.arburg470 import dt_functions as dtf
 # hist_path = Path('C:/Users/LocalAdmin/Documents/DIM_Data/Messung 5.10/hist_data.h5')
 # live_path = Path.cwd()/'live_data.h5'
 
-source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221029.h5')
-target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/31_10_setup.h5')
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
+# source_h5 = Path('C:/Users/rehmer/Desktop/DIM_20221030.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/01_11_test.h5')
 
-setpoints = ['v_inj_soll','V_um_soll','p_pack2_soll']                           # T_wkz_soll fehlt
+setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']                           # T_wkz_soll fehlt
 
 # Load DataManager specifically for this machine
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
@@ -48,15 +49,14 @@ dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
 
 # Load a model bank
 mod_path = 'C:/Users/rehmer/Desktop/DIM_Data/models/'
-model_paths = [mod_path+'MLP'+str(i)+'.mod' for i in range(0,4)]
+model_paths = [mod_path+'MLP'+str(i)+'.mod' for i in range(0,10)]
 
 mb = dtf.model_bank(model_paths=model_paths)
 
 
 # %% Fonts for plots
 
-font = {'family' : 'normal',
-        'weight' : 'normal',
+font = {'weight' : 'normal',
         'size'   : 12}
 
 matplotlib.rc('font', **font)
@@ -88,7 +88,7 @@ matplotlib.rc('font', **font)
     
 if __name__ == '__main__':
     
-    # dm.get_cycle_data()
+    dm.get_cycle_data()
     
     freeze_support()
     
@@ -100,23 +100,23 @@ if __name__ == '__main__':
     fig1,ax1 = plt.subplots(1,2)
     
     mngr1 = plt.get_current_fig_manager()
-    mngr1.window.setGeometry(0, 20, 1920 , 350)
+    mngr1.window.setGeometry(0, 30, 1920 , 500)
     
-    fig2,ax2 = plt.subplots(1,len(mb.models[0].u_label))
+    fig2,ax2 = plt.subplots(1,len(dm.setpoints))
     
     mngr2 = plt.get_current_fig_manager()
-    mngr2.window.setGeometry(0, 400, 1920 , 350)git st
+    mngr2.window.setGeometry(0, 530, 1920/2 , 500)
     
     # Slider Setup
-    # master = tk.Tk()
-    # slider = tk.Scale(master, from_=26, to=28,length=500,width=50,
-    #               orient='vertical',digits=3,label='Durchmesser_innen',
-    #               resolution=0.1, tickinterval=0.5)
-    # slider.pack()
+    master = tk.Tk()
+    slider = tk.Scale(master, from_=27, to=29,length=500,width=50,
+                  orient='vertical',digits=3,label='Durchmesser_innen',
+                  resolution=0.1, tickinterval=0.5)
+    slider.pack()
     
     
-    # master.attributes("-topmost", True)
-    # master.focus_force()
+    master.attributes("-topmost", True)
+    master.focus_force()
     
     while True:
         # print(i)
@@ -134,59 +134,65 @@ if __name__ == '__main__':
         # Official code starts here
         
         # Check for new data
-        new_data = dm.get_cycle_data(0.0)
+        new_data = dm.get_cycle_data(16.0)
         
         # time.sleep(1)
         # Q_read = [None]
-        # # Read in new slider value
+        # Read in new slider value
         # t = Thread(target=read_slider,args=(master,slider,Q_read) )
         # t.start()
         
         
         # Read target quality value from slider
-        # master.lift()
-        # master.update_idletasks()
-        # master.update()
-        # new_val = slider.get()
+        master.lift()
+        time.sleep(2.0)
+        master.update_idletasks()
+        master.update()
+        new_val = slider.get()
+        print(new_val)
         # new_val = 27.0
         
-        new_data = True
+        # new_data = True
         
         if new_data:
             
             # time.sleep(15)
             
-            print('New data found')
+            # print('New data found')
             
             # Predict new quality datum
             dtf.predict_quality(dm,mb)
 
             # plot measurement and prediction
             dtf.plot_meas_pred(fig1,ax1,dm,mb)
-            
             plt.pause(0.01)
+            mngr1.window.raise_()
+            
+            
             # reestimate models
             dtf.reestimate_models(dm,mb)
             
             # Reload models
             mb.load_models()
             
-            # Q_target =  pd.DataFrame.from_dict({'Durchmesser_innen': [new_val]})
+            Q_target =  pd.DataFrame.from_dict({'Durchmesser_innen': [new_val]})
             
             # calculate optimal setpoints
-            # opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target)
+            opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,1)
             
 
             
-            
+            # print(opti_setpoints)
             # opti_setpoints = pd.DataFrame(data=[[14.0,43,0],[14.5,43,1],
             #                                     [15.0,43,2]],
             #                               columns=['V_um_soll','T_wkz_0',
-            #                                        'Sol_Num'])
+            #                                         'Sol_Num'])
             
             # plot optimal setpoints
-            # dtf.parallel_plot_setpoints(fig2,ax2,opti_setpoints)           
+            dtf.parallel_plot_setpoints(fig2,ax2,opti_setpoints[dm.setpoints])  
+            mngr2.window.raise_()
             
+            master.lift()
         else:
             
             print('Waiting for new data')
