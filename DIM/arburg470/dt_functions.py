@@ -228,6 +228,8 @@ def predict_quality(data_manager, model_bank):
         
         mb.rec_pred[m] = rec_pred
         
+    mb.idx_best = np.argmin(mb.stp_loss)
+        
     
     return None
 
@@ -364,10 +366,18 @@ def optimize_setpoints(data_manager,model_bank,Q_target,num_sol):
     
     return results.iloc[0:num_sol]   
 
-def plot_meas_pred(fig,ax,data_manager,model_bank):
+def plot_meas_pred(figax1,figax2,data_manager,model_bank):
+    
+    fig1 = figax1[0]
+    ax1 = figax1[1]
+    
+    fig2 = figax2[0]
+    ax2 = figax2[1]
     
     dm = data_manager
     mb = model_bank
+    
+    y_label = mb.models[0].y_label[0]
       
     # Plot 1: Quality over Temperature in current setpoint
     # find best model and load prediction
@@ -381,48 +391,48 @@ def plot_meas_pred(fig,ax,data_manager,model_bank):
     cyc_idx = (pred_spt['Setpoint']==spt)   
 
     #plot setpoint data and prediction
-    ax[0].cla()     # Clear axis
+    ax1[0].cla()     # Clear axis
     opts1 = {'marker':'d','markersize':20}
     opts2 = {'marker':'d','markersize':15}
     
     sns.lineplot(data=pred_spt.loc[cyc_idx],x = 'T_wkz_0',
-                 y = 'Durchmesser_innen',ax=ax[0], color='k',**opts1) 
+                 y = y_label,ax=ax1[0], color='k',**opts1) 
     sns.lineplot(data=pred_spt.loc[cyc_idx],x = 'T_wkz_0',
-                 y = 'Durchmesser_innen_pred',ax=ax[0], color='b',**opts2)             
+                 y = y_label+'_pred',ax=ax1[0], color='b',**opts2)             
     
     
     # Plot 2: Quality over cycle number (last 20)
     pred_rec = mb.rec_pred[mod_idx]
 
-    ax[1].cla()     # Clear axis
+    ax1[1].cla()     # Clear axis
     sns.lineplot(data=pred_rec,x = pred_rec.index,
-                 y = 'Durchmesser_innen',ax=ax[1],color='k',**opts1) 
+                 y = y_label,ax=ax1[1],color='k',**opts1) 
     sns.lineplot(data=pred_rec,x = pred_rec.index,
-                 y = 'Durchmesser_innen_pred',ax=ax[1],color='b',**opts2)
-    ax[1].set_xticks(pred_rec.index[0::2])
+                 y = y_label+'_pred',ax=ax1[1],color='b',**opts2)
+    ax1[1].set_xticks(pred_rec.index[0::2])
 
     
-    ax[0].set_xlabel('T_wkz_0',fontsize = 12)
-    ax[1].set_xlabel('Zyklus',fontsize = 12)
+    ax1[0].set_xlabel('T_wkz_0',fontsize = 12)
+    ax1[1].set_xlabel('Zyklus',fontsize = 12)
     
-    ax[0].set_ylabel('Durchmesser_innen',fontsize = 12)
-    ax[1].set_ylabel('Durchmesser_innen',fontsize = 12)
+    ax1[0].set_ylabel(y_label,fontsize = 12)
+    ax1[1].set_ylabel(y_label,fontsize = 12)
     
     
     
     # [a.set_ylim([27,28]) for a in ax]
     
-    y_min0 = pred_spt['Durchmesser_innen'].min()*0.99
-    y_max0 = pred_spt['Durchmesser_innen'].max()*1.01
+    y_min0 = pred_spt[y_label].min()*0.99
+    y_max0 = pred_spt[y_label].max()*1.01
     
-    y_min0 = pred_rec['Durchmesser_innen'].min()*0.99
-    y_max0 = pred_rec['Durchmesser_innen'].max()*1.01
+    y_min0 = pred_rec[y_label].min()*0.99
+    y_max0 = pred_rec[y_label].max()*1.01
     
-    ax[0].set_ylim([y_min0,y_max0])
-    ax[1].set_ylim([y_min0,y_max0])
-    fig.tight_layout()
+    ax1[0].set_ylim([y_min0,y_max0])
+    ax1[1].set_ylim([y_min0,y_max0])
+    fig1.tight_layout()
     plt.pause(0.01)
-    fig.canvas.draw()
+    fig1.canvas.draw()
     
 def parallel_plot_setpoints(fig,ax,opti_setpoints):
     
