@@ -30,8 +30,8 @@ from DIM.optim.control_optim import StaticProcessOptimizer
 from DIM.optim.common import BestFitRate
 
 class model_bank():
-    def __init__(self,model_paths):
-        self.model_paths = model_paths
+    def __init__(self,model_path):
+        self.model_path = model_path
         
         self.load_models()
         
@@ -44,7 +44,178 @@ class model_bank():
     
     def load_models(self):
         
-        self.models = [pkl.load(open(path,'rb')) for path in self.model_paths]
+        model_dict = pkl.load(open(self.model_path,'rb'))
+        
+        self.models = [model_dict[i]['val'] for i in model_dict.keys()]
+
+class ModelQualityPlot():
+    def __init__(self): 
+        self.fig,self.ax = plt.subplots(1,1)
+        self.mngr = plt.get_current_fig_manager()
+        self.mngr.window.setGeometry(1920//4*2, 530, 1920//4 , 500) 
+
+        self.model_quality = np.zeros((10,1))
+        
+        self.plot_data = plt.plot(range(0,10),self.model_quality,marker='o')
+        
+        self.ax.set_ylim([0,100])
+            
+    def update(self,bfr):
+        
+        pd = self.plot_data[0]
+        dx,dy = pd.get_data()
+        
+        dy = np.hstack((dy,np.array([bfr])))
+        dy = dy[1::]
+        
+        pd.set_data((dx,dy))
+        
+        self.fig.canvas.draw()
+
+
+class SolutionQualityPlot():
+    def __init__(self): 
+        self.fig,self.ax = plt.subplots(1,1)
+        self.mngr = plt.get_current_fig_manager()
+        self.mngr.window.setGeometry(1920//4*3, 530, 1920//4 , 500) 
+
+        self.pred_error = np.zeros((10,1))
+        
+        self.plot_data = plt.plot(range(0,10),self.pred_error,marker='o')
+        
+    def update(self,e):
+        
+        pd = self.plot_data[0]
+        dx,dy = pd.get_data()
+        
+        dy = np.hstack((dy,np.array([e])))
+        dy = dy[1::]
+        
+        pd.set_data((dx,dy))
+        
+        self.ax.set_ylim([min(dy)*0.99,max(dy)*1.09])
+        
+        self.fig.canvas.draw()
+        
+class PredictionPlot():
+    def __init__(self): 
+        self.fig,self.ax = plt.subplots(1,2)
+        self.mngr = plt.get_current_fig_manager()
+        self.mngr.window.setGeometry(0, 30, 1920 , 500)
+
+        init_data = np.zeros((20,1))
+        
+        self.meas_data_1 = self.ax[0].plot(range(0,20),
+                                           init_data,
+                                           marker='d',
+                                           markersize=20,linestyle='none')
+        self.pred_data_1 = self.ax[0].plot(range(0,20),
+                                           init_data,
+                                           marker='d',
+                                           markersize=15,linestyle='none')
+        
+        
+        self.meas_data_2 = self.ax[1].plot(range(0,20),
+                                           init_data,
+                                           marker='d',
+                                           markersize=20,
+                                           linestyle='none')
+        
+        self.pred_data_2 = self.ax[1].plot(range(0,20),
+                                           init_data,
+                                           marker='d',
+                                           markersize=15,linestyle='none')
+        
+        # self.ax.set_ylim([-0.5,0.5])
+            
+    def update(self,dm,mb):
+        
+        y_label = mb.models[0].y_label[0]
+        
+        # Update measurement data in setpoint plot
+        d = self.meas_data_1[0]
+        dx,dy = d.get_data()
+        
+        # load setpoint prediction for best model
+        pred_spt = mb.stp_pred[mb.idx_best]
+
+        # find current setpoint (look for last measurement added)
+        spt = pred_spt.loc[max(pred_spt.index),'Setpoint']
+        
+        # find all cycles of that setpoint
+        cyc_idx = (pred_spt['Setpoint']==spt)  
+        
+        dx = pred_spt.loc[cyc_idx]['T_wkz_0'].values
+        dy = pred_spt.loc[cyc_idx][y_label].values       
+        d.set_data((dx,dy))
+        
+        # Update pred data in setpoint plot
+        d = self.pred_data_1[0]
+        dx,dy = d.get_data()
+        
+        
+        dx = pred_spt.loc[cyc_idx]['T_wkz_0'].values
+        dy = pred_spt.loc[cyc_idx][y_label+'_pred'].values       
+        d.set_data((dx,dy))
+
+        self.ax[0].set_xlim([min(dx)*0.99,max(dx)*1.01])
+        self.ax[0].set_ylim([min(dy)*0.99,max(dy)*1.01])
+
+        # Plot 2: Quality over cycle number (last 20)
+        pred_rec = mb.rec_pred[mb.idx_best]
+        
+        d = self.meas_data_2[0]
+        dx,dy = d.get_data()
+        
+        dx = pred_rec.index.values
+        dy = pred_rec[y_label].values     
+        d.set_data((dx,dy))
+        
+        d = self.pred_data_2[0]
+        dx,dy = d.get_data()
+        
+        dx = pred_rec.index.values
+        dy = pred_rec[y_label+'_pred'].values     
+        d.set_data((dx,dy))      
+    
+        self.ax[1].set_xlim([min(dx)-1,max(dx)+1])
+        self.ax[1].set_ylim([min(dy)*0.99,max(dy)*1.01])
+        
+        self.fig.canvas.draw()
+class OptimSetpointsPlot():
+    
+    def __init__(self): 
+        self.fig,self.ax = plt.subplots(1,3)
+        self.mngr = plt.get_current_fig_manager()
+        self.mngr.window.setGeometry(0, 530, 1920//2 , 500) 
+        
+        self.plot_data_1 = self.ax[0].plot(0,0,marker='o')
+        self.plot_data_2 = self.ax[1].plot(0,0,marker='o')
+        self.plot_data_3 = self.ax[2].plot(0,0,marker='o')
+        
+        # self.ax.set_ylim([-0.5,0.5])
+            
+    def update(self,opti_setpoints):
+        
+        cols = opti_setpoints.columns
+        data = [self.plot_data_1[0],
+                self.plot_data_2[0],
+                self.plot_data_3[0]]
+        
+        for p in range(0,3):
+            dx,dy = data[p].get_data()
+            dy = opti_setpoints.loc[0,cols[p]]
+            data[p].set_data((dx,dy))
+
+            self.ax[p].set_ylim([dy*0.99,dy*1.01])
+            self.ax[p].set_title(cols[p])
+            
+        self.fig.canvas.draw()    
+        
+        
+        
+        
+        
         
         
 def config_data_manager(source_hdf5,target_hdf5,setpoints):
@@ -308,6 +479,7 @@ def optimize_setpoints(data_manager,model_bank,Q_target,num_sol):
     
     # normalize data
     data = model.MinMaxScale(data)
+    Q_target = model.MinMaxScale(Q_target)
     
     # Get T_wkz_0 from most recent measurement
     fix_inputs = data.loc[[data.index[-1]],['T_wkz_0']]

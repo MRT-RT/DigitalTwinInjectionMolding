@@ -169,7 +169,7 @@ class Data_Manager():
             features = []
             quals = []
             
-            for cycle in new_source_cycles:                                # [0:10] for debugging
+            for cycle in new_source_cycles[0:1]:                                # [0:10] for debugging
                 
                 print(cycle)
                 
