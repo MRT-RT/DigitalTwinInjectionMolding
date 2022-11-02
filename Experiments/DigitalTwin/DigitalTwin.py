@@ -37,11 +37,8 @@ from DIM.arburg470 import dt_functions as dtf
 # hist_path = Path('C:/Users/LocalAdmin/Documents/DIM_Data/Messung 5.10/hist_data.h5')
 # live_path = Path.cwd()/'live_data.h5'
 
-# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
-# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/01_11_test.h5')
-
-source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221101.h5')
-target_h5 = Path('/home/alexander/Desktop/DIM/01_11_test.h5')
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221102.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/01_11_test.h5')
 
 setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']                           # T_wkz_soll fehlt
 
@@ -49,9 +46,19 @@ setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']                           #
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
 # dm = dtf.config_data_manager(hist_path,Path('all_data_05_10_22.h5'))
 
+# %%
+
+model_path = Path('Z:\Versuchsreihen Spritzgießen\Versuchsplan_01_11_22\Models\MLP_l2_h10')
+
+models = pkl.load(open((model_path/'models.pkl').as_posix(),'rb'))
+
+for i in range(0,10):
+    pkl.dump(models[i]['val'],
+             open(target_h5.parents[0]/'models'/('G_MLP'+str(i)+'.mod'),'wb'))
+
 # Load a model bank
 model_path = target_h5.parents[0]/'models'
-model_paths = [model_path/('MLP'+str(i)+'.mod') for i in range(0,10)]
+model_paths = [model_path/('G_MLP'+str(i)+'.mod') for i in range(0,10)]
 
 mb = dtf.model_bank(model_paths=model_paths)
 
@@ -65,32 +72,6 @@ font = {'weight' : 'normal',
 matplotlib.rc('font', **font)
 
 
-# %% Function for reading in slider value
-
-# def read_slider(window,slider,Q_read):
-    
-#     old_val = Q_read[0]
-#     new_val = Q_read[0]
-    
-#     while new_val == old_val:
-        
-#         window.lift()
-        
-#         # Read target quality value from slider
-#         window.update_idletasks()
-#         window.update()
-        
-#         new_val = slider.get()
-        
-#         time.sleep(1.0)
-    
-#     Q_read[0]=new_val
-
-
-
-
-
-
 class ModelQualityPlot():
     def __init__(self): 
         self.fig,self.ax = plt.subplots(1,1)
@@ -99,7 +80,7 @@ class ModelQualityPlot():
 
         self.model_quality = np.zeros((10,1))
         
-        self.plot_data = plt.plot(self.model_quality,marker='o')
+        self.plot_data = plt.plot(range(0,10),self.model_quality,marker='o')
         
         self.ax.set_ylim([0,100])
             
@@ -111,10 +92,30 @@ class ModelQualityPlot():
         dy = np.hstack((dy,np.array([bfr])))
         dy = dy[1::]
         
-        pd.set_data((dy,dy))
+        pd.set_data((dx,dy))
 
 
+class SolutionQualityPlot():
+    def __init__(self): 
+        self.fig,self.ax = plt.subplots(1,1)
+        self.mngr = plt.get_current_fig_manager()
+        self.mngr.window.setGeometry(1920/4*3, 530, 1920/4 , 500) 
 
+        self.pred_error = np.zeros((10,1))
+        
+        self.plot_data = plt.plot(range(0,10),self.pred_error,marker='o')
+        
+        self.ax.set_ylim([-0.5,0.5])
+            
+    def update(self,e):
+        
+        pd = self.plot_data[0]
+        dx,dy = pd.get_data()
+        
+        dy = np.hstack((dy,np.array([e])))
+        dy = dy[1::]
+        
+        pd.set_data((dx,dy))
 
 
 
@@ -147,6 +148,10 @@ if __name__ == '__main__':
     mngr3.window.setGeometry(1920/2, 530, 1920/2 , 500)    
     
     MQPlot = ModelQualityPlot()
+    SQPlot = SolutionQualityPlot()
+    
+    
+    
     
     # Slider Setup
     # master = tk.Tk()
@@ -191,9 +196,9 @@ if __name__ == '__main__':
         # master.update()
         # new_val = slider.get()
         # print(new_val)
-        new_val = 27.0
+        new_val = 8
         
-        # new_data = True
+        new_data = True
         
         if new_data:
             
@@ -223,6 +228,8 @@ if __name__ == '__main__':
             # calculate optimal setpoints
             opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,1)
             
+            # Plot 
+            SQPlot.update(opti_setpoints.loc[0,'loss'])
 
             
             # print(opti_setpoints)
