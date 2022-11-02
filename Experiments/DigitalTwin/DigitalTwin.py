@@ -34,26 +34,27 @@ from DIM.arburg470 import dt_functions as dtf
 # %% Lese Trainingsdaten von Versuchsplan ein
 # Nur für Offline-Demobetrieb
 
-# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221102.h5')
-# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/01_11_test.h5')
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
+source_live_h5 = Path('I:/Klute/DIM_Twin/DIM_20221102.h5')
 
-source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221101.h5')
-target_h5 = Path('/home/alexander/Desktop/DIM/01_11_test.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/dm_data.h5')
+
+model_path = Path('C:/Users/rehmer/Desktop/DIM_Data/models/live_models.pkl')
+
+
+# source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221101.h5')
+# target_h5 = Path('/home/alexander/Desktop/DIM/01_11_test.h5')
 
 setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']                           # T_wkz_soll fehlt
 
 # Load DataManager specifically for this machine
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
-# dm.get_cycle_data()
 
 # dm = dtf.config_data_manager(hist_path,Path('all_data_05_10_22.h5'))
 
 # %% Ändere Quelldatei für Live-Betrie
-source_live_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221102.h5')
 dm.source_hdf5 = source_live_h5
 # %% 
-
-model_path = Path('/home/alexander/Desktop/DIM/Di_MLP_l2_h10/live_models.pkl')
 
 mb = dtf.model_bank(model_path=model_path)
 
@@ -74,9 +75,7 @@ if __name__ == '__main__':
     dm.get_cycle_data()
     
     freeze_support()
-    
-    # l = 6 
-    # u = 100 #204
+
     plt.close('all')
     
     
@@ -88,9 +87,9 @@ if __name__ == '__main__':
     # Slider Setup
     master = tk.Tk()
     slider_val = tk.DoubleVar()
-    slider = tk.Scale(master, from_=27, to=29,length=500,width=50,
+    slider = tk.Scale(master, from_=8.0, to=8.5,length=500,width=50,
                   orient='vertical',digits=3,label='Durchmesser_innen',
-                  resolution=0.1, tickinterval=0.5,variable=slider_val)
+                  resolution=0.05, tickinterval=0.1,variable=slider_val)
     slider.pack()
     
     
@@ -101,7 +100,7 @@ if __name__ == '__main__':
 
         
         # Check for new data
-        new_data = dm.get_cycle_data(16.0)
+        new_data = dm.get_cycle_data(20.0)
         
         # time.sleep(1)
         # Q_read = [None]
@@ -113,15 +112,14 @@ if __name__ == '__main__':
         # Read target quality value from slider
         # master.lift()
         # time.sleep(2.0)
-        # master.update_idletasks()
-        # master.update()
-        # print(slider_val.get())
-        # new_val = slider.get()
+        master.update_idletasks()
+        master.update()
+        print(slider_val.get())
+        new_val = slider.get()
         # print(new_val)
-        new_val = 8.15
         
-        # new_data = True
-        
+        # new_val = 8.15
+
         if new_data:
             
             # Reload models

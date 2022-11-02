@@ -169,7 +169,7 @@ class Data_Manager():
             features = []
             quals = []
             
-            for cycle in new_source_cycles[0:1]:                                # [0:10] for debugging
+            for cycle in new_source_cycles:
                 
                 print(cycle)
                 
@@ -259,10 +259,12 @@ class Data_Manager():
                 
                 for key,value in charts.items():
                     charts[key].to_hdf(self.target_hdf5, 'process_values/cycle_'+str(key))
+                    
+                new_data = True
             except:
                 print('Error during writing.')
                 
-        return True
+        return new_data
   
     def __read_charts(self,cycle_key):
         

@@ -36,17 +36,20 @@ from DIM.arburg470 import dt_functions as dtf
 # %% Lese Trainingsdaten von Versuchsplan ein
 # Nur für Offline-Demobetrieb
 
-source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221101.h5')
-target_h5 = Path('/home/alexander/Desktop/DIM/01_11_test.h5')
+# source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221101.h5')
+# target_h5 = Path('/home/alexander/Desktop/DIM/01_11_test.h5')
 
-model_path = Path('/home/alexander/Desktop/DIM/')
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/dm_data.h5')
+
+model_path = Path('C:/Users/rehmer/Desktop/DIM_Data/models/')
 
 setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']     
 
 # Load DataManager specifically for this machine
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
+# dm.get_cycle_data()
 
-# 
 
 if __name__ == '__main__':
     
@@ -75,23 +78,25 @@ if __name__ == '__main__':
         
         opt = ParamOptimizer(MLP,data_norm,data_norm,mode='static',
                             initializations=inits,
-                            res_path=model_path/name,
+                            res_path=model_path,
                             n_pool=20)
     
         results = opt.optimize()
         
-        go = False
+        # go = False
         
         # Finde die 10 besten Modelle
         results_sort = results.sort_values(by='loss_val',ascending=True)
         
         # Lade alle Modelle
-        models = pkl.load(open(model_path/name/'models.pkl','rb'))
+        models = pkl.load(open(model_path/'models.pkl','rb'))
 
         # Behalte nur 10 beste Modelle
         models_best = {list(models.keys())[i]: models[i] for i in results_sort.index[0:10]}
         
-        pkl.dump(models_best,open(model_path/name/'live_models.pkl','wb'))
+        pkl.dump(models_best,open(model_path/'live_models.pkl','wb'))
+        
+        time.sleep(10)
         
         
         
