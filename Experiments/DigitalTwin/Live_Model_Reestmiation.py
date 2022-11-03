@@ -36,13 +36,13 @@ from DIM.arburg470 import dt_functions as dtf
 # %% Lese Trainingsdaten von Versuchsplan ein
 # Nur für Offline-Demobetrieb
 
-# source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221101.h5')
-# target_h5 = Path('/home/alexander/Desktop/DIM/01_11_test.h5')
+source_h5 = Path('C:/Users/alexa/Desktop/DIM/DIM_20221101.h5')
+target_h5 = Path('C:/Users/alexa/Desktop/DIM/dm_data.h5')
+model_path = Path('C:/Users/alexa/Desktop/DIM/models/')
 
-source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
-target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/dm_data.h5')
-
-model_path = Path('C:/Users/rehmer/Desktop/DIM_Data/models/')
+# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
+# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/dm_data.h5')
+# model_path = Path('C:/Users/rehmer/Desktop/DIM_Data/models/')
 
 setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']     
 
@@ -70,8 +70,8 @@ if __name__ == '__main__':
         modelling_data = pd.read_hdf(dm.target_hdf5, 'modelling_data')
         
     
-        MLP = Static_Multi_MLP(dim_u=4,dim_out=1,dim_hidden=h,layers = l,
-                               u_label=setpoints + ['T_wkz_0'],
+        MLP = Static_Multi_MLP(dim_u=3,dim_out=1,dim_hidden=h,layers = l,
+                               u_label=setpoints,
                                y_label=target,name=name)
         
         data_norm = MLP.MinMaxScale(modelling_data)
@@ -82,8 +82,7 @@ if __name__ == '__main__':
                             n_pool=20)
     
         results = opt.optimize()
-        
-        # go = False
+
         
         # Finde die 10 besten Modelle
         results_sort = results.sort_values(by='loss_val',ascending=True)
@@ -98,7 +97,7 @@ if __name__ == '__main__':
         
         time.sleep(10)
         
-        
+        go = False
         
         
         

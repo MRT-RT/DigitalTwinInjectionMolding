@@ -34,23 +34,22 @@ from DIM.arburg470 import dt_functions as dtf
 # %% Lese Trainingsdaten von Versuchsplan ein
 # Nur für Offline-Demobetrieb
 
-source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
-source_live_h5 = Path('I:/Klute/DIM_Twin/DIM_20221102.h5')
+source_h5 = Path('C:/Users/alexa/Desktop/DIM/DIM_20221101.h5')
+target_h5 = Path('C:/Users/alexa/Desktop/DIM/dm_data.h5')
+source_live_h5 = Path('C:/Users/alexa/Desktop/DIM/DIM_20221102.h5')
+model_path = Path('C:/Users/alexa/Desktop/DIM/live_models.pkl')
 
-target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/dm_data.h5')
-
-model_path = Path('C:/Users/rehmer/Desktop/DIM_Data/models/live_models.pkl')
-
-
-# source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221101.h5')
-# target_h5 = Path('/home/alexander/Desktop/DIM/01_11_test.h5')
+# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
+# source_live_h5 = Path('I:/Klute/DIM_Twin/DIM_20221102.h5')
+# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/dm_data.h5')
+# model_path = Path('C:/Users/rehmer/Desktop/DIM_Data/models/live_models.pkl')
 
 setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']                           # T_wkz_soll fehlt
 
 # Load DataManager specifically for this machine
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
+# dm.get_cycle_data()
 
-# dm = dtf.config_data_manager(hist_path,Path('all_data_05_10_22.h5'))
 
 # %% Ändere Quelldatei für Live-Betrie
 dm.source_hdf5 = source_live_h5
@@ -72,7 +71,7 @@ matplotlib.rc('font', **font)
     
 if __name__ == '__main__':
     
-    dm.get_cycle_data()
+    # dm.get_cycle_data()
     
     freeze_support()
 
@@ -82,7 +81,7 @@ if __name__ == '__main__':
     MQPlot = dtf.ModelQualityPlot()
     SQPlot = dtf.SolutionQualityPlot()
     PPlot = dtf.PredictionPlot() 
-    OSPlot = dtf.OptimSetpointsPlot()
+    OSPlot = dtf.OptimSetpointsPlot(num_sol=5)
     
     # Slider Setup
     master = tk.Tk()
@@ -118,7 +117,9 @@ if __name__ == '__main__':
         new_val = slider.get()
         # print(new_val)
         
-        # new_val = 8.15
+        new_val = 8.15
+
+        new_data = True    
 
         if new_data:
             
@@ -135,11 +136,11 @@ if __name__ == '__main__':
             Q_target =  pd.DataFrame.from_dict({y_label: [new_val]})
             
             # calculate optimal setpoints
-            opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,1)
+            opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,10)
             
             # Plot 
-            SQPlot.update(opti_setpoints.loc[0,'loss'])
-            OSPlot.update(opti_setpoints[dm.setpoints])
+            # SQPlot.update(opti_setpoints.loc[0,'loss'])
+            OSPlot.update(opti_setpoints[dm.setpoints+['loss']])
             plt.pause(0.01)
             # master.lift()
         else:

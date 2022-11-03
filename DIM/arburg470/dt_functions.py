@@ -54,12 +54,22 @@ class ModelQualityPlot():
         self.mngr = plt.get_current_fig_manager()
         self.mngr.window.setGeometry(1920//4*2, 530, 1920//4 , 500) 
 
-        self.model_quality = np.zeros((10,1))
+        self.memory = 10
+
+
+        self.fig.suptitle('Modellgüte')
+        init_data = np.zeros((self.memory,1))
+        self.plot_data = plt.plot(np.arange(-self.memory,0,1),
+                                  init_data,marker='o')
         
-        self.plot_data = plt.plot(range(0,10),self.model_quality,marker='o')
         
-        self.ax.set_ylim([0,100])
-            
+        self.ax.set_ylabel('BFR in %')
+        
+        
+        
+        self.ax.set_ylim([0,100])       
+        self.fig.tight_layout()
+        
     def update(self,bfr):
         
         pd = self.plot_data[0]
@@ -70,6 +80,7 @@ class ModelQualityPlot():
         
         pd.set_data((dx,dy))
         
+        self.fig.tight_layout()
         self.fig.canvas.draw()
 
 
@@ -79,9 +90,14 @@ class SolutionQualityPlot():
         self.mngr = plt.get_current_fig_manager()
         self.mngr.window.setGeometry(1920//4*3, 530, 1920//4 , 500) 
 
-        self.pred_error = np.zeros((10,1))
+        self.memory = 10
+
+        self.fig.suptitle('Lösungsgüte')
+        init_data = np.zeros((self.memory,1))
+        self.plot_data = plt.plot(np.arange(-self.memory,0,1),
+                                  init_data,marker='o')
         
-        self.plot_data = plt.plot(range(0,10),self.pred_error,marker='o')
+        self.fig.canvas.draw()
         
     def update(self,e):
         
@@ -95,38 +111,44 @@ class SolutionQualityPlot():
         
         self.ax.set_ylim([min(dy)*0.99,max(dy)*1.09])
         
+        self.fig.tight_layout()
         self.fig.canvas.draw()
         
 class PredictionPlot():
     def __init__(self): 
+        
         self.fig,self.ax = plt.subplots(1,2)
+        
         self.mngr = plt.get_current_fig_manager()
+        
         self.mngr.window.setGeometry(0, 30, 1920 , 500)
+
+        self.fig.suptitle('Qualitätsmessung und -prädiktion')
 
         init_data = np.zeros((20,1))
         
-        self.meas_data_1 = self.ax[0].plot(range(0,20),
-                                           init_data,
-                                           marker='d',
-                                           markersize=20,linestyle='none')
-        self.pred_data_1 = self.ax[0].plot(range(0,20),
-                                           init_data,
-                                           marker='d',
-                                           markersize=15,linestyle='none')
+        opt_meas = {'marker':'d','markersize':20,'linestyle':'none'}
+        opt_pred = {'marker':'d','markersize':15,'linestyle':'none'}
         
+        self.meas_data_1 = self.ax[0].plot(range(0,20),init_data,
+                                           **opt_meas)
         
-        self.meas_data_2 = self.ax[1].plot(range(0,20),
-                                           init_data,
-                                           marker='d',
-                                           markersize=20,
-                                           linestyle='none')
+        self.pred_data_1 = self.ax[0].plot(range(0,20),init_data,
+                                           **opt_pred)
         
-        self.pred_data_2 = self.ax[1].plot(range(0,20),
-                                           init_data,
-                                           marker='d',
-                                           markersize=15,linestyle='none')
+        self.ax[0].set_xlabel('T in °C')
+        self.ax[0].set_ylabel('m in g')
         
-        # self.ax.set_ylim([-0.5,0.5])
+        self.meas_data_2 = self.ax[1].plot(range(0,20),init_data,
+                                           **opt_meas)
+        
+        self.pred_data_2 = self.ax[1].plot(range(0,20),init_data,
+                                           **opt_pred)
+        
+        self.ax[1].set_xlabel('Zyklus')
+        self.ax[1].legend(['Messung','Prädiktion'])
+        
+        self.fig.tight_layout()
             
     def update(self,dm,mb):
         
@@ -181,40 +203,97 @@ class PredictionPlot():
         self.ax[1].set_xlim([min(dx)-1,max(dx)+1])
         self.ax[1].set_ylim([min(dy)*0.99,max(dy)*1.01])
         
+        self.fig.tight_layout()
         self.fig.canvas.draw()
+
+        
 class OptimSetpointsPlot():
     
-    def __init__(self): 
+    def __init__(self,num_sol): 
+        
         self.fig,self.ax = plt.subplots(1,3)
         self.mngr = plt.get_current_fig_manager()
         self.mngr.window.setGeometry(0, 530, 1920//2 , 500) 
         
-        self.plot_data_1 = self.ax[0].plot(0,0,marker='o')
-        self.plot_data_2 = self.ax[1].plot(0,0,marker='o')
-        self.plot_data_3 = self.ax[2].plot(0,0,marker='o')
+        self.num_sol = num_sol
+        self.base_marker_size = 30
         
-        # self.ax.set_ylim([-0.5,0.5])
+        self.fig.suptitle('Optimale Maschinenparameter')
+        
+        self.plot_data_1 = self.ax[0].scatter([0]*num_sol,[0]*num_sol,marker='o')
+        self.plot_data_2 = self.ax[1].scatter([0]*num_sol,[0]*num_sol,marker='o')
+        self.plot_data_3 = self.ax[2].scatter([0]*num_sol,[0]*num_sol,marker='o')
+        
+        
+        self.fig.tight_layout()
+        self.fig.canvas.draw()
             
     def update(self,opti_setpoints):
         
-        cols = opti_setpoints.columns
-        data = [self.plot_data_1[0],
-                self.plot_data_2[0],
-                self.plot_data_3[0]]
+        # loss limit 
+        lim = 0.01
         
-        for p in range(0,3):
-            dx,dy = data[p].get_data()
-            dy = opti_setpoints.loc[0,cols[p]]
-            data[p].set_data((dx,dy))
-
-            self.ax[p].set_ylim([dy*0.99,dy*1.01])
-            self.ax[p].set_title(cols[p])
+        # find bad solutions
+        n_bad = sum(opti_setpoints['loss']>lim)
+        if n_bad:
+            print('Ignored ' + str(n_bad) + ' solutions that exceeded loss of 0.01.')
             
-        self.fig.canvas.draw()    
+        # Keep only good solutions
+        opti_setpoints = opti_setpoints.loc[opti_setpoints['loss']<=lim]
+        opti_setpoints = opti_setpoints.drop(columns='loss')
         
+        opti_norm = (opti_setpoints-opti_setpoints.mean())/opti_setpoints.std()
         
+        # Aggregate similar solutions
         
+        solutions = pd.DataFrame(columns=list(opti_setpoints.columns) + ['weight'],
+                                 index = range(self.num_sol))
         
+        for i in range(0,self.num_sol):
+            
+            j = opti_norm.index[0]
+            
+            diff = opti_norm.loc[j::]-opti_norm.loc[j]
+            diff = diff.apply(np.linalg.norm,axis=1)
+            
+            idx = diff[diff<0.25].index
+            
+            sol = opti_setpoints.loc[idx].mean()
+            
+            solutions.loc[i] = sol
+            solutions.loc[i]['weight'] = float(len(idx))
+            
+            opti_norm = opti_norm.drop(index=idx)
+            
+            if opti_norm.empty:
+                break
+        
+        # Drop empty rows
+        idx_nan = solutions.isna().any(axis=1)
+        solutions.loc[idx_nan]=0.0
+        
+        # Assign new data to plot
+        plot_data = [self.plot_data_1,self.plot_data_2,self.plot_data_3]
+        
+        for p in range(3):
+            
+            col = solutions.columns[p]
+        
+            d = plot_data[p]
+            ma = d.get_offsets()
+            
+            ma.data[:,1] = solutions[col].values
+            
+            d.set_offsets(ma)
+            d.set_sizes(list(solutions['weight'].values*self.base_marker_size))
+        
+            self.ax[p].set_ylim([min(ma.data[0:j+1,1])*0.99,
+                                 max(ma.data[0:j+1:,1])*1.01])
+            
+            self.ax[p].set_title(col)
+            
+        self.fig.tight_layout()
+        self.fig.canvas.draw()  
         
         
         
@@ -264,56 +343,56 @@ def config_data_manager(source_hdf5,target_hdf5,setpoints):
                'f9002_Value': 'Zyklus',
                'T_wkz_soll': 'T_wkz_soll'}
     
-    scalar_dtype = {'T_zyl1_ist':'float16',
-                    'T_zyl2_ist':'float16',
-                    'T_zyl3_ist':'float16',
-                    'T_zyl4_ist':'float16',
-                    'T_zyl5_ist':'float16',
-                    'T_zyl1_soll':'float16',
-                    'T_zyl2_soll':'float16',
-                    'T_zyl3_soll':'float16',
-                    'T_zyl4_soll':'float16',
-                    'T_zyl5_soll':'float16',
-                    'V_um_soll':'float16',
-                    'V_um_ist':'float16',
-                    'V_dos_ist':'float16',
-                    'V_dos_soll':'float16',
-                    'v_inj_soll':'float16',
-                    'p_pack1_soll':'float16',
-                    'p_pack2_soll':'float16',
-                    'p_pack3_soll':'float16',
-                    't_pack1_soll':'float16',
-                    't_pack2_soll':'float16',
-                    't_pack3_soll':'float16',
-                    'p_stau_soll':'float16',
-                    'p_um_ist':'float16',
-                    'p_max_ist':'float16',
+    scalar_dtype = {'T_zyl1_ist':'float32',
+                    'T_zyl2_ist':'float32',
+                    'T_zyl3_ist':'float32',
+                    'T_zyl4_ist':'float32',
+                    'T_zyl5_ist':'float32',
+                    'T_zyl1_soll':'float32',
+                    'T_zyl2_soll':'float32',
+                    'T_zyl3_soll':'float32',
+                    'T_zyl4_soll':'float32',
+                    'T_zyl5_soll':'float32',
+                    'V_um_soll':'float32',
+                    'V_um_ist':'float32',
+                    'V_dos_ist':'float32',
+                    'V_dos_soll':'float32',
+                    'v_inj_soll':'float32',
+                    'p_pack1_soll':'float32',
+                    'p_pack2_soll':'float32',
+                    'p_pack3_soll':'float32',
+                    't_pack1_soll':'float32',
+                    't_pack2_soll':'float32',
+                    't_pack3_soll':'float32',
+                    'p_stau_soll':'float32',
+                    'p_um_ist':'float32',
+                    'p_max_ist':'float32',
                     'Uhrzeit': 'datetime64[ns]',
-                    't_zyklus_ist':'float16',
-                    't_dos_ist':'float16',
-                    't_inj_ist':'float16',
-                    't_cool_soll':'float16',
+                    't_zyklus_ist':'float32',
+                    't_dos_ist':'float32',
+                    't_inj_ist':'float32',
+                    't_cool_soll':'float32',
                     'Zyklus':'int16',
-                    'T_wkz_soll':'float16'}
+                    'T_wkz_soll':'float32'}
     
     features = ['T_wkz_0']
-    features_dtype = {'T_wkz_0':'float16'}
+    features_dtype = {'T_wkz_0':'float32'}
     
     quals = ['Messzeit', 'Losnummer', 'laufenden Zähler', 'OK/N.i.O.', 'Nummer',
            'Durchmesser_innen', 'Durchmesser_außen', 'Stegbreite_Gelenk',
            'Breite_Lasche', 'Rundheit_außen', 'Gewicht', 'ProjError']
     
     quals_dtype = {'Messzeit':'datetime64',
-                   'Losnummer':'float16',
+                   'Losnummer':'float32',
                    'laufenden Zähler':'int16',
                    'OK/N.i.O.':'bool',
                    'Nummer':'int16',
-                   'Durchmesser_innen':'float16',
-                   'Durchmesser_außen':'float16',
-                   'Stegbreite_Gelenk':'float16',
-                   'Breite_Lasche':'float16',
-                   'Rundheit_außen':'float16',
-                   'Gewicht':'float16',
+                   'Durchmesser_innen':'float32',
+                   'Durchmesser_außen':'float32',
+                   'Stegbreite_Gelenk':'float32',
+                   'Breite_Lasche':'float32',
+                   'Rundheit_außen':'float32',
+                   'Gewicht':'float32',
                    'ProjError':'bool'}
     
     # Process/machine parameters that can be influenced by the operator
