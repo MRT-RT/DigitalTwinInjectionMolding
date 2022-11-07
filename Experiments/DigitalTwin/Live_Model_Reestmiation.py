@@ -51,21 +51,21 @@ dm.get_cycle_data()
 if __name__ == '__main__':
     
     freeze_support()  
-    inits = 20
+    inits = 40
     
-    l = 2
-    h=10
+    l = 1
+    h = 5
     
     target = ['Gewicht']
     
-    name = 'Di_MLP_l'+str(l)+'_h'+str(h)
+    name = 'm_MLP_l'+str(l)+'_h'+str(h)
     
     go = True
     
     while go:
         
         modelling_data = pd.read_hdf(dm.target_hdf5, 'modelling_data')
-        
+        modelling_data = modelling_data.drop(index=68039)
     
         MLP = Static_Multi_MLP(dim_u=4,dim_out=1,dim_hidden=h,layers = l,
                                u_label=setpoints,

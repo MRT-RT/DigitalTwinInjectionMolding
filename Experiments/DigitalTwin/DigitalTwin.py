@@ -29,31 +29,18 @@ from DIM.models.models import Static_MLP
 from DIM.optim.param_optim import ParamOptimizer
 from DIM.arburg470 import dt_functions as dtf
 
-# matplotlib.use("Qt4agg")
 
-# %% Lese Trainingsdaten von Versuchsplan ein
-# Nur für Offline-Demobetrieb
+# %% User specified parameters
+source_live_h5 = Path('C:/Users/rehmer/Desktop/DIM/DIM_20221102.h5')
+model_path = Path('C:/Users/rehmer/Desktop/DIM/models_Twkz/')
 
-source_h5 = Path('C:/Users/alexa/Desktop/DIM/DIM_20221101.h5')
-target_h5 = Path('C:/Users/alexa/Desktop/DIM/dm_data.h5')
-source_live_h5 = Path('C:/Users/alexa/Desktop/DIM/DIM_20221102.h5')
-model_path = Path('C:/Users/alexa/Desktop/DIM/live_models.pkl')
-
-# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
-# source_live_h5 = Path('I:/Klute/DIM_Twin/DIM_20221102.h5')
-# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/dm_data.h5')
-# model_path = Path('C:/Users/rehmer/Desktop/DIM_Data/models/live_models.pkl')
-
-setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']                           # T_wkz_soll fehlt
-
-# Load DataManager specifically for this machine
-dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
-# dm.get_cycle_data()
+# %%  Load DataManager specifically for this machine
+dm = pkl.load(open('dm.pkl','rb'))
 
 
 # %% Ändere Quelldatei für Live-Betrie
 dm.source_hdf5 = source_live_h5
-# %% 
+# %% Load model bank
 
 mb = dtf.model_bank(model_path=model_path)
 
@@ -96,26 +83,20 @@ if __name__ == '__main__':
     # master.focus_force()
     
     while True:
-
+        # Save an updated version of the data manager object
+        pkl.load(open('dm_updated.pkl','rb'))
         
         # Check for new data
         new_data = dm.get_cycle_data(20.0)
         
-        # time.sleep(1)
-        # Q_read = [None]
-        # Read in new slider value
-        # t = Thread(target=read_slider,args=(master,slider,Q_read) )
-        # t.start()
-        
         
         # Read target quality value from slider
-        # master.lift()
-        # time.sleep(2.0)
+        master.lift()
         master.update_idletasks()
         master.update()
         print(slider_val.get())
         new_val = slider.get()
-        # print(new_val)
+
         
         new_val = 8.15
 

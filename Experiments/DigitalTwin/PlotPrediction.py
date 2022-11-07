@@ -27,7 +27,7 @@ res = pkl.load(open('C:/Users/rehmer/Desktop/DIM_Data/Di_MLP_l2_h10/overview.pkl
 models = pkl.load(open('C:/Users/rehmer/Desktop/DIM_Data/Da_MLP_l2_h10/models.pkl','rb'))
 model = models[6]['val']  
 
-target = 'Durchmesser_innen'       
+target = 'Durchmesser_außen'       
 
 # %%
 

@@ -67,7 +67,7 @@ class ParamOptimizer():
                 results.append(res)
                    
             results = pd.DataFrame(data = results, columns = ['params_train',
-                                'params_val','loss_train','loss_val'])
+                                'params_val','loss_train','loss_val','bfr_val'])
         else:
 
             data_train = [copy.deepcopy(self.data_train) for i in range(0,self.initializations)]
@@ -96,7 +96,7 @@ class ParamOptimizer():
                                                           p_opts, s_opts, mode,
                                                           constraints))        
             results = pd.DataFrame(data = results, columns = ['params_train',
-                                'params_val','loss_train','loss_val'])
+                                'params_val','loss_train','loss_val','bfr_val'])
             
             pool.close() 
             pool.join()
@@ -155,16 +155,16 @@ class ParamOptimizer():
         
                 
         if mode == 'parallel':
-            loss_train,_ = model.parallel_mode(data_train,opti_vars)
-            loss_val,_ = model.parallel_mode(data_val,opti_vars)
-            
+            f_eval =  model.parallel_mode
         elif mode == 'static':
-            loss_train,_ = model.static_mode(data_train,opti_vars)  
-            loss_val,_ = model.static_mode(data_val,opti_vars)
-                    
-        elif mode == 'series':      
-            loss_train,_ = model.series_parallel_mode(data_train,opti_vars)
-            loss_val,_ = model.series_parallel_mode(data_val,opti_vars)
+            f_eval =  model.static_mode
+        elif mode == 'series':
+            f_eval =  model.series_parallel_mode
+           
+        loss_train,_ = f_eval(data_train,opti_vars)
+        loss_val,_ = f_eval(data_val,opti_vars)
+            
+        
         
         loss_val = cs.Function('loss_val',[*list(opti_vars.values())],
                              [loss_val],list(opti_vars.keys()),['F'])
@@ -215,8 +215,16 @@ class ParamOptimizer():
         params_val = val_results.params_val
         F_val = val_results.F_val
         
-                
-        return params,params_val,float(F_train),float(F_val)        
+        
+        # Assign parameters to model and evaluate
+        model.Parameters = params
+        
+        _,y_est = f_eval(data_val)
+        
+        bfr = BestFitRate(data_val[model.y_label],y_est[model.y_label])
+        print(bfr)
+        
+        return params,params_val,float(F_train),float(F_val),float(bfr)     
         
     def __create_opti_vars(self,opti,OptiParameters):
         '''
