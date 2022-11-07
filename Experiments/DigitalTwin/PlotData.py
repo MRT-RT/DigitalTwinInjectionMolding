@@ -28,16 +28,16 @@ import seaborn as sns
 from DIM.arburg470 import dt_functions as dtf
 
 # %% Choose what to plot
-q_label = 'Durchmesser_außen'
+q_label = 'Gewicht'
 
 # %% Load new data and plot
-source_h5 = Path('C:/Users/alexa/Desktop/DIM/DIM_20221101.h5')
-target_h5 = Path('C:/Users/alexa/Desktop/DIM/dm_data.h5')
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM/dm_Twkz.h5')
 
-setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']   
+setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll','T_wkz_soll']   
 
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
-dm.get_cycle_data()
+# dm.get_cycle_data()
 
 data_new = pd.read_hdf(dm.target_hdf5,'modelling_data')
 
