@@ -31,8 +31,9 @@ from DIM.arburg470 import dt_functions as dtf
 
 
 # %% User specified parameters
-source_live_h5 = Path('C:/Users/rehmer/Desktop/DIM/DIM_20221102.h5')
-model_path = Path('C:/Users/rehmer/Desktop/DIM/models_Twkz/')
+rec_path = Path('C:/Users/rehmer/Desktop/DIM/setpoint_recording.pkl')
+# source_live_h5 = Path('C:/Users/rehmer/Desktop/DIM/DIM_20221102.h5')
+model_path = Path('C:/Users/rehmer/Desktop/DIM/models_Twkz/live_models.pkl')
 
 # %%  Load DataManager specifically for this machine
 dm = pkl.load(open('dm.pkl','rb'))
@@ -46,7 +47,7 @@ y_label = mb.models[0].y_label[0]
 
 
 # %% Initialize DataFrame for recording applied setpoints
-rec = pd.DataFrame(data=None,columns=[])
+rec = pd.DataFrame(data=None,columns=dm.setpoints+[y_label])
 
 
 # %% Fonts for plots
@@ -99,12 +100,17 @@ if __name__ == '__main__':
         print(slider_val.get())
         new_val = slider.get()
 
-        
-        new_val = 8.15
-
-        new_data = True    
-
         if new_data:
+            
+            # Save applied setpoints and target quality value
+            modelling_data = pd.read_hdf(dm.target_hdf5,'modelling_data')
+            idx_new = max(modelling_data.index)
+            stp = modelling_data.loc[[idx_new],dm.setpoints]
+            stp[y_label] = new_val
+            
+            rec = pd.concat([rec,stp])
+            pkl.dump(rec,open(rec_path,'wb'))
+            
             
             # Reload models
             mb.load_models()
