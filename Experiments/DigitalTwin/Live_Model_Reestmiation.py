@@ -36,19 +36,16 @@ from DIM.arburg470 import dt_functions as dtf
 # %% Lese Trainingsdaten von Versuchsplan ein
 # Nur für Offline-Demobetrieb
 
-source_h5 = Path('C:/Users/alexa/Desktop/DIM/DIM_20221101.h5')
-target_h5 = Path('C:/Users/alexa/Desktop/DIM/dm_data.h5')
-model_path = Path('C:/Users/alexa/Desktop/DIM/models/')
 
-# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
-# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/dm_data.h5')
-# model_path = Path('C:/Users/rehmer/Desktop/DIM_Data/models/')
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM/dm_Twkz.h5')
+model_path = Path('C:/Users/rehmer/Desktop/DIM/models_Twkz/')
 
-setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']     
+setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll','T_wkz_soll']     
 
 # Load DataManager specifically for this machine
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
-# dm.get_cycle_data()
+dm.get_cycle_data()
 
 
 if __name__ == '__main__':
@@ -70,7 +67,7 @@ if __name__ == '__main__':
         modelling_data = pd.read_hdf(dm.target_hdf5, 'modelling_data')
         
     
-        MLP = Static_Multi_MLP(dim_u=3,dim_out=1,dim_hidden=h,layers = l,
+        MLP = Static_Multi_MLP(dim_u=4,dim_out=1,dim_hidden=h,layers = l,
                                u_label=setpoints,
                                y_label=target,name=name)
         
