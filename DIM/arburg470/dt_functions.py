@@ -341,7 +341,7 @@ def config_data_manager(source_hdf5,target_hdf5,setpoints):
               't400_Value':'t_cool_soll',
                # 'f071_Value': 'Zyklus',
                'f9002_Value': 'Zyklus',
-               'T_wkz_soll': 'T_wkz_soll'}
+               'T822_Value': 'T_wkz_soll'}
     
     scalar_dtype = {'T_zyl1_ist':'float32',
                     'T_zyl2_ist':'float32',
