@@ -92,7 +92,7 @@ y_est = []
 x_est = [S[:,0]]
 
 for k in range(U.shape[0]):
-    pred = f_model(u=U[k],x=x_est[-1],A=A_opt,B=B_opt,C=C_opt)
+    pred = f_model(u=U[k],x=S[-1],A=A_opt,B=B_opt,C=C_opt)
     
     x_est.append(pred['x_new'])
     

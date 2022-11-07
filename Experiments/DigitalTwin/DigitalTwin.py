@@ -41,13 +41,15 @@ dm = pkl.load(open('dm.pkl','rb'))
 # %% Ändere Quelldatei für Live-Betrie
 dm.source_hdf5 = source_live_h5
 # %% Load model bank
-
 mb = dtf.model_bank(model_path=model_path)
-
 y_label = mb.models[0].y_label[0]
 
-# %% Fonts for plots
 
+# %% Initialize DataFrame for recording applied setpoints
+rec = pd.DataFrame(data=None,columns=[])
+
+
+# %% Fonts for plots
 font = {'weight' : 'normal',
         'size'   : 12}
 
