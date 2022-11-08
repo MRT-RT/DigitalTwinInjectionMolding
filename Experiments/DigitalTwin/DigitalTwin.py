@@ -32,14 +32,18 @@ from DIM.arburg470 import dt_functions as dtf
 
 # %% User specified parameters
 rec_path = Path('C:/Users/rehmer/Desktop/DIM/setpoint_recording.pkl')
-# source_live_h5 = Path('C:/Users/rehmer/Desktop/DIM/DIM_20221102.h5')
+dm_path = Path('C:/Users/rehmer/Desktop/DIM/dm_updated.pkl')
+source_live_h5 = Path('I:/Klute/DIM_Twin/DIM_20221108.h5')
 model_path = Path('C:/Users/rehmer/Desktop/DIM/models_Twkz/live_models.pkl')
 
 # %%  Load DataManager specifically for this machine
-dm = pkl.load(open('dm.pkl','rb'))
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM/dm_Twkz.h5')
+setpoints = ['v_inj_soll','V_um_soll','T_wkz_soll']
+dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
+dm.get_cycle_data()
 
-
-# %% Ändere Quelldatei für Live-Betrie
+# %% Ändere Quelldatei für Live-Betrieb
 dm.source_hdf5 = source_live_h5
 # %% Load model bank
 mb = dtf.model_bank(model_path=model_path)
@@ -61,7 +65,7 @@ matplotlib.rc('font', **font)
     
 if __name__ == '__main__':
     
-    # dm.get_cycle_data()
+    dm.get_cycle_data()
     
     freeze_support()
 
@@ -87,7 +91,7 @@ if __name__ == '__main__':
     
     while True:
         # Save an updated version of the data manager object
-        pkl.load(open('dm_updated.pkl','rb'))
+        pkl.dump(dm,open(dm_path,'wb'))
         
         # Check for new data
         new_data = dm.get_cycle_data(20.0)
@@ -129,7 +133,9 @@ if __name__ == '__main__':
             
             # Plot 
             # SQPlot.update(opti_setpoints.loc[0,'loss'])
-            OSPlot.update(opti_setpoints[dm.setpoints+['loss']])
+            if opti_setpoints is not None:
+                OSPlot.update(opti_setpoints[dm.setpoints+['loss']])
+                
             plt.pause(0.01)
             # master.lift()
         else:

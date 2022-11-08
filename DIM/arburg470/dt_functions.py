@@ -234,13 +234,17 @@ class OptimSetpointsPlot():
         lim = 0.01
         
         # find bad solutions
-        n_bad = sum(opti_setpoints['loss']>lim)
-        if n_bad:
-            print('Ignored ' + str(n_bad) + ' solutions that exceeded loss of 0.01.')
-            
-        # Keep only good solutions
-        opti_setpoints = opti_setpoints.loc[opti_setpoints['loss']<=lim]
+        # n_bad = sum(opti_setpoints['loss']>lim)
+        # if n_bad:
+        #     print('Ignored ' + str(n_bad) + ' solutions that exceeded loss of 0.01.')
+        print('Lösungsgüte: ' + str(opti_setpoints['loss'].min()))    
+        # # Keep only good solutions
+        # opti_setpoints = opti_setpoints.loc[opti_setpoints['loss']<=lim]
         opti_setpoints = opti_setpoints.drop(columns='loss')
+        
+        if opti_setpoints.empty:
+            return None
+        
         
         opti_norm = (opti_setpoints-opti_setpoints.mean())/opti_setpoints.std()
         
@@ -250,9 +254,8 @@ class OptimSetpointsPlot():
                                  index = range(self.num_sol))
         
         for i in range(0,self.num_sol):
-            
             j = opti_norm.index[0]
-            
+
             diff = opti_norm.loc[j::]-opti_norm.loc[j]
             diff = diff.apply(np.linalg.norm,axis=1)
             
