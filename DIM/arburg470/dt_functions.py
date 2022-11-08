@@ -220,10 +220,22 @@ class OptimSetpointsPlot():
         
         self.fig.suptitle('Optimale Maschinenparameter')
         
-        self.plot_data_1 = self.ax[0].scatter([0]*num_sol,[0]*num_sol,marker='o')
-        self.plot_data_2 = self.ax[1].scatter([0]*num_sol,[0]*num_sol,marker='o')
-        self.plot_data_3 = self.ax[2].scatter([0]*num_sol,[0]*num_sol,marker='o')
+        # self.plot_data_1 = [self.ax[0].scatter([0],[0],marker='o') for i in range(num_sol)]
+        # self.plot_data_2 = self.ax[1].scatter([0]*num_sol,[0]*num_sol,marker='o')
+        # self.plot_data_3 = self.ax[2].scatter([0]*num_sol,[0]*num_sol,marker='o')
         
+        self.plot_data_1 = [self.ax[0].scatter([0],[0],marker='o') for i in range(num_sol)]
+        self.plot_data_2 = [self.ax[1].scatter([0],[0],marker='o') for i in range(num_sol)]
+        self.plot_data_3 = [self.ax[2].scatter([0],[0],marker='o') for i in range(num_sol)]
+        
+        
+        # get_offsets() returns masked array the first time and an array after
+        # that. So get and set here one time.
+        for plot_data in [self.plot_data_1,self.plot_data_2,self.plot_data_3]:
+            for sol in range(num_sol):
+                d = plot_data[sol]
+                ma = d.get_offsets()
+                d.set_offsets(ma)
         
         self.fig.tight_layout()
         self.fig.canvas.draw()
@@ -234,12 +246,14 @@ class OptimSetpointsPlot():
         lim = 0.01
         
         # find bad solutions
-        # n_bad = sum(opti_setpoints['loss']>lim)
-        # if n_bad:
-        #     print('Ignored ' + str(n_bad) + ' solutions that exceeded loss of 0.01.')
-        print('Lösungsgüte: ' + str(opti_setpoints['loss'].min()))    
+        n_bad = sum(opti_setpoints['loss']>lim)
+        if n_bad:
+            print('Ignored ' + str(n_bad) + ' solutions that exceeded loss of 0.01.')
+            
+        # print('Lösungsgüte: ' + str(opti_setpoints['loss'].min()))    
+        
         # # Keep only good solutions
-        # opti_setpoints = opti_setpoints.loc[opti_setpoints['loss']<=lim]
+        opti_setpoints = opti_setpoints.loc[opti_setpoints['loss']<=lim]
         opti_setpoints = opti_setpoints.drop(columns='loss')
         
         if opti_setpoints.empty:
@@ -279,19 +293,16 @@ class OptimSetpointsPlot():
         plot_data = [self.plot_data_1,self.plot_data_2,self.plot_data_3]
         
         for p in range(3):
-            
             col = solutions.columns[p]
+            for sol in range(i+1):
+                d = plot_data[p][sol]
+                ma = d.get_offsets()
+                ma[:,1] = solutions.loc[sol,col]
+                d.set_offsets(ma)
+                d.set_sizes([solutions.loc[sol,'weight']*self.base_marker_size])
         
-            d = plot_data[p]
-            ma = d.get_offsets()
-            
-            ma.data[:,1] = solutions[col].values
-            
-            d.set_offsets(ma)
-            d.set_sizes(list(solutions['weight'].values*self.base_marker_size))
-        
-            self.ax[p].set_ylim([min(ma.data[0:j+1,1])*0.99,
-                                 max(ma.data[0:j+1:,1])*1.01])
+            self.ax[p].set_ylim([solutions.loc[0:i+1,col].min()*0.99,
+                                 solutions.loc[0:i+1,col].max()*1.01])
             
             self.ax[p].set_title(col)
             
@@ -547,7 +558,7 @@ def optimize_parallel(model,Q_target,fix_inputs,init_values,constraints):
     return U_sol_norm
     
 
-def optimize_setpoints(data_manager,model_bank,Q_target,num_sol):
+def optimize_setpoints(data_manager,model_bank,Q_target):
 
     dm = data_manager
     mb = model_bank
@@ -616,9 +627,9 @@ def optimize_setpoints(data_manager,model_bank,Q_target,num_sol):
     
     # Enumerate solutions for plotting purposes
     results = results.sort_values(ascending=True,by='loss')
-    # results['Sol_Num'] = range(len(results))
+    results.index = range(len(results))
     
-    return results.iloc[0:num_sol]   
+    return results   
 
 def plot_meas_pred(figax1,figax2,data_manager,model_bank):
     

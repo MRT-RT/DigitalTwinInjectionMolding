@@ -33,15 +33,16 @@ from DIM.arburg470 import dt_functions as dtf
 
 # matplotlib.use("Qt4agg")
 
-# %% Lese Trainingsdaten von Versuchsplan ein
-# Nur für Offline-Demobetrieb
+# %% Lese Trainingsdaten von Versuchsplan ei
+# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
+# target_h5 = Path('C:/Users/rehmer/Desktop/DIM/dm_Twkz.h5')
+# model_path = Path('C:/Users/rehmer/Desktop/DIM/models_Twkz/')
 
+source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
+target_h5 = Path('/home/alexander/Desktop/DIM/dm_Twkz.h5')
+model_path = Path('/home/alexander/Desktop/DIM/models_Twkz/')
 
-source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
-target_h5 = Path('C:/Users/rehmer/Desktop/DIM/dm_Twkz.h5')
-model_path = Path('C:/Users/rehmer/Desktop/DIM/models_Twkz/')
-
-setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll','T_wkz_soll']  
+setpoints = ['v_inj_soll','V_um_soll','T_wkz_soll']  
 
 # Load DataManager specifically for this machine
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
@@ -66,12 +67,16 @@ if __name__ == '__main__':
     while go:
         
         modelling_data = pd.read_hdf(dm.target_hdf5, 'modelling_data')
-        modelling_data = modelling_data.drop(index=68039)
-    
-        MLP = Static_Multi_MLP(dim_u=5,dim_out=1,dim_hidden=h,layers = l,
+        
+         
+        MLP = Static_Multi_MLP(dim_u=4,dim_out=1,dim_hidden=h,layers = l,
                                u_label=setpoints+['T_wkz_0'],
                                y_label=target,name=name)
         
+        # Drop NaN
+        modelling_data = modelling_data[MLP.u_label+MLP.y_label].dropna()
+        
+        # Normalize data
         data_norm = MLP.MinMaxScale(modelling_data)
         
         opt = ParamOptimizer(MLP,data_norm,data_norm,mode='static',
@@ -95,7 +100,7 @@ if __name__ == '__main__':
         
         # time.sleep(10)
         
-        # go = False
+        go = False
         
         
         

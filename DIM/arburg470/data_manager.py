@@ -160,6 +160,8 @@ class Data_Manager():
         new_source_cycles = set(source_cycles)-read_cycles
         new_source_cycles = list(new_source_cycles - set(self.failed_cycles))
         
+        new_source_cycles.sort()
+        
         if new_source_cycles:
             
             time.sleep(delay)
@@ -169,7 +171,7 @@ class Data_Manager():
             features = []
             quals = []
             
-            for cycle in new_source_cycles:
+            for cycle in new_source_cycles[0:1]:
                 
                 print(cycle)
                 

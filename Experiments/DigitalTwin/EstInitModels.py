@@ -26,10 +26,12 @@ from DIM.models.models import Static_Multi_MLP
 from DIM.optim.param_optim import ParamOptimizer
 
 # Load DataManager specifically for this machine
-source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
-target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/01_11_test.h5')
-# source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221101.h5')
-# target_h5 = Path('/home/alexander/Desktop/DIM/01_11_test.h5')
+# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221101.h5')
+# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_Data/01_11_test.h5')
+
+source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
+target_h5 = Path('/home/alexander/Desktop/DIM/dm_Twkz.h5')
+
 
 
 setpoints = ['v_inj_soll','V_um_soll','T_zyl5_soll']   
