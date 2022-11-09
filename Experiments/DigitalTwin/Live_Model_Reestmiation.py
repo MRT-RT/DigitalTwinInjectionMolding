@@ -34,13 +34,13 @@ from DIM.arburg470 import dt_functions as dtf
 # matplotlib.use("Qt4agg")
 
 # %% Lese Trainingsdaten von Versuchsplan ei
-# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
-# target_h5 = Path('C:/Users/rehmer/Desktop/DIM/dm_Twkz.h5')
-# model_path = Path('C:/Users/rehmer/Desktop/DIM/models_Twkz/')
+source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
+target_h5 = Path('C:/Users/rehmer/Desktop/DIM_09_11/dm_Twkz.h5')
+model_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/models_Twkz/')
 
-source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
-target_h5 = Path('/home/alexander/Desktop/DIM/dm_Twkz.h5')
-model_path = Path('/home/alexander/Desktop/DIM/models_Twkz/')
+# source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
+# target_h5 = Path('/home/alexander/Desktop/DIM/dm_Twkz.h5')
+# model_path = Path('/home/alexander/Desktop/DIM/models_Twkz/')
 
 setpoints = ['v_inj_soll','V_um_soll','T_wkz_soll']  
 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     inits = 40
     
     l = 1
-    h = 5
+    h = 10
     
     target = ['Gewicht']
     
@@ -100,7 +100,7 @@ if __name__ == '__main__':
         
         # time.sleep(10)
         
-        go = False
+        # go = False
         
         
         

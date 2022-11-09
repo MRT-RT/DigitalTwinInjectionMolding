@@ -243,7 +243,7 @@ class OptimSetpointsPlot():
     def update(self,opti_setpoints):
         
         # loss limit 
-        lim = 0.01
+        lim = 0.001
         
         # find bad solutions
         n_bad = sum(opti_setpoints['loss']>lim)
