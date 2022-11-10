@@ -31,27 +31,27 @@ from DIM.arburg470 import dt_functions as dtf
 
 
 # %% User specified parameters
-rec_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/setpoint_recording.pkl')
-dm_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/dm_updated.pkl')
-source_live_h5 = Path('I:/Klute/DIM_Twin/DIM_20221109.h5')
-model_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/models_Twkz/live_models.pkl')
+# rec_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/setpoint_recording.pkl')
+# dm_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/dm_updated.pkl')
+# source_live_h5 = Path('I:/Klute/DIM_Twin/DIM_20221109.h5')
+# model_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/models_Twkz/live_models.pkl')
 
-# rec_path = Path('/home/alexander/Desktop/DIM/setpoint_recording.pkl')
-# dm_path = Path('/home/alexander/Desktop/DIM/dm_updated.pkl')
-# source_live_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221108.h5')
-# model_path = Path('/home/alexander/Desktop/DIM/models_Twkz/live_models.pkl')
+rec_path = Path('/home/alexander/Desktop/DIM/setpoint_recording.pkl')
+dm_path = Path('/home/alexander/Desktop/DIM/dm_updated.pkl')
+source_live_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221108.h5')
+model_path = Path('/home/alexander/Desktop/DIM/models_Twkz/live_models.pkl')
 
 
 # %%  Load DataManager specifically for this machine
-source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
-target_h5 = Path('C:/Users/rehmer/Desktop/DIM_09_11/dm_Twkz.h5')
+# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
+# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_09_11/dm_Twkz.h5')
 
-# source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
-# target_h5 = Path('/home/alexander/Desktop/DIM/dm_Twkz.h5')
+source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
+target_h5 = Path('/home/alexander/Desktop/DIM/dm_Twkz.h5')
 
 setpoints = ['v_inj_soll','V_um_soll','T_wkz_soll']
 dm = dtf.config_data_manager(source_h5,target_h5,setpoints)
-# dm.get_cycle_data()
+dm.get_cycle_data()
 
 # %% Ändere Quelldatei für Live-Betrieb
 dm.source_hdf5 = source_live_h5
@@ -101,16 +101,19 @@ if __name__ == '__main__':
         pkl.dump(dm,open(dm_path,'wb'))
         
         # Check for new data
-        new_data = dm.get_cycle_data(20.0)
+        new_data = dm.get_cycle_data(delay=0.0,num_cyc=1)
         
         
         # Read target quality value from slider
         master.lift()
         master.update_idletasks()
         master.update()
-        print(slider_val.get())
-        new_val = slider.get()
-        # new_val = 8.15
+        # print(slider_val.get())
+        # new_val = slider.get()
+        
+        new_val = 8.15
+        new_data = True
+        
         if new_data:
             
             # Save applied setpoints and target quality value
@@ -131,6 +134,7 @@ if __name__ == '__main__':
 
             MQPlot.update(mb.stp_bfr[mb.idx_best])
             PPlot.update(dm,mb)
+            master.lift()
             plt.pause(0.01)
                         
             Q_target =  pd.DataFrame.from_dict({y_label: [new_val]})
@@ -141,7 +145,7 @@ if __name__ == '__main__':
             # Plot 
             # SQPlot.update(opti_setpoints.loc[0,'loss'])
             if opti_setpoints is not None:
-                OSPlot.update(opti_setpoints[dm.setpoints+['loss']])
+                OSPlot.update(opti_setpoints[dm.setpoints+['loss']],stp)
                 
             plt.pause(0.01)
             master.lift()

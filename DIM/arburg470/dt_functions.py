@@ -224,10 +224,15 @@ class OptimSetpointsPlot():
         # self.plot_data_2 = self.ax[1].scatter([0]*num_sol,[0]*num_sol,marker='o')
         # self.plot_data_3 = self.ax[2].scatter([0]*num_sol,[0]*num_sol,marker='o')
         
-        self.plot_data_1 = [self.ax[0].scatter([0],[0],marker='o') for i in range(num_sol)]
-        self.plot_data_2 = [self.ax[1].scatter([0],[0],marker='o') for i in range(num_sol)]
-        self.plot_data_3 = [self.ax[2].scatter([0],[0],marker='o') for i in range(num_sol)]
+        opts = {'marker':'o','alpha':0.9}
         
+        self.plot_data_1 = [self.ax[0].scatter([0],[0],**opts) for i in range(num_sol)]
+        self.plot_data_2 = [self.ax[1].scatter([0],[0],**opts) for i in range(num_sol)]
+        self.plot_data_3 = [self.ax[2].scatter([0],[0],**opts) for i in range(num_sol)]
+        
+        self.hline_1 = self.ax[0].axhline(y = 0, color = 'r', linestyle = '-')
+        self.hline_2 = self.ax[1].axhline(y = 0, color = 'r', linestyle = '-')
+        self.hline_3 = self.ax[2].axhline(y = 0, color = 'r', linestyle = '-')
         
         # get_offsets() returns masked array the first time and an array after
         # that. So get and set here one time.
@@ -240,7 +245,7 @@ class OptimSetpointsPlot():
         self.fig.tight_layout()
         self.fig.canvas.draw()
             
-    def update(self,opti_setpoints):
+    def update(self,opti_setpoints,stp):
         
         # loss limit 
         lim = 0.001
@@ -289,23 +294,42 @@ class OptimSetpointsPlot():
         idx_nan = solutions.isna().any(axis=1)
         solutions.loc[idx_nan]=0.0
         
+        # Sort solutions by proximity to current setpoint
+        stp = stp.drop(columns='Gewicht')                                       # Replace Gewicht by y_label
+        d1 =  solutions.drop(columns='weight').reset_index(drop=True)  
+        d2 = stp.reset_index(drop=True)
+        diff = d1-d2.values
+        diff = diff.apply(np.linalg.norm,axis=1)
+        sort_idx = diff.sort_values().index
+        
         # Assign new data to plot
         plot_data = [self.plot_data_1,self.plot_data_2,self.plot_data_3]
+        line_data = [self.hline_1,self.hline_2,self.hline_3]
         
         for p in range(3):
             col = solutions.columns[p]
-            for sol in range(i+1):
+            
+            l = line_data[p]
+            ld = ([0,1],[float(stp[col].values),float(stp[col].values)])
+            l.set_data(ld)
+            
+            for sol in sort_idx:
                 d = plot_data[p][sol]
                 ma = d.get_offsets()
                 ma[:,1] = solutions.loc[sol,col]
                 d.set_offsets(ma)
                 d.set_sizes([solutions.loc[sol,'weight']*self.base_marker_size])
-        
-            self.ax[p].set_ylim([solutions.loc[0:i+1,col].min()*0.99,
-                                 solutions.loc[0:i+1,col].max()*1.01])
+            
+            
+
+            
+            self.ax[p].set_ylim([solutions.loc[0:i,col].min()*0.98,
+                                 solutions.loc[0:i,col].max()*1.02])
             
             self.ax[p].set_title(col)
+        
             
+        
         self.fig.tight_layout()
         self.fig.canvas.draw()  
         

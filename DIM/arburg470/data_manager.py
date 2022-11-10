@@ -143,7 +143,11 @@ class Data_Manager():
         self._target_hdf5 = target_hdf5
 
         
-    def get_cycle_data(self,delay=0.0):
+    def get_cycle_data(self,**kwargs):
+        
+        
+        delay = kwargs.pop('delay',0.0)
+        num_cyc = kwargs.pop('num_cyc',None)
         
         new_data = False
         
@@ -171,7 +175,7 @@ class Data_Manager():
             features = []
             quals = []
             
-            for cycle in new_source_cycles:
+            for cycle in new_source_cycles[0:num_cyc]:
                 
                 print(cycle)
                 
