@@ -34,13 +34,13 @@ from DIM.arburg470 import dt_functions as dtf
 # matplotlib.use("Qt4agg")
 
 # %% Lese Trainingsdaten von Versuchsplan ei
-source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
-target_h5 = Path('C:/Users/rehmer/Desktop/DIM_09_11/dm_Twkz.h5')
-model_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/models_Twkz/')
+# source_h5 = Path('I:/Klute/DIM_Twin/DIM_20221104.h5')
+# target_h5 = Path('C:/Users/rehmer/Desktop/DIM_09_11/dm_Twkz.h5')
+# model_path = Path('C:/Users/rehmer/Desktop/DIM_09_11/models_Twkz/')
 
-# source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
-# target_h5 = Path('/home/alexander/Desktop/DIM/dm_Twkz.h5')
-# model_path = Path('/home/alexander/Desktop/DIM/models_Twkz/')
+source_h5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
+target_h5 = Path('/home/alexander/Desktop/DIM/dm_Twkz.h5')
+model_path = Path('/home/alexander/Desktop/DIM/models_Twkz/')
 
 setpoints = ['v_inj_soll','V_um_soll','T_wkz_soll']  
 
@@ -68,9 +68,8 @@ if __name__ == '__main__':
         
         modelling_data = pd.read_hdf(dm.target_hdf5, 'modelling_data')
         
-         
-        MLP = Static_Multi_MLP(dim_u=4,dim_out=1,dim_hidden=h,layers = l,
-                               u_label=setpoints+['T_wkz_0'],
+        MLP = Static_Multi_MLP(dim_u=3,dim_out=1,dim_hidden=h,layers = l,
+                               u_label=setpoints,
                                y_label=target,name=name)
         
         # Drop NaN
@@ -83,7 +82,7 @@ if __name__ == '__main__':
                             initializations=inits,
                             res_path=model_path,
                             n_pool=20)
-    
+        
         results = opt.optimize()
 
         
@@ -100,7 +99,11 @@ if __name__ == '__main__':
         
         # time.sleep(10)
         
-        # go = False
+        go = False
         
+        
+# werte modelle auf allen daten aus
+# wenn gut tue nichts
+# wenn schlecht schäze nach
         
         

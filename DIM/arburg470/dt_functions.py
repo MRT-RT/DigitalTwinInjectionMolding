@@ -574,15 +574,17 @@ def reestimate_models(data_manager, model_bank):
 def optimize_parallel(model,Q_target,fix_inputs,init_values,constraints):
     
     setpoint_Optimizer = StaticProcessOptimizer(model=model)
-    U_sol = setpoint_Optimizer.optimize(Q_target,fix_inputs,
-                                input_init=init_values,
-                                constraints=constraints)
+    U_sol = setpoint_Optimizer.optimize(Q_target,
+                                        fix_inputs=fix_inputs,
+                                        input_init=init_values,
+                                        constraints=constraints)
+    
     U_sol_norm = model.MinMaxScale(U_sol,reverse=True)
     
     return U_sol_norm
     
 
-def optimize_setpoints(data_manager,model_bank,Q_target):
+def optimize_setpoints(data_manager,model_bank,Q_target,fix_labels):
 
     dm = data_manager
     mb = model_bank
@@ -598,15 +600,15 @@ def optimize_setpoints(data_manager,model_bank,Q_target):
     data = model.MinMaxScale(data)
     Q_target = model.MinMaxScale(Q_target)
     
-    # Get T_wkz_0 from most recent measurement
-    fix_inputs = data.loc[[data.index[-1]],['T_wkz_0']]
+    # Get fixed input values from most recent measurement
+    fix_inputs = data.loc[[data.index[-1]],fix_labels]
         
     # find unique setpoints and select only model inputs
     stp_data = data.drop_duplicates(subset='Setpoint')
     inputs = stp_data[model.u_label]
     
     # remove model inputs that can't be influenced
-    man_inputs = inputs.drop(columns=['T_wkz_0'])
+    man_inputs = inputs.drop(columns=fix_labels)
     
     # derive constraints and initial values from data used for modelling 
     init_values = [man_inputs.loc[[k]] for k in man_inputs.index]

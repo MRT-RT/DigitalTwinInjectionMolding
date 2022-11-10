@@ -73,7 +73,7 @@ matplotlib.rc('font', **font)
     
 if __name__ == '__main__':
     
-    dm.get_cycle_data()
+    # dm.get_cycle_data()
     
     freeze_support()
 
@@ -140,7 +140,7 @@ if __name__ == '__main__':
             Q_target =  pd.DataFrame.from_dict({y_label: [new_val]})
             
             # calculate optimal setpoints
-            opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target)
+            opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,[])
             
             # Plot 
             # SQPlot.update(opti_setpoints.loc[0,'loss'])

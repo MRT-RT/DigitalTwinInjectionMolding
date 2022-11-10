@@ -103,7 +103,7 @@ class StaticProcessOptimizer(Optimizer):
         
         
         
-    def optimize(self,Q_target,fix_inputs,**kwargs):
+    def optimize(self,Q_target,**kwargs):
         """
         
 
@@ -129,10 +129,17 @@ class StaticProcessOptimizer(Optimizer):
         
         input_init = kwargs.pop('input_init',None)
         constraints = kwargs.pop('constraints',None)
+        fix_inputs = kwargs.pop('fix_inputs',None)
+        
         
         # Recast DataFrames as Dictionaries
         Q_target_dic = Q_target.to_dict(orient='records')[0]
-        fix_inputs_dic = fix_inputs.to_dict(orient='records')[0]
+        fix_inputs_dic = fix_inputs.to_dict(orient='records')
+        
+        if fix_inputs_dic:
+            fix_inputs_dic = fix_inputs_dic[0]
+        else:
+            fix_inputs_dic = {}
         
         # Create Instance of the optimization problem
         opti = cs.Opti()       
