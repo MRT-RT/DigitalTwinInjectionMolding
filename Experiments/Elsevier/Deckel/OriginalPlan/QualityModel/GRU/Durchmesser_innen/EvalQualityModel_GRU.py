@@ -17,10 +17,10 @@ sys.path.insert(0, '/home/alexander/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/rehmer/Documents/GitHub/DigitalTwinInjectionMolding/')
 sys.path.insert(0, 'C:/Users/LocalAdmin/Documents/GitHub/DigitalTwinInjectionMolding/')
 
-from DIM.models.model_structures import GRU
-from DIM.models.injection_molding import QualityModel
+from DIM.models.models import GRU
+from DIM.models.wrapper import QualityModel
 from DIM.optim.common import BestFitRate
-from DIM.optim.param_optim import parallel_mode
+# from DIM.optim.param_optim import parallel_mode
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers, LoadDynamicData
 
 

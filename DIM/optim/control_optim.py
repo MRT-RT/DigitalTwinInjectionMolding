@@ -166,7 +166,9 @@ class StaticProcessOptimizer(Optimizer):
         opti.minimize(self.LossFunc(**inputs)['loss'])
         
         #Choose solver
-        opti.solver('ipopt')
+        opts = {'ipopt.print_level': 0, 'print_time': 0, 'ipopt.sb': 'yes'}
+        opti.solver('ipopt', opts)
+
                 
         # Solve optmization problem
         sol = opti.solve()
@@ -340,7 +342,7 @@ def ProcessMultiStageOptimization(process_model,target):
     
     return values
 
-def QualityMultiStageOptimization(quality_model,target):
+def QualityMultiStageOptimization(quality_model,target,input_init):
     """
     Single-shooting procedure for optimization of process variables given a 
     desired target quality
@@ -386,7 +388,7 @@ def QualityMultiStageOptimization(quality_model,target):
     # ref_params_opti = CreateOptimVariables(opti, ref_params)
     
     # Number of time steps
-    N = np.sum(switching_instances)
+    N = switching_instances[-1]+1
     
     # Create decision variables for states
     U = opti.variable(N,input_dims[0])
@@ -402,12 +404,11 @@ def QualityMultiStageOptimization(quality_model,target):
     # opti.subject_to(X[0]==target[0])
     
     # Generate an index vector pointing to the active subsystem in each time step
-    active_subsystem = np.zeros(N,np.int8)
-
-    for switch in np.cumsum(switching_instances)[:-1]:
-        active_subsystem[switch::] = active_subsystem[switch::]+1
+    si = np.array([0] + switching_instances)
+    si = si[1::]-si[0:-1]
+    active_subsystem = np.hstack([np.ones((si[s]),np.int8)*s 
+                                   for s in range(len(si))])
     
-      
     # System Dynamics as Path Constraints
     for k in range(N-1):
         
@@ -436,17 +437,21 @@ def QualityMultiStageOptimization(quality_model,target):
     for relaxation''' 
     # opti.subject_to(X[-1]==target[-1])
     
-    
-    # Set initial values for process variables U THIS IS MAJOR WORK
-    # for key in ref_params_opti:
-        # opti.set_initial(ref_params_opti[key],ref_params[key])
-
+    col = 0
+    for u in quality_model.u_label:
+        opti.set_initial(U[:,col],input_init[u].values.reshape((-1,1)))
+        col = col + 1
    
     # Define Loss Function    
     opti.minimize(cs.sumsqr(Y[-1]-target))
     
+    # Options
+    s_opts = {"max_iter": 1000, "print_level":1,
+                                       "hessian_approximation":'limited-memory'}
+    p_opts = {"expand":False}
+    
     #Choose solver
-    opti.solver('ipopt')
+    opti.solver('ipopt',p_opts,s_opts)
     
     # Get solution
     sol = opti.solve()
