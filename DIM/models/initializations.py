@@ -32,6 +32,7 @@ import numpy as np
 #     else:
 #         bx = None
 #     return Wx,bx
+
 def RandomInitialization(dimensions,bias=False):
     
     return 0.1*np.random.randn(*dimensions)

@@ -809,7 +809,11 @@ class GRU(Recurrent):
             e.g. dim_c = 2 if cell-state is a 2x1 vector
         dim_hidden : int
             Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
-            if output network is supposed to have 10 neurons in hidden layer.           
+            if output network is supposed to have 10 neurons in hidden layer. 
+        u_label: list of strings
+            Names of inputs
+        y_label: list of strings
+            Names of outputs            
         dim_out : int
             Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
         name : str
@@ -820,18 +824,13 @@ class GRU(Recurrent):
         None.
 
         """        
-        self.dim_u = dim_u
-        self.dim_c = dim_c
+        
+        Recurrent.__init__(self,dim_u,dim_c,dim_out,u_label,y_label,name,
+                           initial_params, frozen_params, init_proc)
+        
+        
         self.dim_hidden = dim_hidden
-        self.dim_out = dim_out
         
-        self.u_label = u_label
-        self.y_label = y_label
-        self.name = name
-        
-        self.initial_params = initial_params
-        self.frozen_params = frozen_params
-        self.init_proc = init_proc
         
         self.dynamics = 'internal'
         
@@ -905,7 +904,214 @@ class GRU(Recurrent):
         self.ParameterInitialization()
 
         return None
+
+
+class Elman_RNN(Recurrent):
+    """
+    Implementation of a Gated Recurrent Unit with a Feedforward Neural Network
+    as output
+    """
+
+    def __init__(self,dim_u,dim_c,dim_hidden,u_label,y_label,dim_out,name,
+                 initial_params={},frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the GRU Architecture
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_c : int
+            Dimension of the cell-state, i.e. the internal state of the GRU,
+            e.g. dim_c = 2 if cell-state is a 2x1 vector
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if output network is supposed to have 10 neurons in hidden layer. 
+        u_label: list of strings
+            Names of inputs
+        y_label: list of strings
+            Names of outputs            
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        name : str
+            Name of the model, e.g. name = 'QualityModel'.
+
+        Returns
+        -------
+        None.
+
+        """        
+        
+        Recurrent.__init__(self,dim_u,dim_c,dim_out,u_label,y_label,name,
+                           initial_params, frozen_params, init_proc)
+        
+        
+        self.dim_hidden = dim_hidden
+        self.dynamics = 'internal'
+        
+        self.Initialize()  
+ 
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """          
+        dim_u = self.dim_u
+        dim_c = self.dim_c
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out
+        name = self.name      
+        
+        u = cs.MX.sym('u',dim_u,1)
+        c = cs.MX.sym('c',dim_c,1)
+ 
+ 
+        # Parameters
+        # RNN part
+        W_c = cs.MX.sym('W_c_'+name,dim_c,dim_c)
+        W_u = cs.MX.sym('W_u_'+name,dim_c,dim_u)
+        b_c = cs.MX.sym('b_c_'+name,dim_c,1)
     
+        # MLP part
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_c)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)    
+        
+        W_y = cs.MX.sym('W_y_'+name,dim_out,dim_hidden)
+        b_y = cs.MX.sym('b_y_'+name,dim_out,1)  
+        
+        
+        # Equations
+        c_new = cs.tanh(cs.mtimes(W_c,c) + cs.mtimes(W_u,u) + b_c)
+        
+        h = cs.tanh(cs.mtimes(W_h,c_new) + b_h)
+        
+        y_new = cs.mtimes(W_y,h)+b_y    
+        
+        # Casadi Function
+        input = [c,u,W_c,W_u,b_c,W_h,b_h,W_y,b_y]
+        
+        input_names = [var.name() for var in input]
+        
+        output = [c_new,y_new]
+        output_names = ['c_new','y_new']
+    
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+
+        return None
+
+class GU(Recurrent):
+    """
+    Implementation of a Gated Recurrent Unit with a Feedforward Neural Network
+    as output
+    """
+
+    def __init__(self,dim_u,dim_c,dim_hidden,u_label,y_label,dim_out,name,
+                 initial_params={},frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the GRU Architecture
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_c : int
+            Dimension of the cell-state, i.e. the internal state of the GRU,
+            e.g. dim_c = 2 if cell-state is a 2x1 vector
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if output network is supposed to have 10 neurons in hidden layer. 
+        u_label: list of strings
+            Names of inputs
+        y_label: list of strings
+            Names of outputs            
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        name : str
+            Name of the model, e.g. name = 'QualityModel'.
+
+        Returns
+        -------
+        None.
+
+        """        
+        
+        Recurrent.__init__(self,dim_u,dim_c,dim_out,u_label,y_label,name,
+                           initial_params, frozen_params, init_proc)
+        
+        
+        self.dim_hidden = dim_hidden
+        self.dynamics = 'internal'
+        
+        self.Initialize()  
+ 
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """          
+        dim_u = self.dim_u
+        dim_c = self.dim_c
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out
+        name = self.name      
+        
+        u = cs.MX.sym('u',dim_u,1)
+        c = cs.MX.sym('c',dim_c,1)
+ 
+ 
+        # Parameters
+        # RNN part
+        W_c = cs.MX.sym('W_c_'+name,dim_c,dim_c)
+        W_u = cs.MX.sym('W_u_'+name,dim_c,dim_u)
+        b_c = cs.MX.sym('b_c_'+name,dim_c,1)
+    
+        # MLP part
+        W_h = cs.MX.sym('W_h_'+name,dim_hidden,dim_c)
+        b_h = cs.MX.sym('b_h_'+name,dim_hidden,1)    
+        
+        W_y = cs.MX.sym('W_y_'+name,dim_out,dim_hidden)
+        b_y = cs.MX.sym('b_y_'+name,dim_out,1)  
+        
+        
+        # Equations
+        c_new = cs.tanh(cs.mtimes(W_c,c) + cs.mtimes(W_u,u) + b_c)
+        
+        h = cs.tanh(cs.mtimes(W_h,c_new) + b_h)
+        
+        y_new = cs.mtimes(W_y,h)+b_y    
+        
+        # Casadi Function
+        input = [c,u,W_c,W_u,b_c,W_h,b_h,W_y,b_y]
+        
+        input_names = [var.name() for var in input]
+        
+        output = [c_new,y_new]
+        output_names = ['c_new','y_new']
+    
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+
+        return None
+
+
+   
 class LSTM(Recurrent):
     """
     Implementation of a LSTM Unit with a Feedforward Neural Network
