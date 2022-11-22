@@ -445,3 +445,36 @@ class Data_Manager():
                 df_mod.to_hdf(self.target_hdf5,'modelling_data')
                    
         return None
+
+    def get_machine_data(self):
+        all_data = pd.read_hdf(self.target_hdf5, 'overview')
+        return all_data
+
+    def get_feature_data(self):
+        feature_data = pd.read_hdf(self.target_hdf5, 'features')
+        return feature_data
+
+    def get_quality_data(self):
+        quality_data = pd.read_hdf(self.target_hdf5, 'quality_meas')
+        return quality_data
+
+    def get_modelling_data(self):
+        modelling_data = pd.read_hdf(self.target_hdf5, 'modelling_data')
+        return modelling_data    
+
+    def get_process_data(self,cycle):
+        
+        if type(cycle) == type(list()):
+            cycle_data = []
+            for c in cycle:
+                cycle_data.append(pd.read_hdf(self.target_hdf5,
+                                              'process_values/cycle_'+str(c)))
+        else:
+            cycle_data = pd.read_hdf(self.target_hdf5,
+                                          'process_values/cycle_'+str(cycle))
+            
+        return cycle_data
+                    
+            
+            
+        
