@@ -150,55 +150,65 @@ class PredictionPlot():
         
         self.fig.tight_layout()
             
-    def update(self,dm,mb):
+    def update(self,dm,q_label,**kwargs):
         
-        y_label = mb.models[0].y_label[0]
+        mb = kwargs.pop('mb',None)
+        
+        # y_label = mb.models[0].y_label[0]
+        m_data =  dm.get_modelling_data()
+        # find current setpoint (look for last measurement added)
+        spt = m_data.loc[max(m_data.index),'Setpoint']
+        
+        # find all cycles of that setpoint
+        cyc_idx = (m_data['Setpoint']==spt)  
         
         # Update measurement data in setpoint plot
         d = self.meas_data_1[0]
         dx,dy = d.get_data()
-        
-        # load setpoint prediction for best model
-        pred_spt = mb.stp_pred[mb.idx_best]
-
-        # find current setpoint (look for last measurement added)
-        spt = pred_spt.loc[max(pred_spt.index),'Setpoint']
-        
-        # find all cycles of that setpoint
-        cyc_idx = (pred_spt['Setpoint']==spt)  
-        
-        dx = pred_spt.loc[cyc_idx]['T_wkz_0'].values
-        dy = pred_spt.loc[cyc_idx][y_label].values       
+            
+        dx = m_data.loc[cyc_idx]['T_wkz_0'].values
+        dy = m_data.loc[cyc_idx][q_label].values       
         d.set_data((dx,dy))
         
         # Update pred data in setpoint plot
-        d = self.pred_data_1[0]
-        dx,dy = d.get_data()
-        
-        
-        dx = pred_spt.loc[cyc_idx]['T_wkz_0'].values
-        dy = pred_spt.loc[cyc_idx][y_label+'_pred'].values       
-        d.set_data((dx,dy))
+        if type(mb) is not type(None):
+            # load setpoint prediction for best model
+            pred_spt = mb.stp_pred[mb.idx_best]
+            
+            d = self.pred_data_1[0]
+            dx,dy = d.get_data()
+            
+            dx = pred_spt.loc[cyc_idx]['T_wkz_0'].values
+            dy = pred_spt.loc[cyc_idx][q_label+'_pred'].values       
+            d.set_data((dx,dy))
 
         self.ax[0].set_xlim([min(dx)*0.99,max(dx)*1.01])
         self.ax[0].set_ylim([min(dy)*0.99,max(dy)*1.01])
+        
 
         # Plot 2: Quality over cycle number (last 20)
-        pred_rec = mb.rec_pred[mb.idx_best]
+        
+        # Update measurement data in history plot
+        m_data_rec = m_data.iloc[-20:]
         
         d = self.meas_data_2[0]
         dx,dy = d.get_data()
         
-        dx = pred_rec.index.values
-        dy = pred_rec[y_label].values     
+        dx = m_data_rec.index.values
+        dy = m_data_rec[q_label].values     
         d.set_data((dx,dy))
         
-        d = self.pred_data_2[0]
-        dx,dy = d.get_data()
-        
-        dx = pred_rec.index.values
-        dy = pred_rec[y_label+'_pred'].values     
-        d.set_data((dx,dy))      
+        # Update pred data in history plot
+        if type(mb) is not type(None):
+            
+            pred_rec = mb.rec_pred[mb.idx_best]
+            
+            d = self.pred_data_2[0]
+            dx,dy = d.get_data()
+            
+            dx = pred_rec.index.values
+            dy = pred_rec[q_label+'_pred'].values     
+            d.set_data((dx,dy))      
     
         self.ax[1].set_xlim([min(dx)-1,max(dx)+1])
         self.ax[1].set_ylim([min(dy)*0.99,max(dy)*1.01])

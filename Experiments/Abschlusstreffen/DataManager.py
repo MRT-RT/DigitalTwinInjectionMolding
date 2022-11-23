@@ -22,8 +22,11 @@ from DIM.arburg470 import dt_functions as dtf
 
 
 # %% Define source file and file to write data to
-source_hdf5 = Path('/home/alexander/Desktop/DIM/data/DIM_20221104.h5')
-target_hdf5 = Path('/home/alexander/Desktop/DIM/dm_DIM_20221104.h5')
+# source_hdf5 = Path('/home/alexander/Desktop/DIM/data/DIM_20221104.h5')
+# target_hdf5 = Path('/home/alexander/Desktop/DIM/dm_DIM_20221104.h5')
+
+source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221104.h5')
+target_hdf5 = Path('C:/Users/alexa/Desktop/DIM/dm_DIM_20221104.h5')
 
 setpoints = ['v_inj_soll','V_um_soll','T_wkz_soll']   
 
