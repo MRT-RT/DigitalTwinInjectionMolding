@@ -52,7 +52,7 @@ class ModelQualityPlot():
     def __init__(self): 
         self.fig,self.ax = plt.subplots(1,1)
         self.mngr = plt.get_current_fig_manager()
-        self.mngr.window.setGeometry(1920//4*2, 530, 1920//4 , 500) 
+        self.mngr.window.setGeometry(1920//4*3, 530, 1920//4 , 500) 
 
         self.memory = 10
 
@@ -212,6 +212,7 @@ class PredictionPlot():
     
         self.ax[1].set_xlim([min(dx)-1,max(dx)+1])
         self.ax[1].set_ylim([min(dy)*0.99,max(dy)*1.01])
+        self.ax[1].set_xticks(list(dx)[0::2])
         
         self.fig.tight_layout()
         self.fig.canvas.draw()
@@ -223,18 +224,16 @@ class OptimSetpointsPlot():
         
         self.fig,self.ax = plt.subplots(1,3)
         self.mngr = plt.get_current_fig_manager()
-        self.mngr.window.setGeometry(0, 530, 1920//2 , 500) 
+        self.mngr.window.setGeometry(0, 530, 1920//4*3 , 500) 
         
         self.num_sol = num_sol
         self.base_marker_size = 30
         
         self.fig.suptitle('Optimale Maschinenparameter')
         
-        # self.plot_data_1 = [self.ax[0].scatter([0],[0],marker='o') for i in range(num_sol)]
-        # self.plot_data_2 = self.ax[1].scatter([0]*num_sol,[0]*num_sol,marker='o')
-        # self.plot_data_3 = self.ax[2].scatter([0]*num_sol,[0]*num_sol,marker='o')
+        [ax.set_xticks([]) for ax in self.ax]
         
-        opts = {'marker':'o','alpha':0.9}
+        opts = {'marker':'o','alpha':0.5}
         
         self.plot_data_1 = [self.ax[0].scatter([0],[0],**opts) for i in range(num_sol)]
         self.plot_data_2 = [self.ax[1].scatter([0],[0],**opts) for i in range(num_sol)]
@@ -255,18 +254,18 @@ class OptimSetpointsPlot():
         self.fig.tight_layout()
         self.fig.canvas.draw()
             
-    def update(self,opti_setpoints,stp):
+    def update(self,opti_setpoints,dm,**kwargs):
         
-        # loss limit 
-        lim = 0.001
+        lim = kwargs.pop('limit',0.001)
+        
+        # Keep only setpoints that can be manipulated and the loss 
+        opti_setpoints = opti_setpoints[dm.setpoints+['loss']]       
         
         # find bad solutions
         n_bad = sum(opti_setpoints['loss']>lim)
         if n_bad:
             print('Ignored ' + str(n_bad) + ' solutions that exceeded loss of 0.01.')
-            
-        # print('Lösungsgüte: ' + str(opti_setpoints['loss'].min()))    
-        
+                    
         # # Keep only good solutions
         opti_setpoints = opti_setpoints.loc[opti_setpoints['loss']<=lim]
         opti_setpoints = opti_setpoints.drop(columns='loss')
@@ -278,7 +277,6 @@ class OptimSetpointsPlot():
         opti_norm = (opti_setpoints-opti_setpoints.mean())/opti_setpoints.std()
         
         # Aggregate similar solutions
-        
         solutions = pd.DataFrame(columns=list(opti_setpoints.columns) + ['weight'],
                                  index = range(self.num_sol))
         
@@ -293,7 +291,7 @@ class OptimSetpointsPlot():
             sol = opti_setpoints.loc[idx].mean()
             
             solutions.loc[i] = sol
-            solutions.loc[i]['weight'] = float(len(idx))
+            solutions.loc[i]['weight'] = float(len(idx))**2
             
             opti_norm = opti_norm.drop(index=idx)
             
@@ -305,7 +303,11 @@ class OptimSetpointsPlot():
         solutions.loc[idx_nan]=0.0
         
         # Sort solutions by proximity to current setpoint
-        stp = stp.drop(columns='Gewicht')                                       # Replace Gewicht by y_label
+
+        m_data = dm.get_modelling_data()
+        idx_new = max(m_data.index)
+        stp = m_data.loc[[idx_new],dm.setpoints]
+                                        # Replace Gewicht by y_label
         d1 =  solutions.drop(columns='weight').reset_index(drop=True)  
         d2 = stp.reset_index(drop=True)
         diff = d1-d2.values
@@ -331,10 +333,10 @@ class OptimSetpointsPlot():
                 d.set_sizes([solutions.loc[sol,'weight']*self.base_marker_size])
             
             
-
+            y_values = list(solutions.loc[0:i,col].values) + list(stp[col].values)
             
-            self.ax[p].set_ylim([solutions.loc[0:i,col].min()*0.98,
-                                 solutions.loc[0:i,col].max()*1.02])
+            self.ax[p].set_ylim([min(y_values)*0.98,
+                                 max(y_values)*1.02])
             
             self.ax[p].set_title(col)
         

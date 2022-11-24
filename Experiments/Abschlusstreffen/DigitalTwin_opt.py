@@ -36,7 +36,6 @@ dm = pkl.load(open('dm.pkl','rb'))
 # %% Ändere Quelldatei für Live-Betrieb
 dm.source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221108.h5')
 
-
 # %% Load model bank
 model_path = Path('C:/Users/alexa/Desktop/DIM/models/live_models.pkl')
 mb = dtf.model_bank(model_path=model_path)
@@ -57,11 +56,39 @@ if __name__ == '__main__':
 
     plt.close('all')
     
+    # Initialisiere Plots
     PPlot = dtf.PredictionPlot() 
     MQPlot = dtf.ModelQualityPlot()
+    OSPlot = dtf.OptimSetpointsPlot(num_sol=10) 
+    
+    
+    # Slider Setup
+    master = tk.Tk()
+    slider_val = tk.DoubleVar()
+    slider = tk.Scale(master, from_=8.1, to=8.3,length=500,width=50,
+                  orient='vertical',digits=3,label='Durchmesser_innen',
+                  resolution=0.05, tickinterval=0.1,variable=slider_val)
+    slider.pack()
+    
+    master.attributes("-topmost", True)
+    master.focus_force()
+    
+    # master.mainloop()
     
     while True:
-       
+        
+        # Read target quality value from slider
+        master.lift()
+        for i in range(10):
+            plt.pause(0.2)
+            master.update_idletasks()
+            master.update()
+        print(slider_val.get())
+        # new_val = slider.get()
+        
+        new_val = 8.15
+        new_data = True
+        
         # Check for new data
         new_data = dm.get_cycle_data(delay=2.0,num_cyc=1)
       
@@ -81,6 +108,17 @@ if __name__ == '__main__':
             
             # Pausiere Plot damit dieser aktualisiert wird
             plt.pause(0.01)
+            
+            # Berechne optimale Maschinenparameter
+            Q_target =  pd.DataFrame.from_dict({y_label: [new_val]})
+            opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,[])
+            
+            # Plotte optimale Maschinenparameter
+            if opti_setpoints is not None:            
+                OSPlot.update(opti_setpoints,dm)
+                
+            plt.pause(0.01)
+            master.lift()                
             
         else:
             
