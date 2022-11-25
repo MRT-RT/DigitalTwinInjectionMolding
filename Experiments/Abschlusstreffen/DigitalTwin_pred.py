@@ -34,11 +34,12 @@ from DIM.arburg470 import dt_functions as dtf
 dm = pkl.load(open('dm.pkl','rb'))
 
 # %% Ändere Quelldatei für Live-Betrieb
-dm.source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221108.h5')
+# dm.source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221108.h5')
+dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221125.h5')
 
 
 # %% Load model bank
-model_path = Path('C:/Users/alexa/Desktop/DIM/models/live_models.pkl')
+model_path = Path('C:/Users/rehmer/Desktop/DIM/models/live_models.pkl')
 mb = dtf.model_bank(model_path=model_path)
 y_label = mb.models[0].y_label[0]
 
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     while True:
        
         # Check for new data
-        new_data = dm.get_cycle_data(delay=2.0,num_cyc=1)
+        new_data = dm.get_cycle_data(delay=20.0,num_cyc=1)
       
         if new_data:
             
@@ -80,7 +81,7 @@ if __name__ == '__main__':
             PPlot.update(dm,'Gewicht',mb=mb)
             
             # Pausiere Plot damit dieser aktualisiert wird
-            plt.pause(0.01)
+            plt.pause(0.02)
             
         else:
             

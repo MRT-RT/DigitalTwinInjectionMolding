@@ -32,7 +32,7 @@ from DIM.optim.param_optim import ParamOptimizer
 from DIM.arburg470 import dt_functions as dtf
 
 # %%
-model_path = Path('C:/Users/alexa/Desktop/DIM/models')
+model_path = Path('C:/Users/rehmer/Desktop/DIM/models')
 
 
 # %% Lade Data Manager
@@ -42,10 +42,10 @@ dm = pkl.load(open('dm.pkl','rb'))
 if __name__ == '__main__':
     
     freeze_support()  
-    inits = 40
+    inits = 20
     
     l = 1
-    h = 10
+    h = 3
     
     target = ['Gewicht']
     name = 'm_MLP_l'+str(l)+'_h'+str(h)

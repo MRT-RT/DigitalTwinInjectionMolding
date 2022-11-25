@@ -32,7 +32,9 @@ from DIM.arburg470 import dt_functions as dtf
 dm = pkl.load(open('dm.pkl','rb'))
 
 # %% Ändere Quelldatei für Live-Betrieb
-dm.source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221108.h5')
+# dm.source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221108.h5')
+dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221125.h5')
+
 
 
 # %% Fonts for plots
@@ -56,7 +58,7 @@ if __name__ == '__main__':
     while True:
        
         # Check for new data
-        new_data = dm.get_cycle_data(delay=2.0,num_cyc=1)
+        new_data = dm.get_cycle_data(delay=20.0,num_cyc=1)
       
         if new_data:
                       

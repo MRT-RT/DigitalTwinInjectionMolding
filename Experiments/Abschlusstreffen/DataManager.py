@@ -22,11 +22,9 @@ from DIM.arburg470 import dt_functions as dtf
 
 
 # %% Define source file and file to write data to
-# source_hdf5 = Path('/home/alexander/Desktop/DIM/data/DIM_20221104.h5')
-# target_hdf5 = Path('/home/alexander/Desktop/DIM/dm_DIM_20221104.h5')
 
-source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221104.h5')
-target_hdf5 = Path('C:/Users/alexa/Desktop/DIM/dm_DIM_20221104.h5')
+source_hdf5 = Path('C:/Users/rehmer/Desktop/DIM/data/DIM_20221111.h5')
+target_hdf5 = Path('C:/Users/rehmer/Desktop/DIM/dm_DIM_20221111.h5')
 
 setpoints = ['v_inj_soll','V_um_soll','T_wkz_soll']   
 
@@ -36,9 +34,12 @@ dm.get_cycle_data()
 
 
 # %% Load data as example
-machine_data = dm.get_machine_data()
-modelling_data = dm.get_modelling_data()
-process_values_67820 = dm.get_process_data(modelling_data.index[0])
+# machine_data = dm.get_machine_data()
+m_data = dm.get_modelling_data()
+# process_values_67820 = dm.get_process_data(modelling_data.index[0])
+
+fig,ax = plt.subplots(1,1)
+sns.stripplot(data=m_data,x=m_data.index,y='Gewicht') 
 
 # Save Data Manager object as a pickle
 pkl.dump(dm,open('dm.pkl','wb'))

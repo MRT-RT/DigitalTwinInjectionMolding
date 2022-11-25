@@ -117,7 +117,8 @@ class SolutionQualityPlot():
 class PredictionPlot():
     def __init__(self): 
         
-        self.fig,self.ax = plt.subplots(1,2)
+        self.fig,self.ax = plt.subplots(nrows=1,ncols=2,
+                                        gridspec_kw={'width_ratios':[1,2]})
         
         self.mngr = plt.get_current_fig_manager()
         
@@ -125,24 +126,25 @@ class PredictionPlot():
 
         self.fig.suptitle('Qualitätsmessung und -prädiktion')
 
-        init_data = np.zeros((20,1))
+        init_data1 = np.zeros((20,1))
+        init_data2 = np.zeros((20,1))
         
         opt_meas = {'marker':'d','markersize':20,'linestyle':'none'}
-        opt_pred = {'marker':'d','markersize':15,'linestyle':'none'}
+        opt_pred = {'marker':'o','markersize':15,'linestyle':'none'}
         
-        self.meas_data_1 = self.ax[0].plot(range(0,20),init_data,
+        self.meas_data_1 = self.ax[0].plot(range(0,20),init_data1,
                                            **opt_meas)
         
-        self.pred_data_1 = self.ax[0].plot(range(0,20),init_data,
+        self.pred_data_1 = self.ax[0].plot(range(0,20),init_data1,
                                            **opt_pred)
         
         self.ax[0].set_xlabel('T in °C')
         self.ax[0].set_ylabel('m in g')
         
-        self.meas_data_2 = self.ax[1].plot(range(0,20),init_data,
+        self.meas_data_2 = self.ax[1].plot(range(0,20),init_data2,
                                            **opt_meas)
         
-        self.pred_data_2 = self.ax[1].plot(range(0,20),init_data,
+        self.pred_data_2 = self.ax[1].plot(range(0,20),init_data2,
                                            **opt_pred)
         
         self.ax[1].set_xlabel('Zyklus')
