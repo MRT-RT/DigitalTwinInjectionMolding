@@ -25,7 +25,6 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
--->
 
 
 
@@ -88,7 +87,7 @@
 Das Ziel des Projektes DIM ist es, Wettbewerbsvorteile für KMU zu generieren, indem diese in die Lage versetzt werden, Digitale Zwillinge (Digital Twins) ihrer Produktionsanlagen zu bilden und diese zur Optimierung des Produktionsprozesses einzusetzen. Zur Erreichung dieses Ziels sollen zum einen Methoden und Algorithmen zur datengetriebenen Modellbildung des Digitalen Zwillings sowie Methoden und Algorithmen zur Optimierung des Produktionsprozesses auf Basis des Digitalen Zwillings entwickelt und in einer plattformunabhängigen Python-Library öffentlich bereitgestellt werden. Zum anderen wird über die bloße Bereitstellung der Werkzeuge hinaus ein Transfer und die Konservierung des bei der Werkzeugentwicklung generierten Wissens und der entwickelten Technologien angestrebt. Durch einen bedarfsgerechten Wissens- und  Technologietransfer sollen Unternehmen dazu befähigt werden, die Entwicklung solcher Systeme in Zukunft eigenständig durchführen zu können.
 
 
-
+<!-- 
 ### Built With
 
 Verwendete Frameworks und Libraries. Here are a few examples.
@@ -119,7 +118,7 @@ This is an example of how to list things you need to use the software and how to
   ```sh
   npm install npm@latest -g
   ```
-
+-->
 
 ### Installation
 
