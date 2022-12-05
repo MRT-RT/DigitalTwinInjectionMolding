@@ -31,13 +31,13 @@
 <br />
 <div align="center">
   <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/EFRE_Logo.png" alt="Logo" width="80" height="80">
+    <img src="images/EFRE_Logo.png" alt="Logo"  height="80">
   </a>
 
   <h3 align="center">Di­gi­tal Twin of In­jec­tion Mol­ding</h3>
 
   <p align="center">
-    A toolbox for multistate batch process modelling and optimal control
+    Eine Toolbox zur Modellierung und modellbasierten Steuerung mehrstufiger Batchprozesse
     <br />
     <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
     <br />
@@ -89,9 +89,9 @@ Das Ziel des Projektes DIM ist es, Wettbewerbsvorteile für KMU zu generieren, i
 
 ### Built With
 
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
+Verwendete Frameworks und Libraries. Here are a few examples.
 
-* [![Sypder][Sypder]][Next-url]
+* [![Sypder][casadi.org]][Next-url]
 * [![React][React.js]][React-url]
 * [![Vue][Vue.js]][Vue-url]
 * [![Angular][Angular.io]][Angular-url]
@@ -187,26 +187,26 @@ Don't forget to give the project a star! Thanks again!
 
 
 <!-- LICENSE -->
-## License
+## Lizenz
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Diese Toolbox wird unter der GNU Lesser General Public License v3.0 vertrieben. Siehe `LICENSE.txt` für weitere Informationen.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
 <!-- CONTACT -->
-## Contact
+## Kontakt
 
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
+Alexander Rehmer -  alexander.rehmer@mrt.uni-kassel.de
 
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
+Projektwebseite: [https://www.uni-kassel.de/go/DIM](https://www.uni-kassel.de/go/DIM)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
-<!-- ACKNOWLEDGMENTS -->
+<!-- ACKNOWLEDGMENTS 
 ## Acknowledgments
 
 Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
@@ -221,6 +221,7 @@ Use this space to list resources you find helpful and would like to give credit 
 * [React Icons](https://react-icons.github.io/react-icons/search)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+-->
 
 
 
