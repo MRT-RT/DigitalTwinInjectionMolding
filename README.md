@@ -31,13 +31,13 @@
 <br />
 <div align="center">
   <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="images/EFRE_Logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">Best-README-Template</h3>
+  <h3 align="center">Di­gi­tal Twin of In­jec­tion Mol­ding</h3>
 
   <p align="center">
-    An awesome README template to jumpstart your projects!
+    A toolbox for multistate batch process modelling and optimal control
     <br />
     <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
     <br />
@@ -81,22 +81,9 @@
 
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## Über das Projekt
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
-
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should implement DRY principles to the rest of your life :smile:
-
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
-
-Use the `BLANK_README.md` to get started.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+Das Ziel des Projektes DIM ist es, Wettbewerbsvorteile für KMU zu generieren, indem diese in die Lage versetzt werden, Digitale Zwillinge (Digital Twins) ihrer Produktionsanlagen zu bilden und diese zur Optimierung des Produktionsprozesses einzusetzen. Zur Erreichung dieses Ziels sollen zum einen Methoden und Algorithmen zur datengetriebenen Modellbildung des Digitalen Zwillings sowie Methoden und Algorithmen zur Optimierung des Produktionsprozesses auf Basis des Digitalen Zwillings entwickelt und in einer plattformunabhängigen Python-Library öffentlich bereitgestellt werden. Zum anderen wird über die bloße Bereitstellung der Werkzeuge hinaus ein Transfer und die Konservierung des bei der Werkzeugentwicklung generierten Wissens und der entwickelten Technologien angestrebt. Durch einen bedarfsgerechten Wissens- und  Technologietransfer sollen Unternehmen dazu befähigt werden, die Entwicklung solcher Systeme in Zukunft eigenständig durchführen zu können.
 
 
 
@@ -104,7 +91,7 @@ Use the `BLANK_README.md` to get started.
 
 This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
 
-* [![Next][Next.js]][Next-url]
+* [![Sypder][Sypder]][Next-url]
 * [![React][React.js]][React-url]
 * [![Vue][Vue.js]][Vue-url]
 * [![Angular][Angular.io]][Angular-url]
