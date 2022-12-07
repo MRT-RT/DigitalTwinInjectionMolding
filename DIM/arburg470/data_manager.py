@@ -148,6 +148,7 @@ class Data_Manager():
         
         delay = kwargs.pop('delay',0.0)
         num_cyc = kwargs.pop('num_cyc',None)
+        update_mdata = kwargs.pop('update_mdata',True)
         
         new_data = False
         
@@ -178,6 +179,8 @@ class Data_Manager():
             for cycle in new_source_cycles[0:num_cyc]:
                 
                 print(cycle)
+                if cycle == 'cycle_70009':
+                    print('stop')
                 
                 try:
                     
@@ -230,8 +233,9 @@ class Data_Manager():
             [charts.pop(idx,None) for idx in double_idx] 
             
             # Update data used for modelling
-            df_modelling = pd.concat([df_scalar,df_feat,df_qual],axis=1)
-            self.__update_modelling_data(df_modelling)
+            if update_mdata:
+                df_modelling = pd.concat([df_scalar,df_feat,df_qual],axis=1)
+                self.__update_modelling_data(df_modelling,update='cycle')
             
             
             # Load data saved in hdf5
@@ -344,7 +348,11 @@ class Data_Manager():
 
         return df_feat      
 
-    def __update_modelling_data(self,df_new):
+    def __update_modelling_data(self,df_new,**kwargs):
+        
+        # unpack kwargs
+        update = kwargs.pop('update','cycle')
+        
         
         # Sort after cycle number (time would be better but format is messed up)
         df_new = df_new.sort_index()
@@ -354,11 +362,11 @@ class Data_Manager():
         self.n_max = 20
         
         # Load old modelling data
-        df_mod_old = pd.read_hdf(self.target_hdf5,'modelling_data')
+        df_mod = pd.read_hdf(self.target_hdf5,'modelling_data')
         
         # in case it's the first run over the data, 'modelling_data' will be
         # empty. Create DataFrame with desired structure
-        if df_mod_old.empty:
+        if df_mod.empty:
             
             # find unique setpoint combinations and label them by numbers
             df_unique = df_new.drop_duplicates(subset=self.setpoints)
@@ -383,19 +391,29 @@ class Data_Manager():
                     # setpoint exist, keep observations with largest temperatur 
                     # difference
                     
-                    df_T0 = df_new.loc[df_new['Setpoint']==s,['T_wkz_0']]
-                    df_T0 = df_T0.sort_values('T_wkz_0', ascending=True)
+                    if update == 'T_wkz_0':
+                        df_T0 = df_new.loc[df_new['Setpoint']==s,['T_wkz_0']]
+                        df_T0 = df_T0.sort_values('T_wkz_0', ascending=True)
+                        
+                        # Keep only those n_max observations per setpoint that cover T_wkz_0
+                        # best
+                        df_T0 = df_T0.assign(diff=df_T0.diff())
+                        
+                        # sort by temperature diff, keep observations with largest
+                        # difference between them
+                        keep_idx = df_T0.iloc[1:-1].sort_values('diff',ascending=False).index
+                        
+                        keep_idx = [df_T0.index[0]] + list(keep_idx[0:self.n_max-2]) \
+                            + [df_T0.index[-1]]
+                            
+                    elif update == 'cycle':
+                        # Find index of most recent cycles
+                        df_s = df_new.loc[df_new['Setpoint']==s].sort_index()
+                        keep_idx = list(df_s.index[0:self.n_max])
                     
-                    # Keep only those n_max observations per setpoint that cover T_wkz_0
-                    # best
-                    df_T0 = df_T0.assign(diff=df_T0.diff())
+                    else:
+                        raise ValueError('Choose an update method for modelling_data. Either "T_wkz_0" or "cycle".')
                     
-                    # sort by temperature diff, keep observations with largest
-                    # difference between them
-                    keep_idx = df_T0.iloc[1:-1].sort_values('diff',ascending=False).index
-                    
-                    keep_idx = [df_T0.index[0]] + list(keep_idx[0:self.n_max-2]) \
-                        + [df_T0.index[-1]]
                     
                     idx_mod.extend(keep_idx)
                 
@@ -416,30 +434,42 @@ class Data_Manager():
 
             # Go through each row of new data
             for cyc in df_new.index:
-                set_idx = (df_mod_old[self.setpoints] == df_new.loc[cyc,self.setpoints]).all(axis=1)    
+                # Get boolean index of same setpoints as cyc 
+                set_idx = (df_mod[self.setpoints] == df_new.loc[cyc,self.setpoints]).all(axis=1)    
                 
                 # Check if setpoint exist, if it doesn't append data
-                if df_mod_old.loc[set_idx].empty:
-                    new_setpt = int(df_mod_old['Setpoint'].max() + 1)
+                if df_mod.loc[set_idx].empty:
+                    new_setpt = int(df_mod['Setpoint'].max() + 1)
                     df_new.loc[cyc,'Setpoint'] = new_setpt
                     
-                    df_mod = pd.concat([df_mod_old,df_new])
+                    df_mod = pd.concat([df_mod,df_new])
                     
                 else:
                     #if setpoint data exist, check if more than maximum
-                    setpt = df_mod_old.loc[set_idx,'Setpoint'].iloc[0]
+                    setpt = df_mod.loc[set_idx,'Setpoint'].iloc[0]
                     df_new.loc[cyc,'Setpoint'] = int(setpt)
                     
-                    if len(df_mod_old.loc[set_idx]) >= self.n_max:
-                        #if maximum is exceeded replace datum with closest temp
-                        diff = abs(df_mod_old.loc[set_idx,'T_wkz_0']-\
-                            df_new.loc[cyc,'T_wkz_0'])
-                        del_row = diff.idxmin()
-                        #delete datum with closest temp
-                        df_mod_old = df_mod_old.drop(index=del_row,axis=1)
-                    
-                    df_mod = pd.concat([df_mod_old,df_new.loc[[cyc]]])
+                    if len(df_mod.loc[set_idx]) >= self.n_max:
+                        #if maximum is exceeded replace datum according to update method
+                        if update == 'T_wkz_0':
+                            diff = abs(df_mod.loc[set_idx,'T_wkz_0']-\
+                                df_new.loc[cyc,'T_wkz_0'])
+                            del_row = diff.idxmin()                          
+                            
+                        elif update == 'cycle':
+                            del_row = df_mod.loc[set_idx].index.min()
 
+                        else:
+                            raise ValueError('''Choose an update method for modelling_data. 
+                                             Either "T_wkz_0" or "cycle".''')
+                        
+                        # Delete observation
+                        df_mod = df_mod.drop(index=del_row,axis=1)
+                    
+                    # Add new observation
+                    df_mod = pd.concat([df_mod,df_new.loc[[cyc]]])
+                    
+                    # Recast type
                     df_mod['Setpoint'] = df_mod['Setpoint'].astype('int16')
                     
                 df_mod.to_hdf(self.target_hdf5,'modelling_data')

@@ -49,10 +49,10 @@ class model_bank():
         self.models = [model_dict[i]['val'] for i in model_dict.keys()]
 
 class ModelQualityPlot():
-    def __init__(self): 
+    def __init__(self,width,height): 
         self.fig,self.ax = plt.subplots(1,1)
         self.mngr = plt.get_current_fig_manager()
-        self.mngr.window.setGeometry(1920//4*3, 530, 1920//4 , 500) 
+        self.mngr.window.setGeometry(width//4*3, 530, width//4 , 500) 
 
         self.memory = 10
 
@@ -115,14 +115,14 @@ class SolutionQualityPlot():
         self.fig.canvas.draw()
         
 class PredictionPlot():
-    def __init__(self): 
+    def __init__(self,width,height): 
         
         self.fig,self.ax = plt.subplots(nrows=1,ncols=2,
                                         gridspec_kw={'width_ratios':[1,2]})
         
         self.mngr = plt.get_current_fig_manager()
         
-        self.mngr.window.setGeometry(0, 30, 1920 , 500)
+        self.mngr.window.setGeometry(0, 30, width , height/2)
 
         self.fig.suptitle('Qualitätsmessung und -prädiktion')
 
@@ -139,7 +139,7 @@ class PredictionPlot():
                                            **opt_pred)
         
         self.ax[0].set_xlabel('T in °C')
-        self.ax[0].set_ylabel('m in g')
+        self.ax[0].set_ylabel('Gewicht in g')
         
         self.meas_data_2 = self.ax[1].plot(range(0,20),init_data2,
                                            **opt_meas)
@@ -222,18 +222,29 @@ class PredictionPlot():
         
 class OptimSetpointsPlot():
     
-    def __init__(self,num_sol): 
+    def __init__(self,width,height,num_sol): 
         
         self.fig,self.ax = plt.subplots(1,3)
         self.mngr = plt.get_current_fig_manager()
-        self.mngr.window.setGeometry(0, 530, 1920//4*3 , 500) 
+        self.mngr.window.setGeometry(0, height/2, width//4*3 , height/2) 
         
         self.num_sol = num_sol
         self.base_marker_size = 30
         
         self.fig.suptitle('Optimale Maschinenparameter')
         
+       
         [ax.set_xticks([]) for ax in self.ax]
+
+        self.ax[0].set_ylabel('$cm^{3}/s$')
+        self.ax[1].set_ylabel('$cm^{3}$')
+        self.ax[2].set_ylabel('$°C$')
+        
+        self.ax[0].set_ylim([13.5,20.5])
+        self.ax[1].set_ylim([12.9,14.1])
+        self.ax[2].set_ylim([28,36])
+        
+        [a.grid(which='major',axis='y') for a in self.ax]
         
         opts = {'marker':'o','alpha':0.5}
         
@@ -337,8 +348,8 @@ class OptimSetpointsPlot():
             
             y_values = list(solutions.loc[0:i,col].values) + list(stp[col].values)
             
-            self.ax[p].set_ylim([min(y_values)*0.98,
-                                 max(y_values)*1.02])
+            # self.ax[p].set_ylim([min(y_values)*0.98,
+            #                      max(y_values)*1.02])
             
             self.ax[p].set_title(col)
         

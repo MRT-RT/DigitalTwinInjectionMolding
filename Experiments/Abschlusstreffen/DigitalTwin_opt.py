@@ -31,11 +31,11 @@ from DIM.arburg470 import dt_functions as dtf
 
 
 # %% Lade Data Manager
-dm = pkl.load(open('dm.pkl','rb'))
+dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','rb'))
 
 # %% Ändere Quelldatei für Live-Betrieb
 # dm.source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221108.h5')
-dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221125.h5')
+dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221207.h5')
 
 # %% Load model bank
 model_path = Path('C:/Users/rehmer/Desktop/DIM/models/live_models.pkl')
@@ -43,12 +43,19 @@ model_path = Path('C:/Users/rehmer/Desktop/DIM/models/live_models.pkl')
 mb = dtf.model_bank(model_path=model_path)
 y_label = mb.models[0].y_label[0]
 
+# %%
+opti_save = {}
+mb_save = {}
+
 # %% Fonts for plots
 font = {'weight' : 'normal',
         'size'   : 12}
 
 matplotlib.rc('font', **font)
-     
+
+width = 1920
+height = 1080
+
 # %% Main program
 if __name__ == '__main__':
     
@@ -59,17 +66,17 @@ if __name__ == '__main__':
     plt.close('all')
     
     # Initialisiere Plots
-    PPlot = dtf.PredictionPlot() 
-    MQPlot = dtf.ModelQualityPlot()
-    OSPlot = dtf.OptimSetpointsPlot(num_sol=10) 
+    PPlot = dtf.PredictionPlot(width,height) 
+    MQPlot = dtf.ModelQualityPlot(width,height)
+    OSPlot = dtf.OptimSetpointsPlot(width,height,num_sol=10) 
     
     
     # Slider Setup
     master = tk.Tk()
     slider_val = tk.DoubleVar()
-    slider = tk.Scale(master, from_=8.1, to=8.3,length=500,width=50,
-                  orient='vertical',digits=3,label='Durchmesser_innen',
-                  resolution=0.025, tickinterval=0.1,variable=slider_val)
+    slider = tk.Scale(master, from_=8.15, to=8.3,length=500,width=50,
+                  orient='vertical',digits=3,label='Soll-Gewicht',
+                  resolution=0.01, tickinterval=0.1,variable=slider_val)
     slider.pack()
     
     master.attributes("-topmost", True)
@@ -86,14 +93,13 @@ if __name__ == '__main__':
             master.update_idletasks()
             master.update()
         print(slider_val.get())
-        # new_val = slider.get()
+        new_val = slider.get()
         
-        new_val = 8.15
-        new_data = True
+
         
         # Check for new data
-        new_data = dm.get_cycle_data(delay=20.0,num_cyc=1)
-      
+        new_data = dm.get_cycle_data(delay=20.0, num_cyc=1, update_mdata=True)
+        # new_data = True
         if new_data:
             
             # Reload models
@@ -101,6 +107,11 @@ if __name__ == '__main__':
             
             # Führe Prädiktion durch
             dtf.predict_quality(dm,mb)     
+            
+            # Speichere mb in Datei (inkl. Prädiktion)
+            mb_save[dm.get_modelling_data().index[-1]]=mb
+            pkl.dump(mb_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/mb_save.pkl','wb'))    
+            
             
             # Plotte BFR des besten Modells
             MQPlot.update(mb.stp_bfr[mb.idx_best])
@@ -114,7 +125,11 @@ if __name__ == '__main__':
             # Berechne optimale Maschinenparameter
             Q_target =  pd.DataFrame.from_dict({y_label: [new_val]})
             opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,[])
-            
+
+            # Speichere in Datei
+            opti_save[dm.get_modelling_data().index[-1]]=opti_setpoints
+            pkl.dump(opti_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/opti_save.pkl','wb'))
+
             # Plotte optimale Maschinenparameter
             if opti_setpoints is not None:            
                 OSPlot.update(opti_setpoints,dm)

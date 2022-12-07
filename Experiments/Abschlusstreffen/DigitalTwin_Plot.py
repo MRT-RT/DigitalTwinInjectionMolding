@@ -29,19 +29,19 @@ from DIM.optim.param_optim import ParamOptimizer
 from DIM.arburg470 import dt_functions as dtf
 
 # %% Lade Data Manager
-dm = pkl.load(open('dm.pkl','rb'))
+dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Datenaufzeichnung/dm.pkl','rb'))
 
 # %% Ändere Quelldatei für Live-Betrieb
-# dm.source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221108.h5')
-dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221125.h5')
-
-
+dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221130.h5')
 
 # %% Fonts for plots
 font = {'weight' : 'normal',
         'size'   : 12}
 
 matplotlib.rc('font', **font)
+
+width = 1920
+height = 1080
      
 # %% Main program
     
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     plt.close('all')
     
-    PPlot = dtf.PredictionPlot() 
+    PPlot = dtf.PredictionPlot(width,height) 
     
     while True:
        

@@ -35,8 +35,9 @@ from DIM.arburg470 import dt_functions as dtf
 model_path = Path('C:/Users/rehmer/Desktop/DIM/models')
 
 
+
 # %% Lade Data Manager
-dm = pkl.load(open('dm.pkl','rb'))
+dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','rb'))
 
 
 if __name__ == '__main__':
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     inits = 20
     
     l = 1
-    h = 3
+    h = 6
     
     target = ['Gewicht']
     name = 'm_MLP_l'+str(l)+'_h'+str(h)
@@ -83,11 +84,11 @@ if __name__ == '__main__':
         models = pkl.load(open(model_path/'models.pkl','rb'))
 
         # Behalte nur 10 beste Modelle
-        models_best = {list(models.keys())[i]: models[i] for i in results_sort.index[0:10]}
+        models_best = {list(models.keys())[i]: models[i] for i in results_sort.index[0:1]}
         
         pkl.dump(models_best,open(model_path/'live_models.pkl','wb'))
                
-        go = True
+        go = False
         
         print('Estimation complete')
         
