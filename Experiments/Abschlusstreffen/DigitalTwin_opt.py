@@ -31,14 +31,17 @@ from DIM.arburg470 import dt_functions as dtf
 
 
 # %% Lade Data Manager
-dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','rb'))
+# dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','rb'))
+dm = pkl.load(open('/home/alexander/Desktop/DIM/dm.pkl','rb'))
 
 # %% Ändere Quelldatei für Live-Betrieb
-# dm.source_hdf5 = Path('C:/Users/alexa/Desktop/DIM/data/DIM_20221108.h5')
-dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221207.h5')
+# dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221207.h5')
+dm.source_hdf5 = Path('/home/alexander/Desktop/DIM/DIM_20221108.h5')
+
 
 # %% Load model bank
-model_path = Path('C:/Users/rehmer/Desktop/DIM/models/live_models.pkl')
+# model_path = Path('C:/Users/rehmer/Desktop/DIM/models/live_models.pkl')
+model_path = Path('/home/alexander/Desktop/DIM/models/live_models.pkl')
 
 mb = dtf.model_bank(model_path=model_path)
 y_label = mb.models[0].y_label[0]
@@ -92,13 +95,13 @@ if __name__ == '__main__':
             plt.pause(0.2)
             master.update_idletasks()
             master.update()
-        print(slider_val.get())
-        new_val = slider.get()
+        # print(slider_val.get())
+        # new_val = slider.get()
         
-
+        new_val=8.16
         
         # Check for new data
-        new_data = dm.get_cycle_data(delay=20.0, num_cyc=1, update_mdata=True)
+        new_data = dm.get_cycle_data(delay=0.0, num_cyc=1, update_mdata=True)
         # new_data = True
         if new_data:
             
@@ -110,7 +113,7 @@ if __name__ == '__main__':
             
             # Speichere mb in Datei (inkl. Prädiktion)
             mb_save[dm.get_modelling_data().index[-1]]=mb
-            pkl.dump(mb_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/mb_save.pkl','wb'))    
+            # pkl.dump(mb_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/mb_save.pkl','wb'))    
             
             
             # Plotte BFR des besten Modells
@@ -124,11 +127,11 @@ if __name__ == '__main__':
             
             # Berechne optimale Maschinenparameter
             Q_target =  pd.DataFrame.from_dict({y_label: [new_val]})
-            opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,[])
-
+            # opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,[])
+            opti_setpoints = None
             # Speichere in Datei
             opti_save[dm.get_modelling_data().index[-1]]=opti_setpoints
-            pkl.dump(opti_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/opti_save.pkl','wb'))
+            # pkl.dump(opti_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/opti_save.pkl','wb'))
 
             # Plotte optimale Maschinenparameter
             if opti_setpoints is not None:            

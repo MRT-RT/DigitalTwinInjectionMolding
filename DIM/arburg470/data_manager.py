@@ -14,10 +14,12 @@ from scipy import stats
 import h5py
 import time
 
+from sklearn.metrics.pairwise import euclidean_distances
+
 class Data_Manager():
     
     def __init__(self,source_hdf5, target_hdf5,charts,scalar,scalar_dtype,
-                 features,features_dtype,quals,quals_dtype,setpoints):
+                 features,features_dtype,quals,quals_dtype,setpoints,**kwargs):
         """
         
 
@@ -93,6 +95,11 @@ class Data_Manager():
         self.target_hdf5 = target_hdf5
         
         self.failed_cycles = []
+        
+        self.N_max = kwargs.pop('N_max',20)
+        self.STP_max = kwargs.pop('STP_max',27)
+        
+        
 
     @property
     def source_hdf5(self):
@@ -356,11 +363,7 @@ class Data_Manager():
         
         # Sort after cycle number (time would be better but format is messed up)
         df_new = df_new.sort_index()
-        
-        # just for debugging
-        # df_new.loc[427,self.setpoints[0]]=15.0
-        self.n_max = 20
-        
+               
         # Load old modelling data
         df_mod = pd.read_hdf(self.target_hdf5,'modelling_data')
         
@@ -386,7 +389,7 @@ class Data_Manager():
                 set_idx = (df_new[self.setpoints] == df_unique.iloc[s]).all(axis=1)
                 df_new.loc[set_idx,'Setpoint'] = s
                 
-                if len(df_new.loc[set_idx])>self.n_max:
+                if len(df_new.loc[set_idx])>self.N_max:
                     # If more than the maximal number of observations per 
                     # setpoint exist, keep observations with largest temperatur 
                     # difference
@@ -403,13 +406,13 @@ class Data_Manager():
                         # difference between them
                         keep_idx = df_T0.iloc[1:-1].sort_values('diff',ascending=False).index
                         
-                        keep_idx = [df_T0.index[0]] + list(keep_idx[0:self.n_max-2]) \
+                        keep_idx = [df_T0.index[0]] + list(keep_idx[0:self.N_max-2]) \
                             + [df_T0.index[-1]]
                             
                     elif update == 'cycle':
                         # Find index of most recent cycles
                         df_s = df_new.loc[df_new['Setpoint']==s].sort_index()
-                        keep_idx = list(df_s.index[0:self.n_max])
+                        keep_idx = list(df_s.index[0:self.N_max])
                     
                     else:
                         raise ValueError('Choose an update method for modelling_data. Either "T_wkz_0" or "cycle".')
@@ -439,17 +442,33 @@ class Data_Manager():
                 
                 # Check if setpoint exist, if it doesn't append data
                 if df_mod.loc[set_idx].empty:
+                    
+                    # Finde durchschnittliche Distanz aller Setpoints zueinander
+                    stp = df_mod.drop_duplicates(subset=self.setpoints)[self.setpoints]
+                    stp_dist = euclidean_distances(stp)[np.triu_indices(len(stp), k=1)]
+                   
+                    # Berechne kleinste Distanz zum neuen Setpoints
+                    diff = (stp-df_new[self.setpoints].values).apply(np.linalg.norm,axis=1)
+                    
+                    # Wenn Distanz nicht sehr groß ist lösche nächsten Setpoint 
+                    if diff.min()<np.percentile(stp_dist,90):
+                        
+                        next_stp = df_mod.loc[diff.idxmin(),'Setpoint']
+                        df_mod = df_mod.drop(
+                            index=df_mod.loc[df_mod['Setpoint']==next_stp].index)
+                        
                     new_setpt = int(df_mod['Setpoint'].max() + 1)
                     df_new.loc[cyc,'Setpoint'] = new_setpt
                     
                     df_mod = pd.concat([df_mod,df_new])
+                                                
                     
                 else:
                     #if setpoint data exist, check if more than maximum
                     setpt = df_mod.loc[set_idx,'Setpoint'].iloc[0]
                     df_new.loc[cyc,'Setpoint'] = int(setpt)
                     
-                    if len(df_mod.loc[set_idx]) >= self.n_max:
+                    if len(df_mod.loc[set_idx]) >= self.N_max:
                         #if maximum is exceeded replace datum according to update method
                         if update == 'T_wkz_0':
                             diff = abs(df_mod.loc[set_idx,'T_wkz_0']-\
