@@ -32,15 +32,15 @@ from DIM.optim.param_optim import ParamOptimizer
 from DIM.arburg470 import dt_functions as dtf
 
 # %%
-# model_path = Path('C:/Users/rehmer/Desktop/DIM/models')
-model_path = Path('/home/alexander/Desktop/DIM/models')
+model_path = Path('C:/Users/rehmer/Desktop/DIM/models')
+# model_path = Path('/home/alexander/Desktop/DIM/models')
 
-
+np.random.seed(1)
 
 
 # %% Lade Data Manager
-# dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','rb'))
-dm = pkl.load(open('/home/alexander/Desktop/DIM/dm.pkl','rb'))
+dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','rb'))
+# dm = pkl.load(open('/home/alexander/Desktop/DIM/dm.pkl','rb'))
 
 if __name__ == '__main__':
     

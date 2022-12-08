@@ -31,24 +31,29 @@ from DIM.arburg470 import dt_functions as dtf
 
 
 # %% Lade Data Manager
-# dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','rb'))
-dm = pkl.load(open('/home/alexander/Desktop/DIM/dm.pkl','rb'))
+dm = pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','rb'))
+# dm = pkl.load(open('/home/alexander/Desktop/DIM/dm.pkl','rb'))
 
 # %% Ändere Quelldatei für Live-Betrieb
-# dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221207.h5')
-dm.source_hdf5 = Path('/home/alexander/Desktop/DIM/DIM_20221108.h5')
+dm.source_hdf5 = Path('I:/Klute/DIM_Twin/DIM_20221208.h5')
+# dm.source_hdf5 = Path('/home/alexander/Desktop/DIM/DIM_20221108.h5')
 
 
 # %% Load model bank
-# model_path = Path('C:/Users/rehmer/Desktop/DIM/models/live_models.pkl')
-model_path = Path('/home/alexander/Desktop/DIM/models/live_models.pkl')
+model_path = Path('C:/Users/rehmer/Desktop/DIM/models')
+# model_path = Path('/home/alexander/Desktop/DIM/models/live_models.pkl')
 
-mb = dtf.model_bank(model_path=model_path)
+mb = dtf.model_bank(model_path=model_path/'live_models.pkl')
 y_label = mb.models[0].y_label[0]
 
 # %%
-opti_save = {}
-mb_save = {}
+try:
+    mb_save =  pkl.load(open('C:/Users/rehmer/Desktop/DIM/Optimierung/mb_save.pkl','rb'))   
+    opti_save =  pkl.load(opti_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/opti_save.pkl','rb'))
+    
+except:
+    opti_save = {}
+    mb_save = {}
 
 # %% Fonts for plots
 font = {'weight' : 'normal',
@@ -84,8 +89,7 @@ if __name__ == '__main__':
     
     master.attributes("-topmost", True)
     master.focus_force()
-    
-    # master.mainloop()
+
     
     while True:
         
@@ -98,10 +102,11 @@ if __name__ == '__main__':
         # print(slider_val.get())
         # new_val = slider.get()
         
-        new_val=8.16
+        new_val = 8.14
         
         # Check for new data
-        new_data = dm.get_cycle_data(delay=0.0, num_cyc=1, update_mdata=True)
+        # new_data = dm.get_cycle_data(delay=20.0, num_cyc=1, update_mdata=True)
+        new_data = dm.get_cycle_data(delay=20.0, update_mdata=True)
         # new_data = True
         if new_data:
             
@@ -113,7 +118,7 @@ if __name__ == '__main__':
             
             # Speichere mb in Datei (inkl. Prädiktion)
             mb_save[dm.get_modelling_data().index[-1]]=mb
-            # pkl.dump(mb_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/mb_save.pkl','wb'))    
+            pkl.dump(mb_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/mb_save.pkl','wb'))    
             
             
             # Plotte BFR des besten Modells
@@ -127,18 +132,25 @@ if __name__ == '__main__':
             
             # Berechne optimale Maschinenparameter
             Q_target =  pd.DataFrame.from_dict({y_label: [new_val]})
-            # opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,[])
-            opti_setpoints = None
+            opti_setpoints = dtf.optimize_setpoints(dm,mb,Q_target,[])
+
             # Speichere in Datei
-            opti_save[dm.get_modelling_data().index[-1]]=opti_setpoints
-            # pkl.dump(opti_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/opti_save.pkl','wb'))
+            opti_save[dm.get_modelling_data().index[-1]]=[opti_setpoints,new_val]
+            pkl.dump(opti_save,open('C:/Users/rehmer/Desktop/DIM/Optimierung/opti_save.pkl','wb'))
 
             # Plotte optimale Maschinenparameter
             if opti_setpoints is not None:            
                 OSPlot.update(opti_setpoints,dm)
                 
             plt.pause(0.01)
-            master.lift()                
+            master.lift()
+            
+            if max(mb.stp_bfr)<85.0:
+                print('Modellgüte zu niedrig, schätze nach...')
+                dtf.reestimate_models(dm,model_path)
+                
+ 
+                
             
         else:
             

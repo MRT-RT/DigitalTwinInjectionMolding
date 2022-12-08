@@ -186,8 +186,6 @@ class Data_Manager():
             for cycle in new_source_cycles[0:num_cyc]:
                 
                 print(cycle)
-                if cycle == 'cycle_70009':
-                    print('stop')
                 
                 try:
                     

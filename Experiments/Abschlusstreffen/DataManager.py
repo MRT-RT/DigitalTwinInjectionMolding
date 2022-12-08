@@ -23,11 +23,11 @@ from DIM.arburg470 import dt_functions as dtf
 
 # %% Define source file and file to write data to
 
-# source_hdf5 = Path('C:/Users/rehmer/Desktop/DIM/data/DIM_20221111_2.h5')
-# target_hdf5 = Path('C:/Users/rehmer/Desktop/DIM/Optimierung/dm_Abschluss.h5')
+source_hdf5 = Path('C:/Users/rehmer/Desktop/DIM/data/DIM_20221111_2.h5')
+target_hdf5 = Path('C:/Users/rehmer/Desktop/DIM/Optimierung/dm_Abschluss.h5')
 
-source_hdf5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
-target_hdf5 = Path('/home/alexander/Desktop/DIM/dm_test.h5')
+# source_hdf5 = Path('/home/alexander/Desktop/DIM/DIM_20221104.h5')
+# target_hdf5 = Path('/home/alexander/Desktop/DIM/dm_test.h5')
 
 setpoints = ['v_inj_soll','V_um_soll','T_wkz_soll']   
 
@@ -45,5 +45,5 @@ fig,ax = plt.subplots(1,1)
 sns.stripplot(data=m_data,x=m_data.index,y='Gewicht') 
 
 # Save Data Manager object as a pickle
-# pkl.dump(dm,open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','wb'))
-pkl.dump(dm,open('/home/alexander/Desktop/DIM/dm.pkl','wb'))
+pkl.dump(dm,open('C:/Users/rehmer/Desktop/DIM/Optimierung/dm.pkl','wb'))
+# pkl.dump(dm,open('/home/alexander/Desktop/DIM/dm.pkl','wb'))

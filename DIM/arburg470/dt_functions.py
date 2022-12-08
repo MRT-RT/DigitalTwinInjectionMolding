@@ -29,6 +29,9 @@ from DIM.optim.param_optim import ParamOptimizer
 from DIM.optim.control_optim import StaticProcessOptimizer
 from DIM.optim.common import BestFitRate
 
+from DIM.models.models import Static_Multi_MLP
+from DIM.optim.param_optim import ParamOptimizer
+
 class model_bank():
     def __init__(self,model_path):
         self.model_path = model_path
@@ -573,28 +576,55 @@ def estimate_parallel(model,data,opts,path):
     pkl.dump(model,open(path,'wb'))        
     print('Finish '+str(model.name),flush=True)
 
-def reestimate_models(data_manager, model_bank):
+def reestimate_models(dm, model_path):
     
-    dm = data_manager
-    mb = model_bank
-    
-    ident_data = pd.read_hdf(dm.target_hdf5,key='modelling_data')
-   
-    opts = {'initializations':1,
-            's_opts':{"max_iter": 500, "print_level":1, 
-                     "hessian_approximation":'limited-memory'},
-            'mode' : 'static'}
-    
-    # Start a process for reestimation of each model 
-    print('Models are reestimated...')
-    for m in range(len(mb.models)):
-        p = Process(target=estimate_parallel,
-                    args=(mb.models[m],ident_data,opts,mb.model_paths[m]))
+    m_data = dm.get_modelling_data()
         
-        p.start()
-        p.join()
-    print('Estimation complete.')
+    inits = 20
+    
+    l = 1
+    h = 6
+    
+    target = ['Gewicht']
+    name = 'm_MLP_l'+str(l)+'_h'+str(h)
+        
+    MLP = Static_Multi_MLP(dim_u=3,dim_out=1,dim_hidden=h,layers = l,
+                           u_label=dm.setpoints,
+                           y_label=target,name=name)
+        
+    # Drop NaN
+    m_data = m_data[MLP.u_label+MLP.y_label].dropna()
+        
+    # Normalize data
+    data_norm = MLP.MinMaxScale(m_data)
+        
+    # Initialize optimizer
+    opt = ParamOptimizer(MLP,data_norm,data_norm,mode='static',
+                        initializations=inits,
+                        res_path=model_path,
+                        n_pool=20)
+        
+    # Start optimizer
+    results = opt.optimize()
+
+        
+    # Finde die 10 besten Modelle
+    results_sort = results.sort_values(by='loss_val',ascending=True)
+    
+    # Lade alle Modelle
+    models = pkl.load(open(model_path/'models.pkl','rb'))
+
+    # Behalte nur 10 beste Modelle
+    models_best = {list(models.keys())[i]: models[i] for i in results_sort.index[0:1]}
+    
+    pkl.dump(models_best,open(model_path/'live_models.pkl','wb'))
+                   
+    print('Estimation complete')
+    
     return None
+
+
+
 
 def optimize_parallel(model,Q_target,fix_inputs,init_values,constraints):
     
