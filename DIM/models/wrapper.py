@@ -6,6 +6,7 @@ path.append(r"C:\Users\LocalAdmin\Documents\casadi-windows-py38-v3.5.5-64bit")
 import casadi as cs
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 # from miscellaneous import *
 
@@ -442,7 +443,7 @@ class QualityModel():
             pred = self.Simulation(x0,u,params,**kwargs)
             
             
-            y_ref = io_data[self.y_label].values
+            y_ref = io_data[self.y_label].values.astype('float64')
             
             
             if isinstance(pred, tuple):           

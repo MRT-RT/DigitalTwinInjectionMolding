@@ -413,7 +413,7 @@ class Recurrent():
             pred = self.Simulation(x0,u,params,**kwargs)
             
             
-            y_ref = io_data[self.y_label].values
+            y_ref = io_data[self.y_label].values.astype('float64')
             
             
             if isinstance(pred, tuple):           

@@ -18,15 +18,15 @@ sys.path.insert(0, 'E:/GitHub/DigitalTwinInjectionMolding/')
 
 
 from DIM.miscellaneous.PreProcessing import arrange_data_for_ident, eliminate_outliers
-from DIM.models.model_structures import GRU
-from DIM.models.injection_molding import QualityModel
-from DIM.optim.param_optim import ParallelModelTraining, ModelTraining
+from DIM.models.models import GRU
+from DIM.models.wrapper import QualityModel
+from DIM.optim.param_optim import ParamOptimizer
 from DIM.miscellaneous.PreProcessing import LoadDynamicData
 
 
 def Fit_GRU(dim_c,initial_params=None):
 
-    charges = list(range(1,275))
+    charges = list(range(1,3))
     
     split = 'all'
     mode='quality'

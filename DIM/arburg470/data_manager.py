@@ -493,6 +493,31 @@ class Data_Manager():
                    
         return None
 
+    def __find_switches(self,cyc_p,cyc_m):
+        '''
+        
+    
+        Parameters
+        ----------
+        cycle : TYPE
+            DESCRIPTION.
+    
+        Returns
+        -------
+        None.
+        
+        '''
+        
+        # Assumption: First switch is were pressure is maximal
+        t1 = cyc_p['p_hyd_ist'].idxmax()
+        
+        # Second switch 
+        t2 = t1 + cyc_m.iloc[0]['t_pack1_soll'] + cyc_m.iloc[0]['t_pack2_soll']
+        idx_t2 = np.argmin(abs(cyc_p.index.values-t2))
+        t2 = cyc_p.index[idx_t2]
+                
+        return [t1,t2]
+
     def get_machine_data(self):
         all_data = pd.read_hdf(self.target_hdf5, 'overview')
         return all_data
@@ -508,6 +533,42 @@ class Data_Manager():
     def get_modelling_data(self):
         modelling_data = pd.read_hdf(self.target_hdf5, 'modelling_data')
         return modelling_data    
+
+    def get_dynamic_modelling_data(self):
+        
+        # Initialize empty lists for return
+        io_data = []
+        switch = []
+        
+        m_data = self.get_machine_data()
+        q_data = self.get_quality_data()
+        
+        # Iteriere über alle Zyklen in m_data
+        for cyc in m_data.index:
+            
+            # Check if cycle exists in q_data and p_data
+            try:
+                cyc_q =  q_data.loc[[cyc]]
+                cyc_p = self.get_process_data(cyc)
+            except:
+                print('Zyklus ' + str(cyc) + ' existiert in Qualitäts- oder Prozessdaten nicht.')
+                continue
+            
+            # Machine continues to measure some data after tool already opened
+            # Those can be identified by Q_inj_ist and V_screw_ist being NaN
+            # Hence delete all NaN from cyc_p
+            nan_idx = np.isnan(cyc_p).any(axis=1)
+            cyc_p = cyc_p.loc[~nan_idx]
+            
+            # Merge process data and quality data for this cycle
+            cyc_p[cyc_q.columns]=None
+            cyc_p.loc[0.0,cyc_q.columns] = cyc_q.values.flatten()
+            
+            io_data.append(cyc_p)
+            switch.append(self.__find_switches(cyc_p,m_data.loc[[cyc]]))
+            
+            
+        return {'data':io_data,'switch':switch}            
 
     def get_process_data(self,cycle):
         
