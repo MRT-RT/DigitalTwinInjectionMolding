@@ -1,10 +1,13 @@
 ###### Requirements without Version Specifiers ######
 pandas
 numpy
-pickle
 casadi
 h5py
 pathlib
 scipy
 matplotlib
+seaborn
+scikit-learn
+pytables
+
 
