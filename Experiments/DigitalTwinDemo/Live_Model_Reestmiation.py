@@ -59,6 +59,7 @@ if __name__ == '__main__':
     while go:
         
         modelling_data = dm.get_modelling_data()
+        modelling_data = modelling_data.drop(index=71068)
         
         MLP = Static_Multi_MLP(dim_u=3,dim_out=1,dim_hidden=h,layers = l,
                                u_label=dm.setpoints,
