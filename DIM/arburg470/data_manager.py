@@ -530,9 +530,15 @@ class Data_Manager():
         quality_data = pd.read_hdf(self.target_hdf5, 'quality_meas')
         return quality_data
 
-    def get_modelling_data(self):
+    def get_static_modelling_data(self):
         modelling_data = pd.read_hdf(self.target_hdf5, 'modelling_data')
         return modelling_data    
+
+    def get_modelling_data(self):
+
+        return self.get_static_modelling_data()
+        
+    
 
     def get_dynamic_modelling_data(self):
         

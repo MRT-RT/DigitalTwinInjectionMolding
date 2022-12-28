@@ -155,7 +155,7 @@ class PredictionPlot():
         
         self.fig.tight_layout()
             
-    def update(self,dm,q_label,**kwargs):
+    def update(self,dm,sq_label,**kwargs):
         
         mb = kwargs.pop('mb',None)
         
@@ -578,7 +578,7 @@ def estimate_parallel(model,data,opts,path):
 
 def reestimate_models(dm, model_path):
     
-    m_data = dm.get_modelling_data()
+    m_data = dm.get_static_modelling_data()
         
     inits = 20
     
@@ -606,8 +606,7 @@ def reestimate_models(dm, model_path):
         
     # Start optimizer
     results = opt.optimize()
-
-        
+ 
     # Finde die 10 besten Modelle
     results_sort = results.sort_values(by='loss_val',ascending=True)
     
