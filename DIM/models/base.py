@@ -71,10 +71,10 @@ class Model():
             cols = [col for col in cols if col in df.columns]
             
             # Unscale from 0,1
-            # df_rev = df[cols]* (col_max - col_min) + col_min
+            df_rev = df[cols]* (col_max - col_min) + col_min
             
             # Unscale from -1,1
-            df_rev = 1/2* ( (df[cols] + 1) * (col_max - col_min)) + col_min
+            # df_rev = 1/2* ( (df[cols] + 1) * (col_max - col_min)) + col_min
             
             
             df.loc[:,cols] = df_rev
@@ -112,12 +112,12 @@ class Model():
                 self.minmax = (col_min,col_max)
                 
             # Scale to -1,1
-            df_norm = 2*(df[cols] - col_min) / (col_max - col_min) - 1 
+            # df_norm = 2*(df[cols] - col_min) / (col_max - col_min) - 1 
             
-            df.loc[:,cols] = df_norm
             # Scale to 0,1   
-            # df_norm = (df[columns] - col_min) / (col_max - col_min)
+            df_norm = (df[cols] - col_min) / (col_max - col_min)
         
+            df.loc[:,cols] = df_norm
         
         
         return df
@@ -205,11 +205,11 @@ class Static(Model):
         
         params_new = []
             
-        for name in  self.Function.name_in():
+        for name in self.Function.name_in()[1::]:
             try:
                 params_new.append(params[name])                      # Parameters are already in the right order as expected by Casadi Function
             except:
-                continue
+                params_new.append(self.Parameters[name])
         
         if isinstance(u0,pd.DataFrame):
             u0 = np.array(u0[self.u_label].values,dtype=float)
@@ -274,7 +274,10 @@ class Static(Model):
     def AssignParameters(self,params):
         
         for p_name in self.Function.name_in()[1::]:
-            self.Parameters[p_name] = params[p_name]
+            try:
+                self.Parameters[p_name] = params[p_name]
+            except:
+                continue
 
 
 class Recurrent(Model):

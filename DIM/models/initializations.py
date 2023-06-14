@@ -99,3 +99,5 @@ def HeInitialization(dimensions,bias=False):
         var = 2/dimensions[1]
         W = np.random.normal(loc=0, scale=np.sqrt(var), size=dimensions)
         return W
+
+

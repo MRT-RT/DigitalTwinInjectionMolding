@@ -11,6 +11,8 @@ import numpy as np
 from DIM.optim.common import RK4
 from scipy.stats import ortho_group
 from DIM.models.initializations import XavierInitialization, RandomInitialization, HeInitialization
+from DIM.models.activations import ReLu,logistic,RBF
+
 
 from .base import Static,Recurrent
 
@@ -595,7 +597,562 @@ class Static_MLP(Static):
         self.ParameterInitialization()
         
         return None
+    
+class sqrt4T_MLP(Static):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_out,dim_hidden,u_label,y_label,name,
+                 initial_params=None, frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_hidden = dim_hidden
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
+        
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        dim_u = self.dim_u
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out 
+        name = self.name
+    
+        u = cs.MX.sym('u',dim_u,1)
+        
+        '''Model Parameters'''
+        # Physical part of model
+        c = cs.MX.sym('c_'+name,1,1)
+        e = cs.MX.sym('e_'+name,1,1)
+        
+        # MLP part of model
+        # MLP for correction of pixel constant
+        W_hc = cs.MX.sym('W_hc_'+name,dim_hidden,dim_u)
+        b_hc = cs.MX.sym('b_hc_'+name,dim_hidden,1)
+        
+        W_c = cs.MX.sym('W_c_'+name,dim_out,dim_hidden)
+        b_c = cs.MX.sym('b_c_'+name,1,1)
+        
+        # MLP for correction of exponent
+        W_he = cs.MX.sym('W_he_'+name,dim_hidden,dim_u)
+        b_he = cs.MX.sym('b_he_'+name,dim_hidden,1)
+        
+        W_e = cs.MX.sym('W_e_'+name,dim_out,dim_hidden)
+        b_e = cs.MX.sym('b_e_'+name,1,1)
+        
+        
+        '''Model Equations'''
+        # MLP part of model
+        hc =  logistic(cs.mtimes(W_hc,u)+b_hc)
+        c_corr = cs.mtimes(W_c,hc)+b_c
+        
+        he =  logistic(cs.mtimes(W_he,u)+b_he)
+        e_corr = cs.mtimes(W_e,he)+b_e 
+        
+        # Physical part of model      
+        k = c*(1+c_corr)    # pixel constant corrected by output of MLP
+        j = e*(1+e_corr)    # exponent corrected by output of MLP
+        
+        y =  (k*u[0] + u[1]**(4+j))**((1/(4+j))) # y = To
+        
+        input = [u,c,e,W_hc,b_hc,W_c,b_c,W_he,b_he,W_e,b_e]
+        input_names = [var.name() for var in input]
+        
+        output = [y]
+        output_names = ['y']  
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None
+    
+class sqrt4T_MLP8460(Static):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_out,dim_hidden,u_label,y_label,name,
+                 initial_params=None, frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_hidden = dim_hidden
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
+        
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        dim_u = self.dim_u
+        dim_hidden = self.dim_hidden
+        dim_out = self.dim_out 
+        name = self.name
+    
+        u = cs.MX.sym('u',dim_u,1)
+        
+        '''Model Parameters'''
+        # Physical part of model
+        c = cs.MX.sym('c_'+name,1,1)
+        e = cs.MX.sym('e_'+name,1,1)
+        
+        # MLP part of model
+        # MLP for correction of pixel constant
+        W_hc = cs.MX.sym('W_hc_'+name,dim_hidden,dim_u)
+        b_hc = cs.MX.sym('b_hc_'+name,dim_hidden,1)
+        
+        W_c = cs.MX.sym('W_c_'+name,dim_out,dim_hidden)
+        b_c = cs.MX.sym('b_c_'+name,1,1)
+        
+        # MLP for correction of exponent
+        W_he = cs.MX.sym('W_he_'+name,dim_hidden,dim_u)
+        b_he = cs.MX.sym('b_he_'+name,dim_hidden,1)
+        
+        W_e = cs.MX.sym('W_e_'+name,dim_out,dim_hidden)
+        b_e = cs.MX.sym('b_e_'+name,1,1)
+        
+        
+        '''Model Equations'''
+        # MLP part of model
+        hc =  logistic(cs.mtimes(W_hc,u)+b_hc)
+        c_corr = cs.mtimes(W_c,hc)+b_c
+        
+        he =  logistic(cs.mtimes(W_he,u)+b_he)
+        e_corr = cs.mtimes(W_e,he)+b_e 
+        
+        # Physical part of model      
+        k = c+c_corr    # pixel constant corrected by output of MLP
+        j = e+e_corr    # exponent corrected by output of MLP
+        
+        y =  (k*u[0] + u[1]**(4+j))**((1/(4+j))) # y = To
+        
+        input = [u,c,e,W_hc,b_hc,W_c,b_c,W_he,b_he,W_e,b_e]
+        input_names = [var.name() for var in input]
+        
+        output = [y]
+        output_names = ['y']  
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None
+
+class sqrt4T_LPV(Static):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_out,u_label,y_label,name,
+                 initial_params=None, frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
+        
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        dim_u = self.dim_u
+        dim_out = self.dim_out 
+        name = self.name
+    
+        u = cs.MX.sym('u',dim_u,1)
+        
+        
+        ''' logistic version '''
+        # Model Parameters
+        ac = cs.MX.sym('ac_'+name,1)
+        wc = cs.MX.sym('wc_'+name,1)
+        bc = cs.MX.sym('bc_'+name,1)
+        dc = cs.MX.sym('dc_'+name,1)
+
+        ae = cs.MX.sym('ae_'+name,1)
+        ee = cs.MX.sym('ee_'+name,1)
+        
+        # Model Equations
+        c = ac*logistic(wc*(u[1]-bc))+dc
+        e = ee + ae*u[1]
+
+        y =  (c*u[0] + u[1]**(4+e))**((1/(4+e))) # y = To
+        
+        input = [u,ac,wc,bc,dc,ee,ae]
+        input_names = [var.name() for var in input]
+        
+        output = [y]
+        output_names = ['y']  
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None
+
+    
+class sqrt4T(Static):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_out,u_label,y_label,name,
+                 initial_params=None, frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
+        
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        dim_u = self.dim_u
+        dim_out = self.dim_out 
+        name = self.name
+    
+        u = cs.MX.sym('u',dim_u,1)
+        
+        
+        '''Model Parameters'''
+        # MLP part of model
+        c = cs.MX.sym('c_'+name,1,1)
+        e = cs.MX.sym('e_'+name,1,1)
+
+        # Model Equations        
+        y =  (c*u[0] + u[1]**(4+e))**((1/(4+e))) # y = To
+
+        input = [u,c,e]
+        input_names = [var.name() for var in input]
+        
+        output = [y]
+        output_names = ['y']  
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None
+    
+class c_LPV(Static):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_out,u_label,y_label,name,
+                 initial_params=None, frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
+        
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        dim_u = self.dim_u
+        dim_out = self.dim_out 
+        name = self.name
+    
+        u = cs.MX.sym('u',dim_u,1)
+        
+        ''' logistic version '''
+        
+        # Model Parameters
+        ac = cs.MX.sym('ac_'+name,1)
+        wc = cs.MX.sym('wc_'+name,1)
+        bc = cs.MX.sym('bc_'+name,1)
+        dc = cs.MX.sym('dc_'+name,1)
+        
+        # Model Equations
+        c = ac*logistic(wc*(u-bc))+dc
+
+        
+        y = c
+        
+        input = [u,ac,wc,bc,dc]        
    
+        input_names = [var.name() for var in input]
+        
+        output = [y]
+        output_names = ['y']  
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None
+    
+class e_LPV(Static):
+    """
+    Implementation of a single-layered Feedforward Neural Network.
+    """
+
+    def __init__(self,dim_u,dim_out,u_label,y_label,name,
+                 initial_params=None, frozen_params = [], init_proc='random'):
+        """
+        Initialization procedure of the Feedforward Neural Network Architecture
+        
+        
+        Parameters
+        ----------
+        dim_u : int
+            Dimension of the input, e.g. dim_u = 2 if input is a 2x1 vector
+        dim_out : int
+            Dimension of the output, e.g. dim_out = 3 if output is a 3x1 vector.
+        dim_hidden : int
+            Number of nonlinear neurons in the hidden layer, e.g. dim_hidden=10,
+            if NN is supposed to have 10 neurons in hidden layer.
+        name : str
+            Name of the model, e.g. name = 'InjectionPhaseModel'.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.dim_u = dim_u
+        self.dim_out = dim_out
+        
+        self.u_label = u_label
+        self.y_label = y_label
+        self.name = name
+        
+        self.initial_params = initial_params
+        self.frozen_params = frozen_params
+        self.init_proc = init_proc
+        
+        
+        self.Initialize()
+
+    def Initialize(self):
+        """
+        Defines the parameters of the model as symbolic casadi variables and 
+        the model equation as casadi function. Model parameters are initialized
+        randomly.
+
+        Returns
+        -------
+        None.
+
+        """   
+        dim_u = self.dim_u
+        dim_out = self.dim_out 
+        name = self.name
+    
+        u = cs.MX.sym('u',dim_u,1)
+        
+        ''' logistic version '''
+        # Model Parameters
+        ae = cs.MX.sym('ae_'+name,1)
+        we = cs.MX.sym('we_'+name,1)
+        be = cs.MX.sym('be_'+name,1)
+        de = cs.MX.sym('de_'+name,1)
+
+        # Model Equations
+        e = ae*logistic(we*(u-be))+de
+        
+        y = e
+        
+        input = [u,ae,we,be,de]        
+       
+        input_names = [var.name() for var in input]
+        
+        output = [y]
+        output_names = ['y']  
+        
+        self.Function = cs.Function(name, input, output, input_names,output_names)
+        
+        self.ParameterInitialization()
+        
+        return None    
+
 class Static_Multi_MLP(Static):
     """
     Implementation of a multi-layered Feedforward Neural Network.

@@ -56,8 +56,8 @@ class ParamOptimizer():
         if self.n_pool is None:
             for i in range(0,self.initializations):
                 
-                if i > 0:
-                    self.model.ParameterInitialization()
+                # if i > 0:
+                self.model.ParameterInitialization()
                 
                 res = self.param_est(self.model,self.data_train,self.data_val,
                                      self.p_opts,self.s_opts,self.mode,
@@ -129,17 +129,6 @@ class ParamOptimizer():
 
     def param_est(self,model,data_train,data_val,p_opts,s_opts,mode,
                          constraints):
-              
-        # # Create dictionary of all non-frozen parameters to create Opti Variables of 
-        # OptiParameters = self.model.Parameters.copy()
-        
-        # for frozen_param in self.model.frozen_params:
-        #     OptiParameters.pop(frozen_param)
-            
-        
-        # params_opti = CreateOptimVariables(opti, OptiParameters)   
-        
-        # Evaluate on model on data
         
         # Create Instance of the Optimization Problem
         opti = cs.Opti()
@@ -150,10 +139,11 @@ class ParamOptimizer():
         for frozen_param in model.frozen_params:
             OptiParameters.pop(frozen_param)
         
+        # Create MX symbolic variables for the variables that should be optimized
+        opti_vars = self.__create_opti_vars(opti,OptiParameters)
         
-        opti_vars = self.__create_opti_vars(opti,OptiParameters)  
+
         
-                
         if mode == 'parallel':
             loss_train,_ = model.parallel_mode(data_train,opti_vars)
             loss_val,_ = model.parallel_mode(data_val,opti_vars)
@@ -195,6 +185,15 @@ class ParamOptimizer():
         # Callback
         opti.callback(val_results.callback)
         
+        # print('Constraints reingepfuscht!')
+        # test = {'u':[0,0]}
+        # test.update(opti_vars)
+        # opti.subject_to( model.Function(**test)['y'] == 0 )
+         
+        # test = {'u':[1,0]}
+        # test.update(opti_vars)
+        # opti.subject_to( model.Function(**test)['y'] == 1 )
+        
         # Add constraints to optimization problem
         if constraints is not None:
             opti = self.__add_opti_constraints(opti,opti_vars,constraints) 
@@ -215,7 +214,11 @@ class ParamOptimizer():
         params_val = val_results.params_val
         F_val = val_results.F_val
         
-                
+        #add frozen parameter values to output
+        for frozen_param in model.frozen_params:
+            params[frozen_param] = model.Parameters[frozen_param]
+            params_val[frozen_param] = model.Parameters[frozen_param]
+            
         return params,params_val,float(F_train),float(F_val)        
         
     def __create_opti_vars(self,opti,OptiParameters):
@@ -248,15 +251,15 @@ class ParamOptimizer():
         
         return opti_vars
     
-def __add_opti_constraints(self,opti,params_opti,constraints):
-    
-    for constraint in constraints:
+    def __add_opti_constraints(self,opti,params_opti,constraints):
         
-        expression = "params_opti['"+constraint[0]+"']" + constraint[1]        
-        opti.subject_to(eval(expression))
-
+        for constraint in constraints:
+            
+            expression = "params_opti['"+constraint[0]+"']" + constraint[1]        
+            opti.subject_to(eval(expression))
     
-    return opti
+        
+        return opti
 
 # def ControlInput(ref_trajectories,opti_vars,k):
 #     """
